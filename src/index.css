@@ -214,6 +214,17 @@ input:focus {
   background: var(--white);
 }
 
+/* Hide number input spin buttons */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 .label {
   display: block;
   font-size: 14px;

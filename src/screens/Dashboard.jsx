@@ -1,16 +1,24 @@
 import React from 'react';
 import { useFinance } from '../context/FinanceContext';
+import { useAuth } from '../context/AuthContext';
 import { TrendingUp, TrendingDown, Calendar, AlertCircle, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Dashboard = ({ setActiveTab }) => {
   const { salary, balance, totalExpenses, resteAVivre, daysRemaining, expenses } = useFinance();
+  const { user } = useAuth();
+  
+  const firstName = user?.user_metadata?.full_name?.split(' ')[0] || '';
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' F';
   };
 
   const recentTransactions = expenses.slice(-3).reverse();
+
+  const lastExpense = expenses.length > 0 ? expenses[expenses.length - 1] : null;
+  const daysSinceLastExpense = lastExpense ? Math.floor((new Date() - new Date(lastExpense.date)) / (1000 * 60 * 60 * 24)) : 0;
+  const showReminder = expenses.length === 0 || daysSinceLastExpense >= 2;
 
   return (
     <motion.div 
@@ -20,7 +28,7 @@ const Dashboard = ({ setActiveTab }) => {
     >
       <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: '24px' }}>Bonjour !</h1>
+          <h1 style={{ fontSize: '24px' }}>Bonjour {firstName ? firstName : '!'}</h1>
           <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Voici l'état de vos finances</p>
         </div>
         <button 
@@ -79,15 +87,29 @@ const Dashboard = ({ setActiveTab }) => {
         </div>
       </div>
 
-      {/* Alerts or Tips Section */}
-      <div className="card" style={{ background: 'var(--accent-blue-light)', border: 'none' }}>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <AlertCircle color="var(--accent-blue)" />
-          <p style={{ fontSize: '14px', color: 'var(--navy)', lineHeight: '1.4' }}>
-            <strong>Conseil :</strong> L'augmentation salariale n'est utile que si vos habitudes changent. Commencez par épargner 5% ce mois-ci.
-          </p>
+      {/* Reminder Alert */}
+      {showReminder && (
+        <div className="card fade-in" style={{ background: 'var(--accent-orange-light)', border: 'none', cursor: 'pointer' }} onClick={() => setActiveTab('expenses')}>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <AlertCircle color="var(--accent-orange)" style={{ flexShrink: 0 }} />
+            <p style={{ fontSize: '14px', color: 'var(--navy)', lineHeight: '1.4' }}>
+              <strong>Rappel :</strong> {expenses.length === 0 ? "Vous n'avez pas encore noté de dépense ce mois-ci." : `Vous n'avez rien enregistré depuis ${daysSinceLastExpense} jours.`} N'oubliez pas de le faire pour suivre votre budget !
+            </p>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Tips Section */}
+      {!showReminder && (
+        <div className="card" style={{ background: 'var(--accent-blue-light)', border: 'none' }}>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <AlertCircle color="var(--accent-blue)" style={{ flexShrink: 0 }} />
+            <p style={{ fontSize: '14px', color: 'var(--navy)', lineHeight: '1.4' }}>
+              <strong>Conseil :</strong> L'augmentation salariale n'est utile que si vos habitudes changent. Commencez par épargner 5% ce mois-ci.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Recent Transactions */}
       <div style={{ marginTop: '24px' }}>

@@ -1,16 +1,27 @@
 import React, { useState } from 'react';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './screens/Dashboard';
 import Budget from './screens/Budget';
 import Expenses from './screens/Expenses';
 import Debts from './screens/Debts';
 import Onboarding from './screens/Onboarding';
 import Settings from './screens/Settings';
+import Auth from './screens/Auth';
 import BottomNav from './components/BottomNav';
 
 const AppContent = () => {
   const { onboarded } = useFinance();
+  const { session, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Chargement...</div>;
+  }
+
+  if (!session) {
+    return <Auth />;
+  }
 
   if (!onboarded) {
     return <Onboarding />;
@@ -37,9 +48,11 @@ const AppContent = () => {
 
 function App() {
   return (
-    <FinanceProvider>
-      <AppContent />
-    </FinanceProvider>
+    <AuthProvider>
+      <FinanceProvider>
+        <AppContent />
+      </FinanceProvider>
+    </AuthProvider>
   );
 }
 

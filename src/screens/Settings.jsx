@@ -1,17 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { TrendingUp, Trash2, LogOut, ChevronRight, Calculator, Bell, Shield, Plus } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabaseClient';
+import { TrendingUp, Trash2, LogOut, ChevronRight, Calculator, Bell, Shield, Plus, Camera, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Settings = () => {
-  const { salary, setSalary, setOnboarded } = useFinance();
+  const { salary, setSalary, setOnboarded, startNewPeriod } = useFinance();
+  const { user, signOut, updateProfile } = useAuth();
   const [showSim, setShowSim] = useState(false);
   const [targetSalary, setTargetSalary] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleReset = () => {
-    if (window.confirm('Voulez-vous vraiment réinitialiser toutes vos données ?')) {
+    if (window.confirm('Voulez-vous vraiment réinitialiser toutes vos données locales ?')) {
       localStorage.removeItem('dudukan_data');
       window.location.reload();
+    }
+  };
+
+  const handleAvatarUpload = async (event) => {
+    try {
+      setUploading(true);
+      if (!event.target.files || event.target.files.length === 0) return;
+      
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      await updateProfile({ avatar_url: data.publicUrl });
+      alert('Photo de profil mise à jour !');
+    } catch (error) {
+      alert('Erreur: Assurez-vous d\'avoir créé un bucket "avatars" public sur Supabase. ' + error.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -20,6 +48,7 @@ const Settings = () => {
   };
 
   const diff = targetSalary ? parseFloat(targetSalary) - salary : 0;
+  const avatarUrl = user?.user_metadata?.avatar_url;
 
   return (
     <motion.div 
@@ -28,9 +57,64 @@ const Settings = () => {
       style={{ padding: '24px 20px' }}
     >
       <header style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px' }}>Plus</h1>
-        <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Simulation et paramètres</p>
+        <h1 style={{ fontSize: '24px' }}>Profil</h1>
+        <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Gérez votre compte et vos paramètres</p>
       </header>
+
+      {/* Profile Section */}
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 20px', position: 'relative' }}>
+        <div style={{ position: 'relative', marginBottom: '16px' }}>
+          <div style={{ 
+            width: '100px', 
+            height: '100px', 
+            borderRadius: '50%', 
+            background: 'var(--accent-blue-light)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            overflow: 'hidden',
+            border: '4px solid white',
+            boxShadow: 'var(--shadow-soft)'
+          }}>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Profil" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <User size={40} color="var(--accent-blue)" />
+            )}
+          </div>
+          <button 
+            onClick={() => fileInputRef.current.click()}
+            disabled={uploading}
+            style={{ 
+              position: 'absolute', 
+              bottom: 0, 
+              right: 0, 
+              background: 'var(--navy)', 
+              color: 'white', 
+              border: 'none', 
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '50%', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              cursor: 'pointer',
+              opacity: uploading ? 0.5 : 1
+            }}
+          >
+            <Camera size={16} />
+          </button>
+          <input 
+            type="file" 
+            accept="image/*" 
+            ref={fileInputRef} 
+            style={{ display: 'none' }} 
+            onChange={handleAvatarUpload} 
+          />
+        </div>
+        <h2 style={{ fontSize: '20px', marginBottom: '4px' }}>{user?.user_metadata?.full_name || user?.email}</h2>
+        <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>{user?.user_metadata?.full_name ? user.email : 'Membre Dudukan'}</p>
+      </div>
 
       {/* Simulation Card */}
       <div 
@@ -62,9 +146,11 @@ const Settings = () => {
         
         <div className="card" style={{ padding: '0' }}>
           {[
+            { icon: Plus, label: 'Démarer mon nouveau mois', color: 'var(--accent-orange)', onClick: startNewPeriod },
             { icon: Bell, label: 'Notifications', color: 'var(--accent-blue)', onClick: () => alert('Les notifications sont activées !') },
             { icon: Shield, label: 'Confidentialité', color: 'var(--emerald)', onClick: () => alert('Vos données sont sécurisées localement.') },
-            { icon: Trash2, label: 'Réinitialiser les données', color: 'var(--accent-pink)', onClick: handleReset },
+            { icon: Trash2, label: 'Réinitialiser les données locales', color: 'var(--accent-pink)', onClick: handleReset },
+            { icon: LogOut, label: 'Se déconnecter', color: 'var(--text-light)', onClick: signOut },
           ].map((item, index, arr) => (
             <div 
               key={index}
@@ -80,7 +166,7 @@ const Settings = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <item.icon size={20} color={item.color} />
-                <span style={{ fontWeight: '500' }}>{item.label}</span>
+                <span style={{ fontWeight: '500', color: item.label === 'Se déconnecter' ? 'var(--text-light)' : 'inherit' }}>{item.label}</span>
               </div>
               <ChevronRight size={18} color="#D1D5DB" />
             </div>

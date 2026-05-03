@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { PieChart, Plus, Info, Utensils, Car, Home, CreditCard, PiggyBank, AlertCircle, User, ChevronRight, Check } from 'lucide-react';
+import { PieChart, Plus, Info, Utensils, Car, Home, CreditCard, PiggyBank, AlertCircle, User, ChevronRight, Check, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Budget = () => {
@@ -15,6 +15,12 @@ const Budget = () => {
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' F';
+  };
+
+  const handleDeleteCategory = (id) => {
+    if (window.confirm('Voulez-vous vraiment supprimer cette catégorie ?')) {
+      setCategories(categories.filter(cat => cat.id !== id));
+    }
   };
 
   const handleAddCategory = (e) => {
@@ -116,9 +122,18 @@ const Budget = () => {
                     </p>
                   </div>
                 </div>
-                <span className={`badge ${percent > 90 ? 'badge-pink' : percent > 50 ? 'badge-orange' : 'badge-emerald'}`}>
-                  {percent}%
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className={`badge ${percent > 90 ? 'badge-pink' : percent > 50 ? 'badge-orange' : 'badge-emerald'}`}>
+                    {percent}%
+                  </span>
+                  <button 
+                    onClick={() => handleDeleteCategory(cat.id)}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer', padding: '4px', display: 'flex' }}
+                    title="Supprimer la catégorie"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
               
               <div className="progress-bar-container">
