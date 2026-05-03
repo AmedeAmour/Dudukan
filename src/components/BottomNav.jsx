@@ -15,7 +15,7 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
       {navItems.map((item) => (
         <button
           key={item.id}
-          className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
+          className={`nav-item ${activeTab === item.id ? 'active' : ''} ${item.id === 'expenses' ? 'nav-item-fab' : ''}`}
           onClick={() => setActiveTab(item.id)}
           style={{ background: 'none', border: 'none', cursor: 'pointer' }}
         >
