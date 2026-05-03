@@ -55,7 +55,18 @@ export const FinanceProvider = ({ children }) => {
   };
 
   const updateDebt = (id, payment) => {
+    const debt = debts.find(d => d.id === id);
+    if (!debt || payment <= 0) return;
+
+    // Update the debt remaining balance
     setDebts(debts.map(d => d.id === id ? { ...d, remaining: Math.max(0, d.remaining - payment) } : d));
+
+    // Record the payment as an expense to sync balance and history
+    addExpense({
+      amount: payment,
+      categoryId: 'debt',
+      note: `Remboursement: ${debt.lender}`
+    });
   };
 
   const totalIncome = salary + extraIncome.reduce((acc, curr) => acc + curr.amount, 0);
