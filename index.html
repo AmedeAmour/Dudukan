@@ -7,12 +7,52 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="public/favicon.png">
 </head>
 <body>
     <!-- App Container -->
     <div id="app" class="app-container">
+        <!-- Login Screen -->
+        <main id="screen-login" class="screen active auth-screen">
+            <div class="auth-content">
+                <img src="public/logo.png" alt="Dudukan Logo" class="auth-logo">
+                <h1>Bienvenue sur Dudukan</h1>
+                <p>Votre assistant financier personnel</p>
+                
+                <div class="auth-form mt-4">
+                    <div class="form-group">
+                        <label>Adresse e-mail</label>
+                        <input type="email" placeholder="Entrez votre e-mail" class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label>Mot de passe</label>
+                        <input type="password" placeholder="Entrez votre mot de passe" class="input-field">
+                    </div>
+                    <button class="btn-primary w-full mt-4" onclick="handleLogin()">Se connecter</button>
+                    <button class="btn-text w-full mt-4">Créer un compte</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Setup Salary Screen -->
+        <main id="screen-setup-salary" class="screen auth-screen">
+            <div class="auth-content">
+                <div class="icon-box income mx-auto mb-4" style="width: 80px; height: 80px; font-size: 32px;"><i class="ri-wallet-3-line"></i></div>
+                <h1>Votre Revenu</h1>
+                <p>Pour commencer, entrez votre salaire ou revenu mensuel principal. Dudukan l'utilisera pour configurer votre budget.</p>
+                
+                <div class="auth-form mt-4">
+                    <div class="form-group">
+                        <label>Montant (FCFA)</label>
+                        <input type="number" id="initial-salary" placeholder="Ex: 150000" class="input-field amount-input text-center">
+                    </div>
+                    <button class="btn-primary w-full mt-4" onclick="handleSetupSalary()">Commencer</button>
+                </div>
+            </div>
+        </main>
+
         <!-- Dashboard Screen -->
-        <main id="screen-dashboard" class="screen active">
+        <main id="screen-dashboard" class="screen">
             <!-- Header -->
             <header class="app-header">
                 <div class="user-info">
@@ -216,7 +256,7 @@
         </main>
 
         <!-- Bottom Navigation -->
-        <nav class="bottom-nav">
+        <nav class="bottom-nav" id="main-nav" style="display: none;">
             <button class="nav-item active" onclick="switchTab('dashboard')">
                 <i class="ri-home-5-line"></i>
                 <span>Accueil</span>
