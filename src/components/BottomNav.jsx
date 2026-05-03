@@ -5,7 +5,7 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
   const navItems = [
     { id: 'dashboard', label: 'Accueil', icon: Home },
     { id: 'budget', label: 'Budget', icon: PieChart },
-    { id: 'expenses', label: 'Dépenses', icon: PlusCircle },
+    { id: 'expenses', label: 'Dépenses', icon: Plus },
     { id: 'debts', label: 'Dettes', icon: CreditCard },
     { id: 'settings', label: 'Plus', icon: SettingsIcon },
   ];
