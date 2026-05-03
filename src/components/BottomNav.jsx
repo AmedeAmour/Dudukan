@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, PieChart, PlusCircle, CreditCard, Settings as SettingsIcon } from 'lucide-react';
+import { Home, PieChart, Plus, X, CreditCard, Settings as SettingsIcon } from 'lucide-react';
 
 const BottomNav = ({ activeTab, setActiveTab }) => {
   const navItems = [
@@ -12,17 +12,30 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
 
   return (
     <nav className="bottom-nav">
-      {navItems.map((item) => (
-        <button
-          key={item.id}
-          className={`nav-item ${activeTab === item.id ? 'active' : ''} ${item.id === 'expenses' ? 'nav-item-fab' : ''}`}
-          onClick={() => setActiveTab(item.id)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-        >
-          <item.icon />
-          <span>{item.label}</span>
-        </button>
-      ))}
+      {navItems.map((item) => {
+        const isExpenses = item.id === 'expenses';
+        const Icon = isExpenses 
+          ? (activeTab === 'expenses' ? X : Plus) 
+          : item.icon;
+
+        return (
+          <button
+            key={item.id}
+            className={`nav-item ${activeTab === item.id ? 'active' : ''} ${isExpenses ? 'nav-item-fab' : ''}`}
+            onClick={() => {
+              if (isExpenses && activeTab === 'expenses') {
+                setActiveTab('dashboard');
+              } else {
+                setActiveTab(item.id);
+              }
+            }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            <Icon />
+            <span>{item.label}</span>
+          </button>
+        );
+      })}
     </nav>
   );
 };
