@@ -126,8 +126,8 @@ const Settings = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '24px' }}>Simuler une augmentation</h2>
-                <button onClick={() => setShowSim(false)} style={{ background: '#F3F4F6', border: 'none', padding: '8px', borderRadius: '50%' }}>
-                  <ChevronRight style={{ transform: 'rotate(90deg)' }} size={20} />
+                <button onClick={() => { setShowSim(false); setTargetSalary(''); }} style={{ background: '#F3F4F6', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
+                  <Plus style={{ transform: 'rotate(45deg)' }} size={20} />
                 </button>
               </div>
 
@@ -141,8 +141,9 @@ const Settings = () => {
                 />
               </div>
 
-              {diff > 0 && (
+              {targetSalary && (
                 <div className="fade-in">
+                  {diff > 0 ? (
                   <div className="card" style={{ background: 'var(--emerald-light)', border: 'none', marginBottom: '24px' }}>
                     <p style={{ color: 'var(--emerald)', fontWeight: '600', marginBottom: '4px' }}>Augmentation de {formatCurrency(diff)}</p>
                     <p style={{ fontSize: '13px', color: 'var(--navy)' }}>Voici comment nous vous conseillons de l'utiliser :</p>
@@ -162,6 +163,17 @@ const Settings = () => {
                     ))}
                   </div>
 
+                  ) : diff < 0 ? (
+                    <div className="card" style={{ background: 'var(--accent-pink-light)', border: 'none', marginBottom: '24px' }}>
+                      <p style={{ color: 'var(--accent-pink)', fontWeight: '600', marginBottom: '4px' }}>Attention : Baisse de {formatCurrency(Math.abs(diff))}</p>
+                      <p style={{ fontSize: '13px', color: 'var(--navy)' }}>Veuillez revoir vos priorités pour maintenir votre équilibre financier.</p>
+                    </div>
+                  ) : (
+                    <div className="card" style={{ background: '#F3F4F6', border: 'none', marginBottom: '24px' }}>
+                      <p style={{ color: 'var(--text-light)', fontWeight: '600' }}>Aucun changement par rapport à votre salaire actuel.</p>
+                    </div>
+                  )}
+
                   <div style={{ marginTop: '32px', textAlign: 'center' }}>
                     <p style={{ fontSize: '13px', color: 'var(--text-light)', fontStyle: 'italic' }}>
                       "Une augmentation doit vous aider à avancer, pas seulement à dépenser plus."
@@ -170,7 +182,7 @@ const Settings = () => {
                 </div>
               )}
 
-              <button className="btn-primary" style={{ marginTop: '32px' }} onClick={() => setShowSim(false)}>
+              <button className="btn-primary" style={{ marginTop: '32px' }} onClick={() => { setShowSim(false); setTargetSalary(''); }}>
                 J'ai compris
               </button>
             </motion.div>
