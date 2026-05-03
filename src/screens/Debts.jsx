@@ -112,18 +112,34 @@ const Debts = () => {
               </div>
 
               {debt.remaining > 0 && (
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button 
-                    onClick={() => updateDebt(debt.id, 5000)}
-                    className="btn-secondary" 
-                    style={{ padding: '8px', fontSize: '12px' }}
-                  >
-                    Payer 5 000 F
-                  </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ flex: 1, position: 'relative' }}>
+                      <input 
+                        type="number" 
+                        placeholder="Montant" 
+                        id={`pay-${debt.id}`}
+                        style={{ padding: '8px 12px', fontSize: '14px', height: '38px' }}
+                      />
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const val = document.getElementById(`pay-${debt.id}`).value;
+                        if (val && parseFloat(val) > 0) {
+                          updateDebt(debt.id, parseFloat(val));
+                          document.getElementById(`pay-${debt.id}`).value = '';
+                        }
+                      }}
+                      className="btn-secondary" 
+                      style={{ padding: '0 16px', fontSize: '12px', width: 'auto', height: '38px' }}
+                    >
+                      Payer
+                    </button>
+                  </div>
                   <button 
                     onClick={() => updateDebt(debt.id, debt.remaining)}
                     className="btn-primary" 
-                    style={{ padding: '8px', fontSize: '12px' }}
+                    style={{ padding: '8px', fontSize: '12px', height: '38px' }}
                   >
                     Tout régler
                   </button>
