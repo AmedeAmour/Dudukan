@@ -22,7 +22,7 @@ const Budget = () => {
     if (!newName || !newLimit) return;
 
     const newCat = {
-      id: newName.toLowerCase().replace(/\s+/g, '-'),
+      id: `${newName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
       name: newName,
       icon: newIcon,
       color: newColor,
