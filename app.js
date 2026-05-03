@@ -1,41 +1,40 @@
 // Application State
 let userData = {
     salary: 0,
-    isLoggedIn: false
+    isLoggedIn: false,
+    expenses: [],
+    incomes: [],
+    budget: {
+        alimentation: { spent: 0, total: 0 },
+        transport: { spent: 0, total: 0 },
+        logement: { spent: 0, total: 0 },
+        dettes: { spent: 0, total: 0 },
+        epargne: { spent: 0, total: 0 },
+        imprevus: { spent: 0, total: 0 },
+        personnel: { spent: 0, total: 0 }
+    }
 };
 
 // Screen Navigation
 function switchTab(tabId) {
-    // Only allow switching tabs if logged in and salary is set
     if (!userData.isLoggedIn || userData.salary <= 0) return;
 
-    // Hide all screens
     const screens = document.querySelectorAll('.screen');
-    screens.forEach(screen => {
-        screen.classList.remove('active');
-    });
+    screens.forEach(screen => screen.classList.remove('active'));
 
-    // Remove active class from all nav items
     const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-    navItems.forEach(item => {
-        item.classList.remove('active');
-    });
+    navItems.forEach(item => item.classList.remove('active'));
 
-    // Show target screen
     const targetScreen = document.getElementById('screen-' + tabId);
     if (targetScreen) targetScreen.classList.add('active');
 
-    // Add active class to clicked nav item
     const activeNav = document.querySelector(`.nav-item[onclick="switchTab('${tabId}')"]`);
     if(activeNav) activeNav.classList.add('active');
 }
 
 // Auth Logic
 function handleLogin() {
-    // Basic simulation of login
     userData.isLoggedIn = true;
-    
-    // Hide login screen and show setup salary screen
     document.getElementById('screen-login').classList.remove('active');
     document.getElementById('screen-setup-salary').classList.add('active');
 }
@@ -49,31 +48,75 @@ function handleSetupSalary() {
         return;
     }
 
-    // Save salary
     userData.salary = salaryValue;
     
-    // Update UI with the new salary
-    updateDashboardUI();
+    // Auto-allocate budget (Basic logic)
+    userData.budget.alimentation.total = salaryValue * 0.30;
+    userData.budget.transport.total = salaryValue * 0.15;
+    userData.budget.logement.total = salaryValue * 0.20;
+    userData.budget.dettes.total = salaryValue * 0.15;
+    userData.budget.epargne.total = salaryValue * 0.05;
+    userData.budget.imprevus.total = salaryValue * 0.05;
+    userData.budget.personnel.total = salaryValue * 0.10;
 
-    // Transition to Dashboard
+    updateUI();
+
     document.getElementById('screen-setup-salary').classList.remove('active');
     document.getElementById('screen-dashboard').classList.add('active');
     document.getElementById('main-nav').style.display = 'flex';
 }
 
-function updateDashboardUI() {
-    // Update the balance amount (for this demo, we assume 0 expenses initially)
-    const balanceAmounts = document.querySelectorAll('.balance-amount');
-    balanceAmounts.forEach(el => {
-        // Find the span for FCFA and update the number before it
-        const span = el.querySelector('span');
-        el.innerHTML = `${userData.salary.toLocaleString()} <span>FCFA</span>`;
+function updateUI() {
+    // 1. Dashboard Update
+    const totalExpenses = Object.values(userData.budget).reduce((acc, cat) => acc + cat.spent, 0);
+    const resteAVivre = userData.salary - totalExpenses;
+
+    const balanceAmountEl = document.querySelector('.balance-amount');
+    if (balanceAmountEl) {
+        balanceAmountEl.innerHTML = `${Math.round(resteAVivre).toLocaleString()} <span>FCFA</span>`;
+    }
+
+    const incomeDetailEl = document.querySelector('.balance-detail:first-child h4');
+    if (incomeDetailEl) {
+        incomeDetailEl.innerText = `${userData.salary.toLocaleString()} F`;
+    }
+
+    const expenseDetailEl = document.querySelector('.balance-detail:last-child h4');
+    if (expenseDetailEl) {
+        expenseDetailEl.innerText = `${totalExpenses.toLocaleString()} F`;
+    }
+
+    // 2. Budget Screen Update
+    const usedPercentage = (totalExpenses / userData.salary) * 100;
+    const circleInnerH2 = document.querySelector('.circle-inner h2');
+    if (circleInnerH2) {
+        circleInnerH2.innerText = `${Math.round(usedPercentage)}%`;
+    }
+    
+    // Update category cards (this assumes a specific order in the DOM for this simplified demo)
+    const categoryCards = document.querySelectorAll('#screen-budget .category-card');
+    const categories = ['alimentation', 'transport', 'dettes', 'epargne']; // Match the HTML order
+    
+    categoryCards.forEach((card, index) => {
+        const catKey = categories[index];
+        if (catKey && userData.budget[catKey]) {
+            const cat = userData.budget[catKey];
+            const amountSpan = card.querySelector('.cat-amount');
+            if (amountSpan) {
+                amountSpan.innerText = `${cat.spent.toLocaleString()} / ${cat.total.toLocaleString()} F`;
+            }
+            const progressBar = card.querySelector('.progress');
+            if (progressBar) {
+                const perc = (cat.spent / cat.total) * 100 || 0;
+                progressBar.style.width = `${Math.min(perc, 100)}%`;
+            }
+        }
     });
 
-    // Update income detail
-    const incomeDetail = document.querySelector('.balance-detail h4');
-    if (incomeDetail) {
-        incomeDetail.innerText = `${userData.salary.toLocaleString()} F`;
+    // 3. Simulation Update
+    const currentSalaryInput = document.querySelector('#screen-planning .form-group:first-of-type input');
+    if (currentSalaryInput) {
+        currentSalaryInput.value = userData.salary;
     }
 }
 
@@ -86,14 +129,10 @@ function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('show');
 }
 
-// Close modal when clicking outside of content
 document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', function(e) {
-        if(e.target === this) {
-            this.classList.remove('show');
-        }
+        if(e.target === this) this.classList.remove('show');
     });
 });
 
-// Init
-console.log("Dudukan App Initialized");
+console.log("Duduzan App Initialized");

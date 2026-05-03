@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dudukan - Assistant Financier</title>
+    <title>Duduzan - Assistant Financier</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -16,7 +16,7 @@
         <main id="screen-login" class="screen active auth-screen">
             <div class="auth-content">
                 <img src="public/logo.png" alt="Dudukan Logo" class="auth-logo">
-                <h1>Bienvenue sur Dudukan</h1>
+                <h1>Bienvenue sur Duduzan</h1>
                 <p>Votre assistant financier personnel</p>
                 
                 <div class="auth-form mt-4">
@@ -39,7 +39,7 @@
             <div class="auth-content">
                 <div class="icon-box income mx-auto mb-4" style="width: 80px; height: 80px; font-size: 32px;"><i class="ri-wallet-3-line"></i></div>
                 <h1>Votre Revenu</h1>
-                <p>Pour commencer, entrez votre salaire ou revenu mensuel principal. Dudukan l'utilisera pour configurer votre budget.</p>
+                <p>Pour commencer, entrez votre salaire ou revenu mensuel principal. Duduzan l'utilisera pour configurer votre budget.</p>
                 
                 <div class="auth-form mt-4">
                     <div class="form-group">
@@ -255,6 +255,89 @@
             </section>
         </main>
 
+        <!-- Profile/Settings Screen -->
+        <main id="screen-profile" class="screen">
+            <header class="app-header">
+                <h1>Mon Profil</h1>
+                <button class="btn-icon" onclick="switchTab('settings')"><i class="ri-settings-4-line"></i></button>
+            </header>
+
+            <section class="profile-header text-center mb-4">
+                <img src="https://ui-avatars.com/api/?name=User&background=0D1B2A&color=fff" alt="User" class="avatar" style="width: 100px; height: 100px; margin-bottom: 16px;">
+                <h2 id="profile-name">Utilisateur Duduzan</h2>
+                <p id="profile-email">utilisateur@example.com</p>
+            </section>
+
+            <section class="settings-list">
+                <div class="category-card" onclick="alert('Fonctionnalité à venir : Modifier mon profil')">
+                    <div class="cat-header">
+                        <div class="cat-title">
+                            <div class="cat-icon bg-blue"><i class="ri-user-line"></i></div>
+                            <span>Informations personnelles</span>
+                        </div>
+                        <i class="ri-arrow-right-s-line"></i>
+                    </div>
+                </div>
+                <div class="category-card" onclick="switchTab('planning')">
+                    <div class="cat-header">
+                        <div class="cat-title">
+                            <div class="cat-icon bg-emerald"><i class="ri-pie-chart-line"></i></div>
+                            <span>Ma stratégie financière</span>
+                        </div>
+                        <i class="ri-arrow-right-s-line"></i>
+                    </div>
+                </div>
+                <div class="category-card" onclick="alert('Fonctionnalité à venir : Sécurité')">
+                    <div class="cat-header">
+                        <div class="cat-title">
+                            <div class="cat-icon bg-orange"><i class="ri-lock-line"></i></div>
+                            <span>Sécurité & PIN</span>
+                        </div>
+                        <i class="ri-arrow-right-s-line"></i>
+                    </div>
+                </div>
+            </section>
+
+            <button class="btn-text w-full mt-4" style="color: var(--accent-red);" onclick="location.reload()">Se déconnecter</button>
+        </main>
+
+        <!-- Settings Screen -->
+        <main id="screen-settings" class="screen">
+            <header class="app-header">
+                <button class="btn-icon" onclick="switchTab('profile')"><i class="ri-arrow-left-line"></i></button>
+                <h1>Paramètres</h1>
+                <div style="width: 44px;"></div>
+            </header>
+
+            <section class="settings-group">
+                <h3 class="mb-4">Préférences</h3>
+                <div class="category-card">
+                    <div class="cat-header">
+                        <span>Notifications</span>
+                        <input type="checkbox" checked>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <div class="cat-header">
+                        <span>Mode Sombre</span>
+                        <input type="checkbox">
+                    </div>
+                </div>
+                <div class="category-card">
+                    <div class="cat-header">
+                        <span>Devise</span>
+                        <span>FCFA</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-group mt-4">
+                <h3 class="mb-4">À propos</h3>
+                <p style="font-size: 14px; color: var(--text-secondary);">Duduzan v1.0.0</p>
+                <p style="font-size: 14px; color: var(--text-secondary);">Made with ❤️ for financial freedom.</p>
+            </section>
+        </main>
+
         <!-- Bottom Navigation -->
         <nav class="bottom-nav" id="main-nav" style="display: none;">
             <button class="nav-item active" onclick="switchTab('dashboard')">
@@ -272,7 +355,7 @@
                 <i class="ri-bar-chart-box-line"></i>
                 <span>Avenir</span>
             </button>
-            <button class="nav-item">
+            <button class="nav-item" onclick="switchTab('profile')">
                 <i class="ri-user-3-line"></i>
                 <span>Profil</span>
             </button>
