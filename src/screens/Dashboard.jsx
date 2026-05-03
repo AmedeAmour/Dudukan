@@ -3,7 +3,7 @@ import { useFinance } from '../context/FinanceContext';
 import { TrendingUp, TrendingDown, Calendar, AlertCircle, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const Dashboard = () => {
+const Dashboard = ({ setActiveTab }) => {
   const { salary, balance, totalExpenses, resteAVivre, daysRemaining, expenses } = useFinance();
 
   const formatCurrency = (amount) => {
@@ -23,9 +23,12 @@ const Dashboard = () => {
           <h1 style={{ fontSize: '24px' }}>Bonjour !</h1>
           <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Voici l'état de vos finances</p>
         </div>
-        <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--white)', display: 'flex', alignItems: 'center', justifySelf: 'center', boxShadow: 'var(--shadow-soft)', color: 'var(--navy)' }}>
+        <button 
+          onClick={() => alert(`Aujourd'hui nous sommes le ${new Date().toLocaleDateString('fr-FR')}`)}
+          style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--white)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifySelf: 'center', boxShadow: 'var(--shadow-soft)', color: 'var(--navy)' }}
+        >
           <Calendar size={20} style={{ margin: '0 auto' }} />
-        </div>
+        </button>
       </header>
 
       {/* Main Balance Card */}
@@ -61,7 +64,7 @@ const Dashboard = () => {
       </div>
 
       {/* Reste à vivre daily card */}
-      <div className="card" style={{ borderLeft: '4px solid var(--emerald)' }}>
+      <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <p style={{ color: 'var(--text-light)', fontSize: '13px', marginBottom: '4px' }}>Moyenne conseillée par jour</p>
@@ -90,7 +93,10 @@ const Dashboard = () => {
       <div style={{ marginTop: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h3 style={{ fontSize: '18px' }}>Transactions récentes</h3>
-          <button style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '14px', fontWeight: '500' }}>
+          <button 
+            onClick={() => setActiveTab('expenses')}
+            style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
+          >
             Voir tout
           </button>
         </div>
