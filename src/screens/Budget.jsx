@@ -49,7 +49,6 @@ const Budget = () => {
             Utensils: Utensils,
             Car: Car,
             Home: Home,
-            CalendarDays: CalendarDays,
             CreditCard: CreditCard,
             PiggyBank: PiggyBank,
             AlertCircle: AlertCircle,
