@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { TrendingUp, Trash2, LogOut, ChevronRight, Calculator, Bell, Shield } from 'lucide-react';
+import { TrendingUp, Trash2, LogOut, ChevronRight, Calculator, Bell, Shield, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Settings = () => {
@@ -62,8 +62,8 @@ const Settings = () => {
         
         <div className="card" style={{ padding: '0' }}>
           {[
-            { icon: Bell, label: 'Notifications', color: 'var(--accent-blue)' },
-            { icon: Shield, label: 'Confidentialité', color: 'var(--emerald)' },
+            { icon: Bell, label: 'Notifications', color: 'var(--accent-blue)', onClick: () => alert('Les notifications sont activées !') },
+            { icon: Shield, label: 'Confidentialité', color: 'var(--emerald)', onClick: () => alert('Vos données sont sécurisées localement.') },
             { icon: Trash2, label: 'Réinitialiser les données', color: 'var(--accent-pink)', onClick: handleReset },
           ].map((item, index, arr) => (
             <div 
