@@ -4,7 +4,7 @@ import { PieChart, Plus, Info, Utensils, Car, Home, CreditCard, PiggyBank, Alert
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Budget = () => {
-  const { salary, categories, setCategories, getCategorySpent, getCategoryBudget, formatCurrency } = useFinance();
+  const { salary, categories, setCategories, getCategorySpent, getCategoryBudget, formatCurrency, balance } = useFinance();
   const [showModal, setShowModal] = useState(false);
   
   // Form state
@@ -69,8 +69,8 @@ const Budget = () => {
       <div className="card" style={{ background: 'var(--emerald)', color: 'white', border: 'none' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <p style={{ opacity: 0.9, fontSize: '14px' }}>Budget Total</p>
-            <h2 style={{ color: 'white', fontSize: '28px' }}>{formatCurrency(salary)}</h2>
+            <p style={{ opacity: 0.9, fontSize: '14px' }}>Solde disponible</p>
+            <h2 style={{ color: 'white', fontSize: '28px' }}>{formatCurrency(balance)}</h2>
           </div>
           <PieChart size={40} style={{ opacity: 0.3 }} />
         </div>
