@@ -76,7 +76,7 @@ const Dashboard = ({ setActiveTab }) => {
       </div>
 
       {/* Reste à vivre daily card */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
         <div className="card" style={{ margin: 0 }}>
           <p style={{ color: 'var(--text-light)', fontSize: '12px', marginBottom: '4px' }}>Moyenne / jour</p>
           <h3 style={{ fontSize: '18px' }}>{formatCurrency(resteAVivre)}</h3>
