@@ -32,9 +32,16 @@ export const FinanceProvider = ({ children }) => {
     const saved = localStorage.getItem('dudukan_data');
     if (saved) {
       const data = JSON.parse(saved);
+      const fiftyDaysAgo = new Date();
+      fiftyDaysAgo.setDate(fiftyDaysAgo.getDate() - 50);
+
+      // Cleanup old data
+      const filteredExpenses = (data.expenses || []).filter(e => new Date(e.date) >= fiftyDaysAgo);
+      const filteredIncome = (data.extraIncome || []).filter(i => new Date(i.date) >= fiftyDaysAgo);
+
       setSalary(data.salary || 0);
-      setExtraIncome(data.extraIncome || []);
-      setExpenses(data.expenses || []);
+      setExtraIncome(filteredIncome);
+      setExpenses(filteredExpenses);
       setDebts(data.debts || []);
       setCategories(data.categories || categories);
       setCurrency(data.currency || { locale: 'fr-FR', code: 'XOF' });
@@ -121,6 +128,11 @@ export const FinanceProvider = ({ children }) => {
     }).format(amount);
   };
 
+  const allTransactions = [
+    ...expenses.map(e => ({ ...e, type: 'expense' })),
+    ...extraIncome.map(i => ({ ...i, type: 'income' }))
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
   return (
     <FinanceContext.Provider value={{
       salary, setSalary,
@@ -128,6 +140,7 @@ export const FinanceProvider = ({ children }) => {
       expenses: currentMonthExpenses, addExpense,
       allExpenses: expenses,
       allIncome: extraIncome,
+      allTransactions,
       debts, addDebt, updateDebt,
       categories, setCategories,
       onboarded, setOnboarded,

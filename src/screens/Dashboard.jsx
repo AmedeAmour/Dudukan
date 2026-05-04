@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
-import { TrendingUp, TrendingDown, Calendar, AlertCircle, ArrowUpRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { TrendingUp, TrendingDown, Calendar, AlertCircle, ArrowUpRight, Plus, Minus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Dashboard = ({ setActiveTab }) => {
-  const { salary, balance, totalExpenses, resteAVivre, daysRemaining, expenses, formatCurrency } = useFinance();
+  const { salary, balance, totalExpenses, resteAVivre, daysRemaining, expenses, allTransactions, formatCurrency } = useFinance();
   const { user } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || '';
+  const [showAll, setShowAll] = useState(false);
 
-  const recentTransactions = expenses.slice(-3).reverse();
+  const displayTransactions = showAll ? allTransactions : allTransactions.slice(0, 3);
 
   const lastExpense = expenses.length > 0 ? expenses[expenses.length - 1] : null;
   const daysSinceLastExpense = lastExpense ? Math.floor((new Date() - new Date(lastExpense.date)) / (1000 * 60 * 60 * 24)) : 0;
@@ -109,37 +110,62 @@ const Dashboard = ({ setActiveTab }) => {
       {/* Recent Transactions */}
       <div style={{ marginTop: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '18px' }}>Transactions récentes</h3>
+          <h3 style={{ fontSize: '18px' }}>{showAll ? 'Toutes les transactions (50j)' : 'Transactions récentes'}</h3>
           <button 
-            onClick={() => setActiveTab('expenses')}
+            onClick={() => setShowAll(!showAll)}
             style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
           >
-            Voir tout
+            {showAll ? 'Réduire' : 'Voir tout'}
           </button>
         </div>
 
-        {recentTransactions.length > 0 ? (
-          recentTransactions.map((tx) => (
-            <div key={tx.id} className="card" style={{ marginBottom: '12px', padding: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <TrendingDown size={18} color="var(--text-light)" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <AnimatePresence>
+            {displayTransactions.length > 0 ? (
+              displayTransactions.map((tx) => (
+                <motion.div 
+                  key={tx.id} 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="card" 
+                  style={{ margin: 0, padding: '16px' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ 
+                        width: '40px', 
+                        height: '40px', 
+                        borderRadius: '12px', 
+                        background: tx.type === 'income' ? 'var(--emerald-light)' : '#F3F4F6', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center' 
+                      }}>
+                        {tx.type === 'income' ? (
+                          <TrendingUp size={18} color="var(--emerald)" />
+                        ) : (
+                          <TrendingDown size={18} color="var(--text-light)" />
+                        )}
+                      </div>
+                      <div>
+                        <p style={{ fontWeight: '600', fontSize: '15px' }}>{tx.note || (tx.type === 'income' ? 'Revenu' : 'Dépense')}</p>
+                        <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>{new Date(tx.date).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                    </div>
+                    <p style={{ fontWeight: '700', color: tx.type === 'income' ? 'var(--emerald)' : 'var(--text-main)' }}>
+                      {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                    </p>
                   </div>
-                  <div>
-                    <p style={{ fontWeight: '600', fontSize: '15px' }}>{tx.note || 'Dépense'}</p>
-                    <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>{new Date(tx.date).toLocaleDateString('fr-FR')}</p>
-                  </div>
-                </div>
-                <p style={{ fontWeight: '700', color: 'var(--text-main)' }}>-{formatCurrency(tx.amount)}</p>
+                </motion.div>
+              ))
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-light)' }}>
+                Aucune transaction récente.
               </div>
-            </div>
-          ))
-        ) : (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-light)' }}>
-            Aucune transaction ce mois-ci.
-          </div>
-        )}
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </motion.div>
   );
