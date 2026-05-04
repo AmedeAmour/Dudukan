@@ -15,22 +15,31 @@ export default defineConfig({
         theme_color: '#FFFFFF',
         background_color: '#FFFFFF',
         display: 'standalone',
+        start_url: '/',
+        scope: '/',
+        orientation: 'portrait',
         icons: [
           {
-            src: 'sampa-electro.png?v=3',
+            src: 'sampa-electro.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'sampa-electro.png?v=3',
+            src: 'sampa-electro.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'sampa-android.png?v=3',
+            src: 'sampa-android.png',
             sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: 'sampa-android.png',
+            sizes: '192x192',
             type: 'image/png',
             purpose: 'maskable'
           }
