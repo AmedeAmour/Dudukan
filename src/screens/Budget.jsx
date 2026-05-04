@@ -135,14 +135,21 @@ const Budget = () => {
               <div className="progress-bar-container">
                 <div 
                   className="progress-bar-fill" 
-                  style={{ width: `${percent}%`, background: percent > 90 ? 'var(--accent-pink)' : color }}
+                  style={{ 
+                    width: `${percent}%`, 
+                    background: percent >= 100 ? 'var(--accent-pink)' : percent > 80 ? 'var(--accent-orange)' : color 
+                  }}
                 />
               </div>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
                 <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>Utilisé: {formatCurrency(spent)}</p>
-                <p style={{ fontSize: '12px', fontWeight: '600', color: percent > 90 ? 'var(--accent-pink)' : 'var(--text-main)' }}>
-                  {formatCurrency(Math.max(0, budget - spent))} restants
+                <p style={{ 
+                  fontSize: '12px', 
+                  fontWeight: '600', 
+                  color: spent > budget ? 'var(--accent-pink)' : percent > 80 ? 'var(--accent-orange)' : 'var(--text-main)' 
+                }}>
+                  {formatCurrency(budget - spent)} restants
                 </p>
               </div>
             </div>
