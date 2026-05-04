@@ -4,7 +4,7 @@ import { PieChart, Plus, Info, Utensils, Car, Home, CreditCard, PiggyBank, Alert
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Budget = () => {
-  const { salary, categories, setCategories, getCategorySpent, getCategoryBudget } = useFinance();
+  const { salary, categories, setCategories, getCategorySpent, getCategoryBudget, formatCurrency } = useFinance();
   const [showModal, setShowModal] = useState(false);
   
   // Form state
@@ -12,10 +12,6 @@ const Budget = () => {
   const [newLimit, setNewLimit] = useState('');
   const [newIcon, setNewIcon] = useState('Utensils');
   const [newColor, setNewColor] = useState('--accent-blue');
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-FR').format(amount) + ' F';
-  };
 
   const handleDeleteCategory = (id) => {
     if (window.confirm('Voulez-vous vraiment supprimer cette catégorie ?')) {

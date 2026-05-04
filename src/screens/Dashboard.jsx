@@ -5,14 +5,9 @@ import { TrendingUp, TrendingDown, Calendar, AlertCircle, ArrowUpRight } from 'l
 import { motion } from 'framer-motion';
 
 const Dashboard = ({ setActiveTab }) => {
-  const { salary, balance, totalExpenses, resteAVivre, daysRemaining, expenses } = useFinance();
+  const { salary, balance, totalExpenses, resteAVivre, daysRemaining, expenses, formatCurrency } = useFinance();
   const { user } = useAuth();
-  
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || '';
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-FR').format(amount) + ' F';
-  };
 
   const recentTransactions = expenses.slice(-3).reverse();
 

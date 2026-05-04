@@ -18,6 +18,7 @@ export const FinanceProvider = ({ children }) => {
     { id: 'emergency', name: 'Imprévus', icon: 'AlertCircle', color: '--accent-pink', limit: 0.05 },
     { id: 'personal', name: 'Dépenses personnelles', icon: 'User', color: '--accent-blue', limit: 0.1 },
   ]);
+  const [currency, setCurrency] = useState({ locale: 'fr-FR', code: 'XOF' });
 
   const [onboarded, setOnboarded] = useState(false);
 
@@ -36,6 +37,7 @@ export const FinanceProvider = ({ children }) => {
       setExpenses(data.expenses || []);
       setDebts(data.debts || []);
       setCategories(data.categories || categories);
+      setCurrency(data.currency || { locale: 'fr-FR', code: 'XOF' });
       setOnboarded(data.onboarded || false);
       if (data.periodStart) {
         setPeriodStart(data.periodStart);
@@ -46,9 +48,9 @@ export const FinanceProvider = ({ children }) => {
   // Save to localStorage
   useEffect(() => {
     localStorage.setItem('dudukan_data', JSON.stringify({
-      salary, extraIncome, expenses, debts, categories, onboarded, periodStart
+      salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency
     }));
-  }, [salary, extraIncome, expenses, debts, categories, onboarded, periodStart]);
+  }, [salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency]);
 
   const addExpense = (expense) => {
     setExpenses([...expenses, { ...expense, id: Date.now(), date: new Date().toISOString() }]);
@@ -110,6 +112,15 @@ export const FinanceProvider = ({ children }) => {
   const daysRemaining = daysInMonth - currentDay + 1;
   const resteAVivre = balance > 0 ? Math.round(balance / daysRemaining) : 0;
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat(currency.locale, {
+      style: 'currency',
+      currency: currency.code,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   return (
     <FinanceContext.Provider value={{
       salary, setSalary,
@@ -123,7 +134,8 @@ export const FinanceProvider = ({ children }) => {
       totalIncome, totalExpenses, balance,
       getCategorySpent, getCategoryBudget,
       daysRemaining, resteAVivre,
-      startNewPeriod
+      startNewPeriod,
+      currency, setCurrency, formatCurrency
     }}>
       {children}
     </FinanceContext.Provider>

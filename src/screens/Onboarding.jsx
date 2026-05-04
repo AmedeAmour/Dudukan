@@ -4,9 +4,17 @@ import { Wallet, ArrowRight, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Onboarding = () => {
-  const { setSalary, setOnboarded } = useFinance();
+  const { setSalary, setOnboarded, currency, setCurrency } = useFinance();
   const [step, setStep] = useState(1);
   const [inputValue, setInputValue] = useState('');
+
+  const currencies = [
+    { code: 'XOF', locale: 'fr-FR', name: 'Franc CFA (BCEAO)' },
+    { code: 'EUR', locale: 'fr-FR', name: 'Euro (€)' },
+    { code: 'USD', locale: 'en-US', name: 'Dollar ($)' },
+    { code: 'MAD', locale: 'ar-MA', name: 'Dirham (MAD)' },
+    { code: 'GNF', locale: 'fr-GN', name: 'Franc Guinéen' },
+  ];
 
   const handleStart = () => {
     if (inputValue && parseFloat(inputValue) > 0) {
@@ -69,8 +77,32 @@ const Onboarding = () => {
             Renseignez votre revenu fixe net pour que nous puissions organiser votre budget.
           </p>
 
+          <div style={{ marginBottom: '24px' }}>
+            <label className="label">Votre monnaie</label>
+            <select 
+              value={currency.code}
+              onChange={(e) => {
+                const selected = currencies.find(c => c.code === e.target.value);
+                setCurrency(selected);
+              }}
+              style={{ 
+                width: '100%', 
+                padding: '14px', 
+                borderRadius: '12px', 
+                border: '1.5px solid #E5E7EB',
+                fontSize: '16px',
+                background: 'white',
+                marginBottom: '20px'
+              }}
+            >
+              {currencies.map(c => (
+                <option key={c.code} value={c.code}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
           <div style={{ marginBottom: '40px' }}>
-            <label className="label">Salaire mensuel (F CFA)</label>
+            <label className="label">Salaire mensuel ({currency.code})</label>
             <div style={{ position: 'relative' }}>
               <input 
                 type="number" 
@@ -80,7 +112,7 @@ const Onboarding = () => {
                 style={{ fontSize: '24px', fontWeight: 'bold', padding: '20px', paddingRight: '80px' }}
               />
               <span style={{ position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', fontWeight: 'bold', color: 'var(--navy)' }}>
-                F CFA
+                {currency.code}
               </span>
             </div>
           </div>

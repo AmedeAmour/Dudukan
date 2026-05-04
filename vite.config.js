@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'sampa-electro.png'],
+      includeAssets: ['favicon.svg', 'sampa-electro.png', 'sampa-electro-maskable.png'],
       manifest: {
         name: 'Dudukan',
         short_name: 'Dudukan',
@@ -17,15 +17,22 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: 'sampa-electro.png',
+            src: 'sampa-electro.png?v=3',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
-            src: 'sampa-electro.png',
+            src: 'sampa-electro.png?v=3',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: 'sampa-electro-maskable.png?v=3',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       }

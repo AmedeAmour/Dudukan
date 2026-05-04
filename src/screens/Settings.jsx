@@ -6,12 +6,20 @@ import { TrendingUp, Trash2, LogOut, ChevronRight, Calculator, Bell, Shield, Plu
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Settings = () => {
-  const { salary, setSalary, setOnboarded, startNewPeriod } = useFinance();
+  const { salary, setSalary, setOnboarded, startNewPeriod, currency, setCurrency, formatCurrency } = useFinance();
   const { user, signOut, updateProfile } = useAuth();
   const [showSim, setShowSim] = useState(false);
   const [targetSalary, setTargetSalary] = useState('');
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
+
+  const currencies = [
+    { code: 'XOF', locale: 'fr-FR', name: 'Franc CFA (BCEAO)' },
+    { code: 'EUR', locale: 'fr-FR', name: 'Euro (€)' },
+    { code: 'USD', locale: 'en-US', name: 'Dollar ($)' },
+    { code: 'MAD', locale: 'ar-MA', name: 'Dirham (MAD)' },
+    { code: 'GNF', locale: 'fr-GN', name: 'Franc Guinéen' },
+  ];
 
   const handleReset = () => {
     if (window.confirm('Voulez-vous vraiment réinitialiser toutes vos données locales ?')) {
@@ -41,10 +49,6 @@ const Settings = () => {
     } finally {
       setUploading(false);
     }
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-FR').format(amount) + ' F';
   };
 
   const diff = targetSalary ? parseFloat(targetSalary) - salary : 0;
@@ -142,7 +146,32 @@ const Settings = () => {
       </div>
 
       <div style={{ marginTop: '24px' }}>
-        <h3 style={{ fontSize: '16px', color: 'var(--text-light)', marginBottom: '12px', marginLeft: '4px' }}>PARAMÈTRES</h3>
+        <h3 style={{ fontSize: '16px', color: 'var(--text-light)', marginBottom: '12px', marginLeft: '4px' }}>MONNAIE</h3>
+        <div className="card" style={{ padding: '20px' }}>
+          <select 
+            value={currency.code}
+            onChange={(e) => {
+              const selected = currencies.find(c => c.code === e.target.value);
+              setCurrency(selected);
+            }}
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              borderRadius: '12px', 
+              border: '1.5px solid #F3F4F6',
+              fontSize: '15px',
+              background: 'var(--bg-main)',
+              color: 'var(--text-main)',
+              fontWeight: '500'
+            }}
+          >
+            {currencies.map(c => (
+              <option key={c.code} value={c.code}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <h3 style={{ fontSize: '16px', color: 'var(--text-light)', marginBottom: '12px', marginTop: '24px', marginLeft: '4px' }}>PARAMÈTRES</h3>
         
         <div className="card" style={{ padding: '0' }}>
           {[
@@ -218,7 +247,7 @@ const Settings = () => {
               </div>
 
               <div style={{ marginBottom: '24px' }}>
-                <label className="label">Nouveau salaire espéré (F CFA)</label>
+                <label className="label">Nouveau salaire espéré ({currency.code})</label>
                 <input 
                   type="number" 
                   placeholder="Ex: 200 000" 

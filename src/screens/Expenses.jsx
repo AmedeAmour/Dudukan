@@ -4,7 +4,7 @@ import { PlusCircle, MinusCircle, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Expenses = () => {
-  const { categories, addExpense, addIncome } = useFinance();
+  const { categories, addExpense, addIncome, currency } = useFinance();
   const [type, setType] = useState('expense'); // 'expense' or 'income'
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('food');
@@ -82,7 +82,7 @@ const Expenses = () => {
       <div className="card">
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '20px' }}>
-            <label className="label">Montant (F CFA)</label>
+            <label className="label">Montant ({currency.code})</label>
             <input 
               type="number" 
               placeholder="0" 

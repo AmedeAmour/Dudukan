@@ -4,7 +4,7 @@ import { CreditCard, Plus, User, Calendar, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Debts = () => {
-  const { debts, addDebt, updateDebt } = useFinance();
+  const { debts, addDebt, updateDebt, currency, formatCurrency } = useFinance();
   const [showAdd, setShowAdd] = useState(false);
   const [newDebt, setNewDebt] = useState({ lender: '', amount: '', dueDate: '' });
 
@@ -15,10 +15,6 @@ const Debts = () => {
       setNewDebt({ lender: '', amount: '', dueDate: '' });
       setShowAdd(false);
     }
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-FR').format(amount) + ' F';
   };
 
   const totalDebt = debts.reduce((acc, curr) => acc + curr.remaining, 0);
@@ -62,7 +58,7 @@ const Debts = () => {
               />
             </div>
             <div style={{ marginBottom: '12px' }}>
-              <label className="label">Montant (F CFA)</label>
+              <label className="label">Montant ({currency.code})</label>
               <input 
                 type="number" 
                 placeholder="0" 
