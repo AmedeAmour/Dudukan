@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
-import { TrendingUp, TrendingDown, Calendar, AlertCircle, ArrowUpRight, Plus, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar, AlertCircle, ArrowUpRight, Plus, Minus, Settings as SettingsIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Dashboard = ({ setActiveTab }) => {
-  const { salary, balance, totalExpenses, resteAVivre, daysRemaining, expenses, allTransactions, formatCurrency } = useFinance();
+  const { salary, balance, totalExpenses, resteAVivre, daysRemaining, expenses, allTransactions, formatCurrency, savings } = useFinance();
   const { user } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || '';
   const [showAll, setShowAll] = useState(false);
@@ -27,12 +27,20 @@ const Dashboard = ({ setActiveTab }) => {
           <h1 style={{ fontSize: '24px' }}>Bonjour {firstName ? firstName : '!'}</h1>
           <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Voici l'état de vos finances</p>
         </div>
-        <button 
-          onClick={() => alert(`Aujourd'hui nous sommes le ${new Date().toLocaleDateString('fr-FR')}`)}
-          style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--white)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifySelf: 'center', boxShadow: 'var(--shadow-soft)', color: 'var(--navy)' }}
-        >
-          <Calendar size={20} style={{ margin: '0 auto' }} />
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            onClick={() => setActiveTab('settings')}
+            style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--white)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifySelf: 'center', boxShadow: 'var(--shadow-soft)', color: 'var(--text-light)' }}
+          >
+            <SettingsIcon size={20} style={{ margin: '0 auto' }} />
+          </button>
+          <button 
+            onClick={() => alert(`Aujourd'hui nous sommes le ${new Date().toLocaleDateString('fr-FR')}`)}
+            style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--white)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifySelf: 'center', boxShadow: 'var(--shadow-soft)', color: 'var(--navy)' }}
+          >
+            <Calendar size={20} style={{ margin: '0 auto' }} />
+          </button>
+        </div>
       </header>
 
       {/* Main Balance Card */}
@@ -68,17 +76,22 @@ const Dashboard = ({ setActiveTab }) => {
       </div>
 
       {/* Reste à vivre daily card */}
-      <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <p style={{ color: 'var(--text-light)', fontSize: '13px', marginBottom: '4px' }}>Moyenne conseillée par jour</p>
-            <h3 style={{ fontSize: '20px' }}>{formatCurrency(resteAVivre)} / jour</h3>
-            <p style={{ color: 'var(--text-light)', fontSize: '12px', marginTop: '4px' }}>
-              Il vous reste <span style={{ color: 'var(--navy)', fontWeight: '600' }}>{daysRemaining} jours</span> avant la fin du mois.
-            </p>
-          </div>
-          <div style={{ background: 'var(--emerald-light)', color: 'var(--emerald)', padding: '12px', borderRadius: '16px' }}>
-            <TrendingUp size={24} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className="card" style={{ margin: 0 }}>
+          <p style={{ color: 'var(--text-light)', fontSize: '12px', marginBottom: '4px' }}>Moyenne / jour</p>
+          <h3 style={{ fontSize: '18px' }}>{formatCurrency(resteAVivre)}</h3>
+          <p style={{ color: 'var(--text-light)', fontSize: '11px', marginTop: '4px' }}>{daysRemaining}j restants</p>
+        </div>
+        <div 
+          className="card" 
+          style={{ margin: 0, background: 'var(--emerald-light)', cursor: 'pointer' }}
+          onClick={() => setActiveTab('savings')}
+        >
+          <p style={{ color: 'var(--emerald)', fontSize: '12px', marginBottom: '4px' }}>Épargne totale</p>
+          <h3 style={{ fontSize: '18px', color: 'var(--navy)' }}>{formatCurrency(savings)}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+            <TrendingUp size={10} color="var(--emerald)" />
+            <span style={{ fontSize: '11px', color: 'var(--emerald)', fontWeight: '600' }}>En hausse</span>
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import Dashboard from './screens/Dashboard';
 import Budget from './screens/Budget';
 import Expenses from './screens/Expenses';
 import Debts from './screens/Debts';
+import Savings from './screens/Savings';
 import Onboarding from './screens/Onboarding';
 import Settings from './screens/Settings';
 import Auth from './screens/Auth';
@@ -33,6 +34,7 @@ const AppContent = () => {
       case 'budget': return <Budget />;
       case 'expenses': return <Expenses />;
       case 'debts': return <Debts />;
+      case 'savings': return <Savings />;
       case 'settings': return <Settings />;
       default: return <Dashboard />;
     }

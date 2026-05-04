@@ -19,6 +19,7 @@ export const FinanceProvider = ({ children }) => {
     { id: 'personal', name: 'Dépenses personnelles', icon: 'User', color: '--accent-blue', limit: 0.1 },
   ]);
   const [currency, setCurrency] = useState({ locale: 'fr-FR', code: 'XOF' });
+  const [savings, setSavings] = useState(0);
 
   const [onboarded, setOnboarded] = useState(false);
 
@@ -45,6 +46,7 @@ export const FinanceProvider = ({ children }) => {
       setDebts(data.debts || []);
       setCategories(data.categories || categories);
       setCurrency(data.currency || { locale: 'fr-FR', code: 'XOF' });
+      setSavings(data.savings || 0);
       setOnboarded(data.onboarded || false);
       if (data.periodStart) {
         setPeriodStart(data.periodStart);
@@ -55,9 +57,9 @@ export const FinanceProvider = ({ children }) => {
   // Save to localStorage
   useEffect(() => {
     localStorage.setItem('dudukan_data', JSON.stringify({
-      salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency
+      salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings
     }));
-  }, [salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency]);
+  }, [salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings]);
 
   const addExpense = (expense) => {
     setExpenses([...expenses, { ...expense, id: Date.now(), date: new Date().toISOString() }]);
@@ -69,6 +71,17 @@ export const FinanceProvider = ({ children }) => {
 
   const addDebt = (debt) => {
     setDebts([...debts, { ...debt, id: Date.now(), remaining: debt.amount }]);
+  };
+
+  const addToSavings = (amount, note = '') => {
+    setSavings(prev => prev + amount);
+    if (note) {
+      addExpense({
+        amount,
+        categoryId: 'savings',
+        note: `Épargne : ${note}`
+      });
+    }
   };
 
   const updateDebt = (id, payment) => {
@@ -148,7 +161,8 @@ export const FinanceProvider = ({ children }) => {
       getCategorySpent, getCategoryBudget,
       daysRemaining, resteAVivre,
       startNewPeriod,
-      currency, setCurrency, formatCurrency
+      currency, setCurrency, formatCurrency,
+      savings, setSavings, addToSavings
     }}>
       {children}
     </FinanceContext.Provider>

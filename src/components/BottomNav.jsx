@@ -1,13 +1,13 @@
 import React from 'react';
-import { Home, PieChart, Plus, X, CreditCard, Settings as SettingsIcon } from 'lucide-react';
+import { Home, PieChart, Plus, X, CreditCard, Settings as SettingsIcon, PiggyBank } from 'lucide-react';
 
 const BottomNav = ({ activeTab, setActiveTab }) => {
   const navItems = [
     { id: 'dashboard', label: 'Accueil', icon: Home },
     { id: 'budget', label: 'Budget', icon: PieChart },
     { id: 'expenses', label: 'Dépenses', icon: Plus },
+    { id: 'savings', label: 'Épargne', icon: PiggyBank },
     { id: 'debts', label: 'Dettes', icon: CreditCard },
-    { id: 'settings', label: 'Plus', icon: SettingsIcon },
   ];
 
   return (
