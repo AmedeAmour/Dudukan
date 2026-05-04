@@ -104,6 +104,10 @@ const Budget = () => {
           };
           const IconComponent = iconMap[cat.icon] || Info;
 
+          const isInvestmentCat = cat.id === 'debt' || cat.id === 'savings';
+          const remaining = budget - spent;
+          const isOver = spent > budget;
+          
           return (
             <div key={cat.id} className="card" style={{ marginBottom: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
@@ -119,7 +123,7 @@ const Budget = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className={`badge ${percent > 90 ? 'badge-pink' : percent > 50 ? 'badge-orange' : 'badge-emerald'}`}>
+                  <span className={`badge ${percent >= 100 ? (isInvestmentCat ? 'badge-emerald' : 'badge-pink') : percent > 50 ? 'badge-orange' : 'badge-emerald'}`}>
                     {percent}%
                   </span>
                   <button 
@@ -137,7 +141,7 @@ const Budget = () => {
                   className="progress-bar-fill" 
                   style={{ 
                     width: `${percent}%`, 
-                    background: percent >= 100 ? 'var(--accent-pink)' : percent > 80 ? 'var(--accent-orange)' : color 
+                    background: percent >= 100 ? (isInvestmentCat ? 'var(--emerald)' : 'var(--accent-pink)') : percent > 80 ? 'var(--accent-orange)' : color 
                   }}
                 />
               </div>
@@ -147,9 +151,9 @@ const Budget = () => {
                 <p style={{ 
                   fontSize: '12px', 
                   fontWeight: '600', 
-                  color: spent > budget ? 'var(--accent-pink)' : percent > 80 ? 'var(--accent-orange)' : 'var(--text-main)' 
+                  color: isOver ? (isInvestmentCat ? 'var(--emerald)' : 'var(--accent-pink)') : percent > 80 ? 'var(--accent-orange)' : 'var(--text-main)' 
                 }}>
-                  {formatCurrency(budget - spent)} restants
+                  {isOver && isInvestmentCat ? `+${formatCurrency(Math.abs(remaining))}` : formatCurrency(remaining)} restants
                 </p>
               </div>
             </div>

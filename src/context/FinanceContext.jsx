@@ -61,19 +61,40 @@ export const FinanceProvider = ({ children }) => {
     }));
   }, [salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings]);
 
-  const addExpense = (expense) => {
-    setExpenses([...expenses, { ...expense, id: Date.now(), date: new Date().toISOString() }]);
+  const addExpense = (expense, skipDebtUpdate = false) => {
+    const amount = parseFloat(expense.amount);
+    if (isNaN(amount)) return;
+
+    setExpenses(prev => [...prev, { ...expense, amount, id: Date.now(), date: new Date().toISOString() }]);
+    
     if (expense.categoryId === 'savings') {
-      setSavings(prev => prev + parseFloat(expense.amount));
+      setSavings(prev => prev + amount);
+    }
+
+    // Identifie si c'est une catégorie de dette (par ID ou par nom)
+    const category = categories.find(c => c.id === expense.categoryId);
+    const isDebt = expense.categoryId === 'debt' || category?.name === 'Dettes';
+
+    if (isDebt && !skipDebtUpdate) {
+      setDebts(prevDebts => {
+        let remainingToPay = amount;
+        return prevDebts.map(debt => {
+          if (remainingToPay <= 0 || debt.remaining <= 0) return debt;
+          const pay = Math.min(debt.remaining, remainingToPay);
+          remainingToPay -= pay;
+          return { ...debt, remaining: debt.remaining - pay };
+        });
+      });
     }
   };
 
   const addIncome = (income) => {
-    setExtraIncome([...extraIncome, { ...income, id: Date.now(), date: new Date().toISOString() }]);
+    const amount = parseFloat(income.amount);
+    setExtraIncome(prev => [...prev, { ...income, amount, id: Date.now(), date: new Date().toISOString() }]);
   };
 
   const addDebt = (debt) => {
-    setDebts([...debts, { ...debt, id: Date.now(), remaining: debt.amount }]);
+    setDebts(prev => [...prev, { ...debt, id: Date.now(), remaining: parseFloat(debt.amount) }]);
   };
 
   const addToSavings = (amount, note = '') => {
@@ -88,13 +109,13 @@ export const FinanceProvider = ({ children }) => {
     const debt = debts.find(d => d.id === id);
     if (!debt || payment <= 0) return;
 
-    setDebts(debts.map(d => d.id === id ? { ...d, remaining: Math.max(0, d.remaining - payment) } : d));
+    setDebts(prevDebts => prevDebts.map(d => d.id === id ? { ...d, remaining: Math.max(0, d.remaining - payment) } : d));
 
     addExpense({
       amount: payment,
       categoryId: 'debt',
       note: `Remboursement: ${debt.lender}`
-    });
+    }, true);
   };
 
   const startNewPeriod = () => {

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -11,7 +11,26 @@ const Settings = () => {
   const [showSim, setShowSim] = useState(false);
   const [targetSalary, setTargetSalary] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState(user?.user_metadata?.full_name || '');
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (user?.user_metadata?.full_name) {
+      setNewName(user.user_metadata.full_name);
+    }
+  }, [user]);
+
+  const handleUpdateName = async () => {
+    if (!newName.trim()) return;
+    const { error } = await updateProfile({ full_name: newName });
+    if (!error) {
+      setIsEditingName(false);
+      alert('Nom mis à jour !');
+    } else {
+      alert('Erreur: ' + error.message);
+    }
+  };
 
   const currencies = [
     { code: 'XOF', locale: 'fr-FR', name: 'Franc CFA (BCEAO)' },
@@ -116,8 +135,41 @@ const Settings = () => {
             onChange={handleAvatarUpload} 
           />
         </div>
-        <h2 style={{ fontSize: '20px', marginBottom: '4px' }}>{user?.user_metadata?.full_name || user?.email}</h2>
-        <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>{user?.user_metadata?.full_name ? user.email : 'Membre Dudukan'}</p>
+
+        {isEditingName ? (
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <input 
+              type="text" 
+              value={newName} 
+              onChange={(e) => setNewName(e.target.value)}
+              style={{ textAlign: 'center', fontSize: '18px', padding: '8px', borderRadius: '8px', border: '1px solid #E5E7EB', width: '80%' }}
+              placeholder="Votre nom complet"
+              autoFocus
+            />
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                onClick={() => { setIsEditingName(false); setNewName(user?.user_metadata?.full_name || ''); }}
+                style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #E5E7EB', background: 'white', fontSize: '14px' }}
+              >
+                Annuler
+              </button>
+              <button 
+                onClick={handleUpdateName}
+                style={{ padding: '6px 12px', borderRadius: '8px', border: 'none', background: 'var(--navy)', color: 'white', fontSize: '14px' }}
+              >
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => setIsEditingName(true)}>
+            <h2 style={{ fontSize: '20px', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              {user?.user_metadata?.full_name || user?.email}
+              <User size={14} color="var(--text-light)" />
+            </h2>
+            <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>{user?.user_metadata?.full_name ? user.email : 'Cliquez pour modifier le nom'}</p>
+          </div>
+        )}
       </div>
 
       {/* Simulation Card */}
