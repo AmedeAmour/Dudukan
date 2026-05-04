@@ -12,8 +12,8 @@ export default defineConfig({
         name: 'Dudukan',
         short_name: 'Dudukan',
         description: 'L\'assistant intelligent qui vous aide à mieux gérer votre salaire.',
-        theme_color: '#1A2B48',
-        background_color: '#F8F9FA',
+        theme_color: '#FFFFFF',
+        background_color: '#FFFFFF',
         display: 'standalone',
         icons: [
           {
