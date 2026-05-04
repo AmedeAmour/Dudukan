@@ -63,6 +63,9 @@ export const FinanceProvider = ({ children }) => {
 
   const addExpense = (expense) => {
     setExpenses([...expenses, { ...expense, id: Date.now(), date: new Date().toISOString() }]);
+    if (expense.categoryId === 'savings') {
+      setSavings(prev => prev + parseFloat(expense.amount));
+    }
   };
 
   const addIncome = (income) => {
@@ -74,14 +77,11 @@ export const FinanceProvider = ({ children }) => {
   };
 
   const addToSavings = (amount, note = '') => {
-    setSavings(prev => prev + amount);
-    if (note) {
-      addExpense({
-        amount,
-        categoryId: 'savings',
-        note: `Épargne : ${note}`
-      });
-    }
+    addExpense({
+      amount,
+      categoryId: 'savings',
+      note: note || 'Épargne'
+    });
   };
 
   const updateDebt = (id, payment) => {
