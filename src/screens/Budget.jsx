@@ -51,7 +51,7 @@ const Budget = () => {
     { name: 'Bleu', value: '--accent-blue' },
     { name: 'Vert', value: '--emerald' },
     { name: 'Orange', value: '--accent-orange' },
-    { name: 'Rose', value: '--accent-pink' },
+    { name: 'Rouge', value: '--accent-red' },
     { name: 'Navy', value: '--navy' }
   ];
 
@@ -123,7 +123,7 @@ const Budget = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className={`badge ${percent >= 100 ? (isInvestmentCat ? 'badge-emerald' : 'badge-pink') : percent > 50 ? 'badge-orange' : 'badge-emerald'}`}>
+                  <span className={`badge ${percent >= 100 ? (isInvestmentCat ? 'badge-emerald' : 'badge-red') : percent > 50 ? 'badge-orange' : 'badge-emerald'}`}>
                     {percent}%
                   </span>
                   <button 
@@ -141,7 +141,7 @@ const Budget = () => {
                   className="progress-bar-fill" 
                   style={{ 
                     width: `${percent}%`, 
-                    background: percent >= 100 ? (isInvestmentCat ? 'var(--emerald)' : 'var(--accent-pink)') : percent > 80 ? 'var(--accent-orange)' : color 
+                    background: percent >= 100 ? (isInvestmentCat ? 'var(--emerald)' : 'var(--accent-red)') : percent > 80 ? 'var(--accent-orange)' : color 
                   }}
                 />
               </div>
@@ -151,7 +151,7 @@ const Budget = () => {
                 <p style={{ 
                   fontSize: '12px', 
                   fontWeight: '600', 
-                  color: isOver ? (isInvestmentCat ? 'var(--emerald)' : 'var(--accent-pink)') : percent > 80 ? 'var(--accent-orange)' : 'var(--text-main)' 
+                  color: isOver ? (isInvestmentCat ? 'var(--emerald)' : 'var(--accent-red)') : percent > 80 ? 'var(--accent-orange)' : 'var(--text-main)' 
                 }}>
                   {isOver && isInvestmentCat ? `+${formatCurrency(Math.abs(remaining))}` : formatCurrency(remaining)} restants
                 </p>

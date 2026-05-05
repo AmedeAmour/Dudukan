@@ -13,9 +13,9 @@ export const FinanceProvider = ({ children }) => {
     { id: 'food', name: 'Alimentation', icon: 'Utensils', color: '--accent-orange', limit: 0.3 },
     { id: 'transport', name: 'Transport', icon: 'Car', color: '--accent-blue', limit: 0.15 },
     { id: 'housing', name: 'Logement', icon: 'Home', color: '--navy', limit: 0.2 },
-    { id: 'debt', name: 'Dettes', icon: 'CreditCard', color: '--accent-pink', limit: 0.15 },
+    { id: 'debt', name: 'Dettes', icon: 'CreditCard', color: '--accent-red', limit: 0.15 },
     { id: 'savings', name: 'Épargne', icon: 'PiggyBank', color: '--emerald', limit: 0.05 },
-    { id: 'emergency', name: 'Imprévus', icon: 'AlertCircle', color: '--accent-pink', limit: 0.05 },
+    { id: 'emergency', name: 'Imprévus', icon: 'AlertCircle', color: '--accent-red', limit: 0.05 },
     { id: 'personal', name: 'Dépenses personnelles', icon: 'User', color: '--accent-blue', limit: 0.1 },
   ]);
   const [currency, setCurrency] = useState({ locale: 'fr-FR', code: 'XOF' });

@@ -38,7 +38,7 @@ const Debts = () => {
         </button>
       </header>
 
-      <div className="card" style={{ background: 'var(--accent-pink)', color: 'white', border: 'none' }}>
+      <div className="card" style={{ background: 'var(--accent-red)', color: 'white', border: 'none' }}>
         <p style={{ opacity: 0.9, fontSize: '14px' }}>Total des dettes</p>
         <h2 style={{ color: 'white', fontSize: '28px' }}>{formatCurrency(totalDebt)}</h2>
       </div>
@@ -90,7 +90,7 @@ const Debts = () => {
             <div key={debt.id} className="card" style={{ opacity: debt.remaining === 0 ? 0.6 : 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-pink-light)', color: 'var(--accent-pink)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-red-light)', color: 'var(--accent-red)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <User size={20} />
                   </div>
                   <div>

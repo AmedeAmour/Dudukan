@@ -13,6 +13,8 @@
   --accent-orange-light: #FEF3C7;
   --accent-pink: #EC4899;
   --accent-pink-light: #FCE7F3;
+  --accent-red: #EF4444;
+  --accent-red-light: #FEE2E2;
   --text-main: #1F2937;
   --text-light: #6B7280;
   --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
@@ -106,6 +108,7 @@ h1, h2, h3, h4, .font-outfit {
 .badge-blue { background: var(--accent-blue-light); color: var(--accent-blue); }
 .badge-orange { background: var(--accent-orange-light); color: var(--accent-orange); }
 .badge-pink { background: var(--accent-pink-light); color: var(--accent-pink); }
+.badge-red { background: var(--accent-red-light); color: var(--accent-red); }
 
 .progress-bar-container {
   height: 6px;
