@@ -1,26 +1,39 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { PiggyBank, Plus, TrendingUp, History, ShieldCheck, Target } from 'lucide-react';
+import { PiggyBank, Plus, Minus, TrendingUp, TrendingDown, History, ShieldCheck, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Savings = () => {
-  const { savings, addToSavings, formatCurrency, allExpenses } = useFinance();
-  const [showAdd, setShowAdd] = useState(false);
+  const { savings, addToSavings, withdrawFromSavings, formatCurrency, allExpenses, allIncome } = useFinance();
+  const [showForm, setShowForm] = useState(false);
+  const [mode, setMode] = useState('deposit'); // 'deposit' or 'withdraw'
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
 
-  const handleAdd = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (amount && parseFloat(amount) > 0) {
-      addToSavings(parseFloat(amount), note);
+    const val = parseFloat(amount);
+    if (val && val > 0) {
+      if (mode === 'deposit') {
+        addToSavings(val, note);
+      } else {
+        withdrawFromSavings(val, note);
+      }
       setAmount('');
       setNote('');
-      setShowAdd(false);
+      setShowForm(false);
     }
   };
 
-  const savingsHistory = allExpenses
+  const depositHistory = allExpenses
     .filter(e => e.categoryId === 'savings')
+    .map(e => ({ ...e, type: 'deposit' }));
+
+  const withdrawalHistory = allIncome
+    .filter(i => i.note?.includes('Retrait épargne') || i.note?.toLowerCase().includes('retrait'))
+    .map(i => ({ ...i, type: 'withdraw' }));
+
+  const savingsHistory = [...depositHistory, ...withdrawalHistory]
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
@@ -34,12 +47,20 @@ const Savings = () => {
           <h1 style={{ fontSize: '24px' }}>Mon Épargne</h1>
           <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Suivez vos économies en temps réel</p>
         </div>
-        <button 
-          onClick={() => setShowAdd(!showAdd)}
-          style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--emerald)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <Plus size={20} />
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            onClick={() => { setMode('withdraw'); setShowForm(true); }}
+            style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-pink)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Minus size={20} />
+          </button>
+          <button 
+            onClick={() => { setMode('deposit'); setShowForm(true); }}
+            style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--emerald)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Plus size={20} />
+          </button>
+        </div>
       </header>
 
       {/* Savings Total Card */}
@@ -65,41 +86,52 @@ const Savings = () => {
         />
       </div>
 
-      {showAdd && (
-        <motion.div 
-          initial={{ opacity: 0, height: 0 }} 
-          animate={{ opacity: 1, height: 'auto' }} 
-          className="card" 
-          style={{ marginTop: '20px' }}
-        >
-          <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>Alimenter mon épargne</h3>
-          <form onSubmit={handleAdd}>
-            <div style={{ marginBottom: '16px' }}>
-              <label className="label">Montant à mettre de côté</label>
-              <input 
-                type="number" 
-                placeholder="Ex: 5000" 
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-              />
-            </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label className="label">Motif (Optionnel)</label>
-              <input 
-                type="text" 
-                placeholder="Ex: Économies mois d'Avril" 
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setShowAdd(false)}>Annuler</button>
-              <button type="submit" className="btn-primary" style={{ background: 'var(--emerald)' }}>Confirmer</button>
-            </div>
-          </form>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -20 }}
+            className="card" 
+            style={{ marginTop: '20px', border: `1px solid ${mode === 'deposit' ? 'var(--emerald)' : 'var(--accent-pink)'}` }}
+          >
+            <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>
+              {mode === 'deposit' ? 'Alimenter mon épargne' : 'Retirer de mon épargne'}
+            </h3>
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: '16px' }}>
+                <label className="label">Montant</label>
+                <input 
+                  type="number" 
+                  placeholder="Ex: 5000" 
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  required
+                />
+              </div>
+              <div style={{ marginBottom: '20px' }}>
+                <label className="label">Motif (Optionnel)</label>
+                <input 
+                  type="text" 
+                  placeholder={mode === 'deposit' ? "Ex: Économies mois d'Avril" : "Ex: Urgence médicale"} 
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button 
+                  type="submit" 
+                  className="btn-primary" 
+                  style={{ background: mode === 'deposit' ? 'var(--emerald)' : 'var(--accent-pink)' }}
+                >
+                  {mode === 'deposit' ? 'Confirmer le dépôt' : 'Confirmer le retrait'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Savings Tips */}
       <div className="card" style={{ marginTop: '24px', background: 'var(--accent-blue-light)', border: 'none' }}>
@@ -127,15 +159,32 @@ const Savings = () => {
               <div key={item.id} className="card" style={{ margin: 0, padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--emerald-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <TrendingUp size={18} color="var(--emerald)" />
+                    <div style={{ 
+                      width: '40px', 
+                      height: '40px', 
+                      borderRadius: '12px', 
+                      background: item.type === 'deposit' ? 'var(--emerald-light)' : 'var(--accent-pink-light)', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center' 
+                    }}>
+                      {item.type === 'deposit' ? (
+                        <TrendingUp size={18} color="var(--emerald)" />
+                      ) : (
+                        <TrendingDown size={18} color="var(--accent-pink)" />
+                      )}
                     </div>
                     <div>
-                      <p style={{ fontWeight: '600', fontSize: '15px' }}>{item.note || 'Épargne'}</p>
+                      <p style={{ fontWeight: '600', fontSize: '15px' }}>{item.note || (item.type === 'deposit' ? 'Épargne' : 'Retrait')}</p>
                       <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>{new Date(item.date).toLocaleDateString('fr-FR')}</p>
                     </div>
                   </div>
-                  <p style={{ fontWeight: '700', color: 'var(--emerald)' }}>+{formatCurrency(item.amount)}</p>
+                  <p style={{ 
+                    fontWeight: '700', 
+                    color: item.type === 'deposit' ? 'var(--emerald)' : 'var(--accent-pink)' 
+                  }}>
+                    {item.type === 'deposit' ? '+' : '-'}{formatCurrency(item.amount)}
+                  </p>
                 </div>
               </div>
             ))}
@@ -146,7 +195,6 @@ const Savings = () => {
           </div>
         )}
       </div>
-    </motion.div>
   );
 };
 

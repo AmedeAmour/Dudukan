@@ -105,6 +105,24 @@ export const FinanceProvider = ({ children }) => {
     });
   };
 
+  const withdrawFromSavings = (amount, note = '') => {
+    const val = parseFloat(amount);
+    if (isNaN(val) || val <= 0) return;
+
+    if (val > savings) {
+      alert("Solde d'épargne insuffisant.");
+      return;
+    }
+
+    setSavings(prev => prev - val);
+    
+    // On l'ajoute comme un revenu pour qu'il soit disponible dans le budget du mois
+    addIncome({
+      amount: val,
+      note: note || 'Retrait épargne'
+    });
+  };
+
   const updateDebt = (id, payment) => {
     const debt = debts.find(d => d.id === id);
     if (!debt || payment <= 0) return;
@@ -183,7 +201,7 @@ export const FinanceProvider = ({ children }) => {
       daysRemaining, resteAVivre,
       startNewPeriod,
       currency, setCurrency, formatCurrency,
-      savings, setSavings, addToSavings
+      savings, setSavings, addToSavings, withdrawFromSavings
     }}>
       {children}
     </FinanceContext.Provider>
