@@ -195,6 +195,7 @@ const Savings = () => {
           </div>
         )}
       </div>
+    </motion.div>
   );
 };
 
