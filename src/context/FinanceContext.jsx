@@ -167,7 +167,8 @@ export const FinanceProvider = ({ children }) => {
 
   const getCategoryBudget = (categoryId) => {
     const cat = categories.find(c => c.id === categoryId);
-    return cat ? Math.round(salary * cat.limit) : 0;
+    const base = salary > 0 ? salary : totalIncome;
+    return cat ? Math.round(base * cat.limit) : 0;
   };
 
   const currentDate = new Date();

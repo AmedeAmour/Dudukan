@@ -191,8 +191,8 @@ const Settings = () => {
             <Calculator size={24} />
           </div>
           <div>
-            <h3 style={{ color: 'white', fontSize: '16px' }}>Simulation d'augmentation</h3>
-            <p style={{ opacity: 0.7, fontSize: '12px' }}>Préparez votre future situation</p>
+            <h3 style={{ color: 'white', fontSize: '16px' }}>Simulation de revenus</h3>
+            <p style={{ opacity: 0.7, fontSize: '12px' }}>Préparez votre future situation financière</p>
           </div>
         </div>
         <ChevronRight size={20} style={{ opacity: 0.5 }} />
@@ -301,14 +301,14 @@ const Settings = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '24px' }}>Simuler une augmentation</h2>
+                <h2 style={{ fontSize: '24px' }}>Simuler vos revenus</h2>
                 <button onClick={() => { setShowSim(false); setTargetSalary(''); }} style={{ background: '#F3F4F6', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
                   <Plus style={{ transform: 'rotate(45deg)' }} size={20} />
                 </button>
               </div>
 
               <div style={{ marginBottom: '24px' }}>
-                <label className="label">Nouveau salaire espéré ({currency.code})</label>
+                <label className="label">Revenu mensuel espéré ({currency.code})</label>
                 <input 
                   type="number" 
                   placeholder="Ex: 200 000" 
@@ -353,7 +353,7 @@ const Settings = () => {
 
                   <div style={{ marginTop: '32px', textAlign: 'center' }}>
                     <p style={{ fontSize: '13px', color: 'var(--text-light)', fontStyle: 'italic' }}>
-                      "Une augmentation doit vous aider à avancer, pas seulement à dépenser plus."
+                      "Une hausse de revenus doit vous aider à avancer, pas seulement à dépenser plus."
                     </p>
                   </div>
                 </div>

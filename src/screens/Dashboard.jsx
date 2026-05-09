@@ -7,7 +7,7 @@ import { Bell, BellOff } from 'lucide-react';
 import { NotificationService } from '../NotificationService';
 
 const Dashboard = ({ setActiveTab }) => {
-  const { salary, balance, totalExpenses, resteAVivre, daysRemaining, expenses, allTransactions, formatCurrency, savings } = useFinance();
+  const { salary, totalIncome, balance, totalExpenses, resteAVivre, daysRemaining, expenses, allTransactions, formatCurrency, savings } = useFinance();
   const { user } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || '';
   const [showAll, setShowAll] = useState(false);
@@ -63,9 +63,9 @@ const Dashboard = ({ setActiveTab }) => {
           <div style={{ display: 'flex', gap: '20px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '12px', marginBottom: '4px' }}>
-                <TrendingUp size={12} /> Revenus
+                <TrendingUp size={12} /> {salary > 0 ? 'Revenus total' : 'Total Revenus'}
               </div>
-              <p style={{ fontWeight: '600' }}>{formatCurrency(salary)}</p>
+              <p style={{ fontWeight: '600' }}>{formatCurrency(totalIncome)}</p>
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '12px', marginBottom: '4px' }}>
@@ -168,7 +168,7 @@ const Dashboard = ({ setActiveTab }) => {
           <div style={{ display: 'flex', gap: '12px' }}>
             <AlertCircle color="var(--accent-blue)" style={{ flexShrink: 0 }} />
             <p style={{ fontSize: '14px', color: 'var(--navy)', lineHeight: '1.4' }}>
-              <strong>Conseil :</strong> L'augmentation salariale n'est utile que si vos habitudes changent. Commencez par épargner 5% ce mois-ci.
+              <strong>Conseil :</strong> Gérez vos entrées d'argent intelligemment. {salary > 0 ? "Une augmentation n'est utile que si vos habitudes changent." : "Même avec des revenus irréguliers, l'épargne est la clé de votre liberté."}
             </p>
           </div>
         </div>

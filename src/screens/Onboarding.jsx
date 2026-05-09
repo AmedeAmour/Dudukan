@@ -44,7 +44,7 @@ const Onboarding = () => {
             </div>
             <h1 style={{ fontSize: '32px', marginBottom: '16px' }}>Bienvenue sur Dudukan</h1>
             <p style={{ color: 'var(--text-light)', fontSize: '16px', lineHeight: '1.6' }}>
-              L'assistant intelligent qui vous aide à mieux gérer votre salaire et à éviter les dettes.
+              L'assistant intelligent qui vous aide à mieux gérer votre argent, que vous soyez salarié ou indépendant.
             </p>
           </div>
 
@@ -55,7 +55,7 @@ const Onboarding = () => {
               </div>
               <div>
                 <h3 style={{ fontSize: '18px', marginBottom: '4px' }}>Planification Intelligente</h3>
-                <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Donnez une mission à chaque franc CFA de votre salaire.</p>
+                <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Donnez une mission à chaque unité de votre monnaie, quel que soit votre type de revenu.</p>
               </div>
             </div>
           </div>
@@ -72,9 +72,9 @@ const Onboarding = () => {
           animate={{ opacity: 1, x: 0 }}
           className="fade-in"
         >
-          <h2 style={{ fontSize: '28px', marginBottom: '12px' }}>Quel est votre salaire mensuel ?</h2>
+          <h2 style={{ fontSize: '28px', marginBottom: '12px' }}>Quels sont vos revenus ?</h2>
           <p style={{ color: 'var(--text-light)', marginBottom: '32px' }}>
-            Renseignez votre revenu fixe net pour que nous puissions organiser votre budget.
+            Renseignez votre revenu fixe (salaire) ou passez cette étape si vos revenus sont irréguliers.
           </p>
 
           <div style={{ marginBottom: '24px' }}>
@@ -101,8 +101,8 @@ const Onboarding = () => {
             </select>
           </div>
 
-          <div style={{ marginBottom: '40px' }}>
-            <label className="label">Salaire mensuel ({currency.code})</label>
+          <div style={{ marginBottom: '32px' }}>
+            <label className="label">Salaire mensuel fixe (optionnel)</label>
             <div style={{ position: 'relative' }}>
               <input 
                 type="number" 
@@ -115,15 +115,19 @@ const Onboarding = () => {
                 {currency.code}
               </span>
             </div>
+            <p style={{ color: 'var(--text-light)', fontSize: '12px', marginTop: '8px' }}>
+              Si vous n'avez pas de salaire fixe, laissez à 0. Vous pourrez ajouter vos revenus au fur et à mesure.
+            </p>
           </div>
 
           <button 
             className="btn-primary" 
-            onClick={handleStart}
-            disabled={!inputValue}
-            style={{ opacity: inputValue ? 1 : 0.6 }}
+            onClick={() => {
+              setSalary(parseFloat(inputValue) || 0);
+              setOnboarded(true);
+            }}
           >
-            Organiser mon mois
+            {inputValue && parseFloat(inputValue) > 0 ? 'Organiser mon mois' : 'Continuer sans salaire fixe'}
           </button>
 
           <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '12px', color: 'var(--text-light)' }}>

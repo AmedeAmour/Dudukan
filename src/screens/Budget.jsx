@@ -63,7 +63,7 @@ const Budget = () => {
     >
       <header style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '24px' }}>Planification</h1>
-        <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Répartition suggérée de votre salaire</p>
+        <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Répartition suggérée de vos revenus</p>
       </header>
 
       <div className="card" style={{ background: 'var(--emerald)', color: 'white', border: 'none' }}>
@@ -226,7 +226,7 @@ const Budget = () => {
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                  <label className="label">Part du salaire (%)</label>
+                  <label className="label">Part du revenu (%)</label>
                   <input 
                     type="number" 
                     placeholder="Ex: 10" 
@@ -235,7 +235,7 @@ const Budget = () => {
                     required
                   />
                   <p style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '4px' }}>
-                    Indiquez quel pourcentage de votre salaire vous allouez à cette catégorie.
+                    Indiquez quel pourcentage de votre revenu total vous allouez à cette catégorie.
                   </p>
                 </div>
 
