@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
 import { TrendingUp, Trash2, LogOut, ChevronRight, Calculator, Bell, Shield, Plus, Camera, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { NotificationService } from '../NotificationService';
 
 const Settings = () => {
   const { salary, setSalary, setOnboarded, startNewPeriod, currency, setCurrency, formatCurrency } = useFinance();
@@ -228,7 +229,15 @@ const Settings = () => {
         <div className="card" style={{ padding: '0' }}>
           {[
             { icon: Plus, label: 'Démarer mon nouveau mois', color: 'var(--accent-orange)', onClick: startNewPeriod },
-            { icon: Bell, label: 'Notifications', color: 'var(--accent-blue)', onClick: () => alert('Les notifications sont activées !') },
+            { icon: Bell, label: 'Notifications', color: 'var(--accent-blue)', onClick: async () => {
+                const granted = await NotificationService.requestPermission();
+                if (granted) {
+                  NotificationService.sendNotification("Notifications activées !", "Vous recevrez des rappels pour vos transactions.");
+                } else {
+                  alert("Les notifications sont bloquées par votre navigateur.");
+                }
+              } 
+            },
             { icon: Shield, label: 'Confidentialité', color: 'var(--emerald)', onClick: () => alert('Vos données sont sécurisées localement.') },
             { icon: Trash2, label: 'Réinitialiser les données locales', color: 'var(--accent-pink)', onClick: handleReset },
             { icon: LogOut, label: 'Se déconnecter', color: 'var(--text-light)', onClick: signOut },

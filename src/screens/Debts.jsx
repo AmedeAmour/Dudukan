@@ -103,7 +103,10 @@ const Debts = () => {
                 {debt.remaining === 0 ? (
                   <span className="badge badge-emerald">Payée</span>
                 ) : (
-                  <p style={{ fontWeight: '700', color: 'var(--navy)' }}>{formatCurrency(debt.remaining)}</p>
+                  <p style={{
+                        fontWeight: '700',
+                        color: debt.remaining > 0 ? 'var(--accent-red)' : 'var(--navy)'
+                      }}>{formatCurrency(debt.remaining)}</p>
                 )}
               </div>
 

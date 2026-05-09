@@ -22,6 +22,7 @@ export const FinanceProvider = ({ children }) => {
   const [savings, setSavings] = useState(0);
 
   const [onboarded, setOnboarded] = useState(false);
+  const [lastActivity, setLastActivity] = useState(new Date().toISOString());
 
   const [periodStart, setPeriodStart] = useState(() => {
     const d = new Date();
@@ -48,6 +49,7 @@ export const FinanceProvider = ({ children }) => {
       setCurrency(data.currency || { locale: 'fr-FR', code: 'XOF' });
       setSavings(data.savings || 0);
       setOnboarded(data.onboarded || false);
+      setLastActivity(data.lastActivity || new Date().toISOString());
       if (data.periodStart) {
         setPeriodStart(data.periodStart);
       }
@@ -55,17 +57,18 @@ export const FinanceProvider = ({ children }) => {
   }, []);
 
   // Save to localStorage
-  useEffect(() => {
     localStorage.setItem('dudukan_data', JSON.stringify({
-      salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings
+      salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity
     }));
-  }, [salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings]);
+  }, [salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity]);
 
   const addExpense = (expense, skipDebtUpdate = false) => {
     const amount = parseFloat(expense.amount);
     if (isNaN(amount)) return;
 
-    setExpenses(prev => [...prev, { ...expense, amount, id: Date.now(), date: new Date().toISOString() }]);
+    const now = new Date().toISOString();
+    setExpenses(prev => [...prev, { ...expense, amount, id: Date.now(), date: now }]);
+    setLastActivity(now);
     
     if (expense.categoryId === 'savings') {
       setSavings(prev => prev + amount);
@@ -90,7 +93,9 @@ export const FinanceProvider = ({ children }) => {
 
   const addIncome = (income) => {
     const amount = parseFloat(income.amount);
-    setExtraIncome(prev => [...prev, { ...income, amount, id: Date.now(), date: new Date().toISOString() }]);
+    const now = new Date().toISOString();
+    setExtraIncome(prev => [...prev, { ...income, amount, id: Date.now(), date: now }]);
+    setLastActivity(now);
   };
 
   const addDebt = (debt) => {
@@ -201,7 +206,8 @@ export const FinanceProvider = ({ children }) => {
       daysRemaining, resteAVivre,
       startNewPeriod,
       currency, setCurrency, formatCurrency,
-      savings, setSavings, addToSavings, withdrawFromSavings
+      savings, setSavings, addToSavings, withdrawFromSavings,
+      lastActivity, setLastActivity
     }}>
       {children}
     </FinanceContext.Provider>

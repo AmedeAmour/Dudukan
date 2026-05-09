@@ -10,6 +10,7 @@ import Onboarding from './screens/Onboarding';
 import Settings from './screens/Settings';
 import Auth from './screens/Auth';
 import BottomNav from './components/BottomNav';
+import NotificationObserver from './components/NotificationObserver';
 
 const AppContent = () => {
   const { onboarded } = useFinance();
@@ -42,6 +43,7 @@ const AppContent = () => {
 
   return (
     <div className="app-container">
+      <NotificationObserver />
       {renderScreen()}
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
