@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useFinance } from './context/FinanceContext';
-import { NotificationService } from './NotificationService';
+import { useFinance } from '../context/FinanceContext';
+import { NotificationService } from '../NotificationService';
 
 const NotificationObserver = () => {
   const { lastActivity } = useFinance();

@@ -57,6 +57,7 @@ export const FinanceProvider = ({ children }) => {
   }, []);
 
   // Save to localStorage
+  useEffect(() => {
     localStorage.setItem('dudukan_data', JSON.stringify({
       salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity
     }));
