@@ -3,12 +3,23 @@ import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
 import { TrendingUp, TrendingDown, Calendar, AlertCircle, ArrowUpRight, Plus, Minus, Settings as SettingsIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Bell, BellOff } from 'lucide-react';
+import { NotificationService } from '../NotificationService';
 
 const Dashboard = ({ setActiveTab }) => {
   const { salary, balance, totalExpenses, resteAVivre, daysRemaining, expenses, allTransactions, formatCurrency, savings } = useFinance();
   const { user } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || '';
   const [showAll, setShowAll] = useState(false);
+  const [notifPermission, setNotifPermission] = useState(Notification.permission);
+
+  const handleRequestNotif = async () => {
+    const granted = await NotificationService.requestPermission();
+    setNotifPermission(granted ? 'granted' : 'denied');
+    if (granted) {
+      NotificationService.sendNotification("C'est parti !", "Vous recevrez désormais des rappels intelligents.");
+    }
+  };
 
   const displayTransactions = showAll ? allTransactions : allTransactions.slice(0, 3);
 
@@ -106,6 +117,49 @@ const Dashboard = ({ setActiveTab }) => {
             </p>
           </div>
         </div>
+      )}
+
+      {/* Notification Permission Banner */}
+      {notifPermission === 'default' && (
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="card" 
+          style={{ 
+            background: 'linear-gradient(135deg, var(--accent-blue) 0%, var(--navy) 100%)', 
+            color: 'white', 
+            border: 'none',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            marginTop: '12px'
+          }}
+        >
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '12px' }}>
+              <Bell size={24} color="white" />
+            </div>
+            <div>
+              <h4 style={{ color: 'white', fontSize: '16px', fontWeight: '600' }}>Activez les rappels</h4>
+              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>Ne perdez plus le fil de vos dépenses quotidiennes.</p>
+            </div>
+          </div>
+          <button 
+            onClick={handleRequestNotif}
+            style={{ 
+              background: 'white', 
+              color: 'var(--navy)', 
+              border: 'none', 
+              padding: '12px', 
+              borderRadius: '12px', 
+              fontWeight: '600', 
+              fontSize: '14px',
+              cursor: 'pointer'
+            }}
+          >
+            Activer maintenant
+          </button>
+        </motion.div>
       )}
 
       {/* Tips Section */}
