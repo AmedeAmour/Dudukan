@@ -272,7 +272,21 @@ const Settings = () => {
           <input 
             type="time" 
             value={notificationTime}
-            onChange={(e) => setNotificationTime(e.target.value)}
+            onChange={async (e) => {
+              const newTime = e.target.value;
+              setNotificationTime(newTime);
+              
+              // Request permission if not already granted
+              const granted = await NotificationService.requestPermission();
+              if (granted) {
+                // Attempt to schedule it natively in the background
+                NotificationService.scheduleNotification(
+                  "C'est l'heure !", 
+                  "N'oubliez pas d'enregistrer vos transactions du jour sur Dudukan.", 
+                  newTime
+                );
+              }
+            }}
             style={{ 
               padding: '8px 12px', 
               borderRadius: '8px', 

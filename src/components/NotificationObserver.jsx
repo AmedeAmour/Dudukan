@@ -41,8 +41,14 @@ const NotificationObserver = () => {
     // Then check every minute
     const interval = setInterval(checkTime, 60000);
     
-    // Also try to schedule background sync (this handles when app is closed, if supported)
-    NotificationService.scheduleReminderIfPossible();
+    // Also try to schedule native background notification (if supported)
+    if (notificationTime) {
+      NotificationService.scheduleNotification(
+        "C'est l'heure de faire les comptes !",
+        "N'oubliez pas d'enregistrer vos transactions du jour sur Dudukan.",
+        notificationTime
+      );
+    }
 
     return () => clearInterval(interval);
   }, [notificationTime, lastNotifiedDate, setLastNotifiedDate]);

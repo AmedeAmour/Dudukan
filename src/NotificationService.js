@@ -49,5 +49,37 @@ export const NotificationService = {
     } catch (error) {
       console.log('Periodic sync registration failed:', error);
     }
+  },
+
+  async scheduleNotification(title, body, timeString) {
+    if (Notification.permission !== 'granted') return;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      
+      const now = new Date();
+      const [hours, minutes] = timeString.split(':').map(Number);
+      let scheduledTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0, 0);
+
+      // If the time has already passed today, schedule for tomorrow
+      if (scheduledTime <= now) {
+        scheduledTime.setDate(scheduledTime.getDate() + 1);
+      }
+
+      // Check if showTrigger is supported (Experimental API for scheduled notifications)
+      if ('showTrigger' in Notification.prototype) {
+        await registration.showNotification(title, {
+          body,
+          icon: '/sampa-electro.png',
+          badge: '/favicon.svg',
+          showTrigger: new window.TimestampTrigger(scheduledTime.getTime())
+        });
+        console.log('Notification scheduled natively for', scheduledTime);
+      } else {
+        console.log('Native scheduled notifications not supported by this browser.');
+      }
+    } catch (error) {
+      console.error('Failed to schedule notification:', error);
+    }
   }
 };
