@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationService } from '../NotificationService';
 
 const Settings = () => {
-  const { salary, setSalary, setOnboarded, startNewPeriod, currency, setCurrency, formatCurrency } = useFinance();
+  const { salary, setSalary, setOnboarded, startNewPeriod, currency, setCurrency, formatCurrency, notificationTime, setNotificationTime } = useFinance();
   const { user, signOut, updateProfile } = useAuth();
   const [showSim, setShowSim] = useState(false);
   const [targetSalary, setTargetSalary] = useState('');
@@ -229,7 +229,7 @@ const Settings = () => {
         <div className="card" style={{ padding: '0' }}>
           {[
             { icon: Plus, label: 'Démarer mon nouveau mois', color: 'var(--accent-orange)', onClick: startNewPeriod },
-            { icon: Bell, label: 'Notifications', color: 'var(--accent-blue)', onClick: async () => {
+            { icon: Bell, label: 'Activer les notifications', color: 'var(--accent-blue)', onClick: async () => {
                 const granted = await NotificationService.requestPermission();
                 if (granted) {
                   NotificationService.sendNotification("Notifications activées !", "Vous recevrez des rappels pour vos transactions.");
@@ -261,6 +261,29 @@ const Settings = () => {
               <ChevronRight size={18} color="#D1D5DB" />
             </div>
           ))}
+        </div>
+
+        <h3 style={{ fontSize: '16px', color: 'var(--text-light)', marginBottom: '12px', marginTop: '24px', marginLeft: '4px' }}>HEURE DE RAPPEL</h3>
+        <div className="card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <p style={{ fontWeight: '500', color: 'var(--navy)', marginBottom: '4px' }}>Heure de notification</p>
+            <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>Quand voulez-vous être rappelé ?</p>
+          </div>
+          <input 
+            type="time" 
+            value={notificationTime}
+            onChange={(e) => setNotificationTime(e.target.value)}
+            style={{ 
+              padding: '8px 12px', 
+              borderRadius: '8px', 
+              border: '1.5px solid #F3F4F6',
+              fontSize: '15px',
+              background: 'var(--bg-main)',
+              color: 'var(--navy)',
+              fontWeight: '600',
+              outline: 'none'
+            }}
+          />
         </div>
       </div>
 

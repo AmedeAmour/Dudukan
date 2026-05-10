@@ -23,6 +23,8 @@ export const FinanceProvider = ({ children }) => {
 
   const [onboarded, setOnboarded] = useState(false);
   const [lastActivity, setLastActivity] = useState(new Date().toISOString());
+  const [notificationTime, setNotificationTime] = useState('20:00');
+  const [lastNotifiedDate, setLastNotifiedDate] = useState(null);
 
   const [periodStart, setPeriodStart] = useState(() => {
     const d = new Date();
@@ -50,6 +52,8 @@ export const FinanceProvider = ({ children }) => {
       setSavings(data.savings || 0);
       setOnboarded(data.onboarded || false);
       setLastActivity(data.lastActivity || new Date().toISOString());
+      setNotificationTime(data.notificationTime || '20:00');
+      setLastNotifiedDate(data.lastNotifiedDate || null);
       if (data.periodStart) {
         setPeriodStart(data.periodStart);
       }
@@ -59,9 +63,9 @@ export const FinanceProvider = ({ children }) => {
   // Save to localStorage
   useEffect(() => {
     localStorage.setItem('dudukan_data', JSON.stringify({
-      salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity
+      salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationTime, lastNotifiedDate
     }));
-  }, [salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity]);
+  }, [salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationTime, lastNotifiedDate]);
 
   const addExpense = (expense, skipDebtUpdate = false) => {
     const amount = parseFloat(expense.amount);
@@ -222,7 +226,9 @@ export const FinanceProvider = ({ children }) => {
       startNewPeriod,
       currency, setCurrency, formatCurrency,
       savings, setSavings, addToSavings, withdrawFromSavings,
-      lastActivity, setLastActivity
+      lastActivity, setLastActivity,
+      notificationTime, setNotificationTime,
+      lastNotifiedDate, setLastNotifiedDate
     }}>
       {children}
     </FinanceContext.Provider>
