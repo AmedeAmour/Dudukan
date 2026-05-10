@@ -438,10 +438,26 @@ const Settings = () => {
                       </div>
                     </>
                   ) : diff < 0 ? (
-                    <div className="card" style={{ background: 'var(--accent-pink-light)', border: 'none', marginBottom: '24px' }}>
-                      <p style={{ color: 'var(--accent-pink)', fontWeight: '600', marginBottom: '4px' }}>Attention : Baisse de {formatCurrency(Math.abs(diff))}</p>
-                      <p style={{ fontSize: '13px', color: 'var(--navy)' }}>Veuillez revoir vos priorités pour maintenir votre équilibre financier.</p>
-                    </div>
+                    <>
+                      <div className="card" style={{ background: 'var(--accent-pink-light)', border: 'none', marginBottom: '24px' }}>
+                        <p style={{ color: 'var(--accent-pink)', fontWeight: '600', marginBottom: '4px' }}>Baisse de {formatCurrency(Math.abs(diff))}</p>
+                        <p style={{ fontSize: '13px', color: 'var(--navy)' }}>Voici comment nous vous conseillons d'absorber cette baisse :</p>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {[
+                          { label: 'Réduction loisirs / perso (50%)', amount: Math.abs(diff) * 0.5, color: 'var(--accent-pink)' },
+                          { label: 'Baisse temporaire épargne (30%)', amount: Math.abs(diff) * 0.3, color: 'var(--accent-orange)' },
+                          { label: 'Optimisation alimentation (15%)', amount: Math.abs(diff) * 0.15, color: 'var(--accent-blue)' },
+                          { label: 'Ajustement transport (5%)', amount: Math.abs(diff) * 0.05, color: 'var(--navy)' },
+                        ].map((item, i) => (
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #E5E7EB' }}>
+                            <span style={{ fontSize: '14px', fontWeight: '500' }}>{item.label}</span>
+                            <span style={{ fontWeight: '700', color: item.color }}>-{formatCurrency(item.amount)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
                   ) : (
                     <div className="card" style={{ background: '#F3F4F6', border: 'none', marginBottom: '24px' }}>
                       <p style={{ color: 'var(--text-light)', fontWeight: '600' }}>Aucun changement par rapport à votre salaire actuel.</p>
@@ -450,7 +466,9 @@ const Settings = () => {
 
                   <div style={{ marginTop: '32px', textAlign: 'center' }}>
                     <p style={{ fontSize: '13px', color: 'var(--text-light)', fontStyle: 'italic' }}>
-                      "Une hausse de revenus doit vous aider à avancer, pas seulement à dépenser plus."
+                      {diff >= 0 
+                        ? '"Une hausse de revenus doit vous aider à avancer, pas seulement à dépenser plus."'
+                        : '"Une baisse de revenus est temporaire. Adaptez-vous aujourd\'hui pour rebondir demain."'}
                     </p>
                   </div>
                 </div>
