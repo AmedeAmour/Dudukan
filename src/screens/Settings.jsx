@@ -14,7 +14,13 @@ const Settings = () => {
   const [uploading, setUploading] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(user?.user_metadata?.full_name || '');
+  const [newSalary, setNewSalary] = useState(salary.toString());
+  const [isEditingSalary, setIsEditingSalary] = useState(false);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    setNewSalary(salary.toString());
+  }, [salary]);
 
   useEffect(() => {
     if (user?.user_metadata?.full_name) {
@@ -30,6 +36,17 @@ const Settings = () => {
       alert('Nom mis à jour !');
     } else {
       alert('Erreur: ' + error.message);
+    }
+  };
+
+  const handleUpdateSalary = () => {
+    const parsed = parseFloat(newSalary);
+    if (!isNaN(parsed) && parsed >= 0) {
+      setSalary(parsed);
+      setIsEditingSalary(false);
+      alert('Salaire mis à jour avec succès !');
+    } else {
+      alert('Veuillez entrer un montant valide.');
     }
   };
 
@@ -199,7 +216,50 @@ const Settings = () => {
       </div>
 
       <div style={{ marginTop: '24px' }}>
-        <h3 style={{ fontSize: '16px', color: 'var(--text-light)', marginBottom: '12px', marginLeft: '4px' }}>MONNAIE</h3>
+        <h3 style={{ fontSize: '16px', color: 'var(--text-light)', marginBottom: '12px', marginLeft: '4px' }}>MON SALAIRE DE BASE</h3>
+        <div className="card" style={{ padding: '20px' }}>
+          {isEditingSalary ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <input 
+                type="number" 
+                value={newSalary} 
+                onChange={(e) => setNewSalary(e.target.value)}
+                style={{ fontSize: '16px', padding: '12px', borderRadius: '8px', border: '1px solid #E5E7EB', width: '100%', outline: 'none' }}
+                placeholder="Nouveau salaire..."
+                autoFocus
+              />
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                <button 
+                  onClick={() => { setIsEditingSalary(false); setNewSalary(salary.toString()); }}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #E5E7EB', background: 'white', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
+                >
+                  Annuler
+                </button>
+                <button 
+                  onClick={handleUpdateSalary}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--navy)', color: 'white', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '4px' }}>Salaire actuel</p>
+                <p style={{ fontSize: '20px', fontWeight: '700', color: 'var(--navy)' }}>{formatCurrency(salary)}</p>
+              </div>
+              <button 
+                onClick={() => setIsEditingSalary(true)}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #E5E7EB', background: 'white', fontSize: '14px', fontWeight: '500', color: 'var(--navy)', cursor: 'pointer' }}
+              >
+                Modifier
+              </button>
+            </div>
+          )}
+        </div>
+
+        <h3 style={{ fontSize: '16px', color: 'var(--text-light)', marginBottom: '12px', marginTop: '24px', marginLeft: '4px' }}>MONNAIE</h3>
         <div className="card" style={{ padding: '20px' }}>
           <select 
             value={currency.code}
