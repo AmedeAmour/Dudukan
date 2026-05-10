@@ -11,6 +11,7 @@ import Settings from './screens/Settings';
 import Auth from './screens/Auth';
 import BottomNav from './components/BottomNav';
 import NotificationObserver from './components/NotificationObserver';
+import InstallPWA from './components/InstallPWA';
 
 const AppContent = () => {
   const { onboarded } = useFinance();
@@ -43,6 +44,7 @@ const AppContent = () => {
 
   return (
     <div className="app-container">
+      <InstallPWA />
       <NotificationObserver />
       {renderScreen()}
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
