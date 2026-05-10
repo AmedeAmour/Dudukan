@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
-import { TrendingUp, TrendingDown, Calendar, AlertCircle, ArrowUpRight, Plus, Minus, Settings as SettingsIcon } from 'lucide-react';
+import { 
+  TrendingUp, TrendingDown, Calendar, AlertCircle, ArrowUpRight, Plus, Minus, 
+  Settings as SettingsIcon, Bell, BellOff, Utensils, Car, Home, CreditCard, 
+  PiggyBank, User, Info 
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, BellOff } from 'lucide-react';
 import { NotificationService } from '../NotificationService';
 
 const Dashboard = ({ setActiveTab }) => {
-  const { salary, totalIncome, balance, totalExpenses, resteAVivre, daysRemaining, expenses, allTransactions, formatCurrency, savings } = useFinance();
+  const { salary, totalIncome, balance, totalExpenses, resteAVivre, daysRemaining, expenses, allTransactions, formatCurrency, savings, categories } = useFinance();
   const { user } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || '';
   const [showAll, setShowAll] = useState(false);
@@ -26,6 +29,16 @@ const Dashboard = ({ setActiveTab }) => {
   const lastExpense = expenses.length > 0 ? expenses[expenses.length - 1] : null;
   const daysSinceLastExpense = lastExpense ? Math.floor((new Date() - new Date(lastExpense.date)) / (1000 * 60 * 60 * 24)) : 0;
   const showReminder = expenses.length === 0 || daysSinceLastExpense >= 2;
+
+  const iconMap = {
+    Utensils: Utensils,
+    Car: Car,
+    Home: Home,
+    CreditCard: CreditCard,
+    PiggyBank: PiggyBank,
+    AlertCircle: AlertCircle,
+    User: User
+  };
 
   return (
     <motion.div 
@@ -189,43 +202,58 @@ const Dashboard = ({ setActiveTab }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <AnimatePresence>
             {displayTransactions.length > 0 ? (
-              displayTransactions.map((tx) => (
-                <motion.div 
-                  key={tx.id} 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="card" 
-                  style={{ margin: 0, padding: '16px' }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ 
-                        width: '40px', 
-                        height: '40px', 
-                        borderRadius: '12px', 
-                        background: tx.type === 'income' ? 'var(--emerald-light)' : '#F3F4F6', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center' 
-                      }}>
-                        {tx.type === 'income' ? (
-                          <TrendingUp size={18} color="var(--emerald)" />
-                        ) : (
-                          <TrendingDown size={18} color="var(--text-light)" />
-                        )}
+              displayTransactions.map((tx) => {
+                const category = tx.type === 'expense' ? categories.find(c => c.id === tx.categoryId) : null;
+                const IconComponent = category ? (iconMap[category.icon] || Info) : (tx.type === 'income' ? TrendingUp : TrendingDown);
+                const iconColor = category ? `var(${category.color})` : (tx.type === 'income' ? 'var(--emerald)' : 'var(--text-light)');
+                const bgColor = category ? `var(${category.color}-light)` : (tx.type === 'income' ? 'var(--emerald-light)' : '#F3F4F6');
+
+                return (
+                  <motion.div 
+                    key={tx.id} 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="card" 
+                    style={{ margin: 0, padding: '16px' }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ 
+                          width: '44px', 
+                          height: '44px', 
+                          borderRadius: '14px', 
+                          background: bgColor, 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          color: iconColor
+                        }}>
+                          <IconComponent size={20} />
+                        </div>
+                        <div>
+                          <p style={{ fontWeight: '600', fontSize: '15px', color: 'var(--text-main)' }}>
+                            {tx.note || (tx.type === 'income' ? 'Revenu' : (tx.categoryId === 'debt' ? 'Remboursement' : category?.name || 'Dépense'))}
+                          </p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {category && (
+                              <span style={{ fontSize: '11px', fontWeight: '500', color: iconColor, background: bgColor, padding: '2px 6px', borderRadius: '4px' }}>
+                                {category.name}
+                              </span>
+                            )}
+                            <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+                              {new Date(tx.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <p style={{ fontWeight: '600', fontSize: '15px' }}>{tx.note || (tx.type === 'income' ? 'Revenu' : 'Dépense')}</p>
-                        <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>{new Date(tx.date).toLocaleDateString('fr-FR')}</p>
-                      </div>
+                      <p style={{ fontWeight: '700', fontSize: '16px', color: tx.type === 'income' ? 'var(--emerald)' : 'var(--text-main)' }}>
+                        {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                      </p>
                     </div>
-                    <p style={{ fontWeight: '700', color: tx.type === 'income' ? 'var(--emerald)' : 'var(--text-main)' }}>
-                      {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                    </p>
-                  </div>
-                </motion.div>
-              ))
+                  </motion.div>
+                );
+              })
             ) : (
               <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-light)' }}>
                 Aucune transaction récente.

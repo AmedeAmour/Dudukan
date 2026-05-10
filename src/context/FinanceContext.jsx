@@ -67,8 +67,11 @@ export const FinanceProvider = ({ children }) => {
     const amount = parseFloat(expense.amount);
     if (isNaN(amount)) return;
 
+    // Default note for debt repayments if empty
+    const finalNote = (expense.categoryId === 'debt' && !expense.note) ? 'Remboursement' : expense.note;
+
     const now = new Date().toISOString();
-    setExpenses(prev => [...prev, { ...expense, amount, id: Date.now(), date: now }]);
+    setExpenses(prev => [...prev, { ...expense, note: finalNote, amount, id: Date.now(), date: now }]);
     setLastActivity(now);
     
     if (expense.categoryId === 'savings') {

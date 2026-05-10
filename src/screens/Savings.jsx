@@ -160,27 +160,43 @@ const Savings = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ 
-                      width: '40px', 
-                      height: '40px', 
-                      borderRadius: '12px', 
+                      width: '44px', 
+                      height: '44px', 
+                      borderRadius: '14px', 
                       background: item.type === 'deposit' ? 'var(--emerald-light)' : 'var(--accent-pink-light)', 
                       display: 'flex', 
                       alignItems: 'center', 
-                      justifyContent: 'center' 
+                      justifyContent: 'center',
+                      color: item.type === 'deposit' ? 'var(--emerald)' : 'var(--accent-pink)'
                     }}>
                       {item.type === 'deposit' ? (
-                        <TrendingUp size={18} color="var(--emerald)" />
+                        <PiggyBank size={20} />
                       ) : (
-                        <TrendingDown size={18} color="var(--accent-pink)" />
+                        <TrendingUp size={20} />
                       )}
                     </div>
                     <div>
                       <p style={{ fontWeight: '600', fontSize: '15px' }}>{item.note || (item.type === 'deposit' ? 'Épargne' : 'Retrait')}</p>
-                      <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>{new Date(item.date).toLocaleDateString('fr-FR')}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ 
+                          fontSize: '11px', 
+                          fontWeight: '500', 
+                          color: item.type === 'deposit' ? 'var(--emerald)' : 'var(--accent-pink)', 
+                          background: item.type === 'deposit' ? 'var(--emerald-light)' : 'var(--accent-pink-light)', 
+                          padding: '2px 6px', 
+                          borderRadius: '4px' 
+                        }}>
+                          {item.type === 'deposit' ? 'Dépôt' : 'Retrait'}
+                        </span>
+                        <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+                          {new Date(item.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   <p style={{ 
                     fontWeight: '700', 
+                    fontSize: '16px',
                     color: item.type === 'deposit' ? 'var(--emerald)' : 'var(--accent-pink)' 
                   }}>
                     {item.type === 'deposit' ? '+' : '-'}{formatCurrency(item.amount)}

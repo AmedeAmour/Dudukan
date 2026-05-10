@@ -119,7 +119,7 @@ const Expenses = () => {
             <label className="label">Note (Optionnel)</label>
             <input 
               type="text" 
-              placeholder="Ex: Marché, Taxi, Prime..." 
+              placeholder={type === 'expense' && categoryId === 'debt' ? "Ex: Remboursement prêt, Boutique..." : "Ex: Marché, Taxi, Prime..."} 
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
