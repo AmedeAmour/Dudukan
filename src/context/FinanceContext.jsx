@@ -161,7 +161,19 @@ export const FinanceProvider = ({ children }) => {
 
   const startNewPeriod = () => {
     if (window.confirm('Voulez-vous vraiment commencer un nouveau mois maintenant ? Vos compteurs de budget seront réinitialisés.')) {
-      setPeriodStart(new Date().toISOString());
+      const now = new Date().toISOString();
+      
+      // Si un solde positif reste, on le reporte au nouveau mois
+      if (balance > 0) {
+        setExtraIncome(prev => [...prev, { 
+          amount: balance, 
+          note: 'Report du mois précédent', 
+          id: Date.now(), 
+          date: now 
+        }]);
+      }
+      
+      setPeriodStart(now);
     }
   };
 
