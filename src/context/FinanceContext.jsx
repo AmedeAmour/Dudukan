@@ -67,10 +67,17 @@ export const FinanceProvider = ({ children }) => {
     const amount = parseFloat(expense.amount);
     if (isNaN(amount)) return;
 
-    // Standardize note for debt repayments
+    // Standardize note for debt repayments and avoid double prefix
     let finalNote = expense.note;
     if (expense.categoryId === 'debt') {
-      finalNote = expense.note ? `Remboursement : ${expense.note}` : 'Remboursement';
+      if (!expense.note) {
+        finalNote = 'Remboursement';
+      } else if (!expense.note.toLowerCase().startsWith('remboursement')) {
+        finalNote = `Remboursement : ${expense.note}`;
+      } else {
+        // Already has prefix, but let's ensure it follows our "Remboursement : " format
+        finalNote = expense.note.replace(/^remboursement\s*:?\s*/i, 'Remboursement : ');
+      }
     }
 
     const now = new Date().toISOString();
@@ -144,7 +151,7 @@ export const FinanceProvider = ({ children }) => {
     addExpense({
       amount: payment,
       categoryId: 'debt',
-      note: `Remboursement: ${debt.lender}`
+      note: `Remboursement : ${debt.lender}`
     }, true);
   };
 
