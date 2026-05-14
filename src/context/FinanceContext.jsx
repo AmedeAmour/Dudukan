@@ -195,7 +195,17 @@ export const FinanceProvider = ({ children }) => {
       daysRemaining: Math.max(1, new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1),
       resteAVivre: balanceValue > 0 ? Math.round(balanceValue / 30) : 0,
       startNewPeriod, currency, setCurrency, formatCurrency, savings, setSavings, addToSavings, withdrawFromSavings,
-      resetData: () => { localStorage.clear(); window.location.reload(); },
+      resetData: async () => { 
+        if (user) {
+          try {
+            await supabase.from('user_data').delete().eq('id', user.id);
+          } catch (e) {
+            console.error("Erreur lors de la suppression cloud:", e);
+          }
+        }
+        localStorage.clear(); 
+        window.location.reload(); 
+      },
       getFinancialHealth: () => {
         let score = 70;
         if (balanceValue < 0) score -= 20;
