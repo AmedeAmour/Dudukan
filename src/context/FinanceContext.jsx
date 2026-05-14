@@ -37,7 +37,6 @@ export const FinanceProvider = ({ children }) => {
   const [notificationTime, setNotificationTime] = useState('20:00');
   const [lastNotifiedDate, setLastNotifiedDate] = useState(null);
   
-  // CRITICAL: Prevent saving until loading is done
   const [isInitialized, setIsInitialized] = useState(false);
 
   const storageKey = user ? `dudukan_data_${user.id}` : 'dudukan_data_anon';
@@ -50,9 +49,7 @@ export const FinanceProvider = ({ children }) => {
         data: dataToSync,
         updated_at: new Date().toISOString() 
       });
-    } catch (err) {
-      console.error('Cloud Sync failed:', err);
-    }
+    } catch (err) {}
   };
 
   const applyData = (data) => {
@@ -72,81 +69,66 @@ export const FinanceProvider = ({ children }) => {
     if (data.lastNotifiedDate) setLastNotifiedDate(data.lastNotifiedDate);
   };
 
-  // LOAD DATA LOGIC
   useEffect(() => {
-    if (!user) {
-      setIsInitialized(true);
-      return;
-    }
-
+    if (!user) { setIsInitialized(true); return; }
     const loadData = async () => {
       let bestLocalData = null;
       let newestTimestamp = 0;
-
-      // 1. Check all local storage keys (including legacy)
       ['dudukan_data', `dudukan_data_${user.id}`].forEach(key => {
         const saved = localStorage.getItem(key);
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
             const ts = new Date(parsed.lastActivity || 0).getTime();
-            if (ts > newestTimestamp) {
-              newestTimestamp = ts;
-              bestLocalData = parsed;
-            }
+            if (ts > newestTimestamp) { newestTimestamp = ts; bestLocalData = parsed; }
           } catch(e) {}
         }
       });
-
-      // 2. Try Cloud
       try {
-        const { data: cloudRow } = await supabase
-          .from('user_data')
-          .select('data, updated_at')
-          .eq('id', user.id)
-          .single();
-
+        const { data: cloudRow } = await supabase.from('user_data').select('data, updated_at').eq('id', user.id).single();
         if (cloudRow && cloudRow.data && Object.keys(cloudRow.data).length > 2) {
           const cloudTs = new Date(cloudRow.updated_at).getTime();
           if (cloudTs >= newestTimestamp || !bestLocalData) {
-            applyData(cloudRow.data);
-            setIsInitialized(true);
-            return;
+            applyData(cloudRow.data); setIsInitialized(true); return;
           }
         }
       } catch (err) {}
-
-      // 3. Use best local data if cloud is missing or older
-      if (bestLocalData) {
-        applyData(bestLocalData);
-      }
+      if (bestLocalData) applyData(bestLocalData);
       setIsInitialized(true);
     };
-
     loadData();
   }, [user]);
 
-  // SAVE DATA LOGIC
   useEffect(() => {
-    // IMPORTANT: DO NOT SAVE if we are not initialized or no user
     if (!user || !isInitialized) return;
-
-    const dataToSave = {
-      salary, nextMonthSalary, extraIncome, expenses, debts, 
-      categories, onboarded, periodStart, currency, savings, 
-      lastActivity, notificationTime, lastNotifiedDate
-    };
-    
+    const dataToSave = { salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationTime, lastNotifiedDate };
     localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-    
-    const timeoutId = setTimeout(() => {
-      syncWithCloud(dataToSave);
-    }, 2000);
-    
+    const timeoutId = setTimeout(() => syncWithCloud(dataToSave), 2000);
     return () => clearTimeout(timeoutId);
   }, [isInitialized, user, salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationTime, lastNotifiedDate]);
 
-  // Actions
+  // DERIVED DATA
+  const currentMonthExpenses = expenses.filter(e => new Date(e.date) >= new Date(periodStart));
+  const currentMonthIncome = extraIncome.filter(i => i.date ? new Date(i.date) >= new Date(periodStart) : true);
+  const totalIncomeValue = salary + currentMonthIncome.reduce((acc, curr) => acc + curr.amount, 0);
+  const totalExpensesValue = currentMonthExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+  const balanceValue = totalIncomeValue - totalExpensesValue;
+
+  // HELPERS
+  const getCategorySpent = (categoryId) => currentMonthExpenses.filter(e => e.categoryId === categoryId).reduce((acc, curr) => acc + curr.amount, 0);
+  const getCategoryBudget = (categoryId) => {
+    const cat = categories.find(c => c.id === categoryId);
+    return cat ? Math.round(totalIncomeValue * cat.limit) : 0;
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat(currency.locale, {
+      style: 'currency', currency: currency.code,
+      minimumFractionDigits: 0, maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  // ACTIONS
   const addExpense = (expense, skipDebtUpdate = false) => {
     const amount = parseFloat(expense.amount);
     if (isNaN(amount)) return;
@@ -174,13 +156,25 @@ export const FinanceProvider = ({ children }) => {
     setLastActivity(now);
   };
 
-  const addDebt = (debt) => {
-    setDebts(prev => [...prev, { ...debt, id: Date.now(), remaining: parseFloat(debt.amount) }]);
+  const addDebt = (debt) => setDebts(prev => [...prev, { ...debt, id: Date.now(), remaining: parseFloat(debt.amount) }]);
+  const updateDebt = (id, payment) => {
+    const debt = debts.find(d => d.id === id);
+    if (!debt) return;
+    setDebts(prev => prev.map(d => d.id === id ? { ...d, remaining: Math.max(0, d.remaining - payment) } : d));
+    addExpense({ amount: payment, categoryId: 'debt', note: `Remboursement : ${debt.lender}` }, true);
+  };
+
+  const addToSavings = (amount, note = '') => addExpense({ amount, categoryId: 'savings', note: note || 'Épargne' });
+  const withdrawFromSavings = (amount, note = '') => {
+    const val = parseFloat(amount);
+    if (val > savings) return alert("Épargne insuffisante");
+    setSavings(prev => prev - val);
+    addIncome({ amount: val, note: note || 'Retrait épargne' });
   };
 
   const startNewPeriod = () => {
-    if (window.confirm('Commencer un nouveau mois ?')) {
-      const rolloverBalance = totalIncome - totalExpenses;
+    if (window.confirm('Nouveau mois ?')) {
+      const rolloverBalance = balanceValue;
       const now = new Date().toISOString();
       setPeriodStart(now);
       if (nextMonthSalary > 0) { setSalary(nextMonthSalary); setNextMonthSalary(0); }
@@ -189,34 +183,25 @@ export const FinanceProvider = ({ children }) => {
     }
   };
 
-  const currentMonthExpenses = expenses.filter(e => new Date(e.date) >= new Date(periodStart));
-  const currentMonthIncome = extraIncome.filter(i => i.date ? new Date(i.date) >= new Date(periodStart) : true);
-  const totalIncomeValue = salary + currentMonthIncome.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalExpensesValue = currentMonthExpenses.reduce((acc, curr) => acc + curr.amount, 0);
-  const balanceValue = totalIncomeValue - totalExpensesValue;
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat(currency.locale, {
-      style: 'currency', currency: currency.code,
-      minimumFractionDigits: 0, maximumFractionDigits: 0
-    }).format(amount);
-  };
-
-  // If not initialized, we could show a loading state, but for now we just wait to render children in App.jsx
-  
   return (
     <FinanceContext.Provider value={{
-      isInitialized,
-      salary, setSalary, nextMonthSalary, setNextMonthSalary,
-      extraIncome: currentMonthIncome, addIncome, expenses: currentMonthExpenses, addExpense,
+      isInitialized, salary, setSalary, nextMonthSalary, setNextMonthSalary,
+      extraIncome: currentMonthIncome, allIncome: extraIncome, addIncome, 
+      expenses: currentMonthExpenses, allExpenses: expenses, addExpense,
       allTransactions: [...expenses.map(e => ({ ...e, type: 'expense' })), ...extraIncome.map(i => ({ ...i, type: 'income' }))].sort((a, b) => new Date(b.date) - new Date(a.date)),
-      debts, addDebt, categories, setCategories, onboarded, setOnboarded,
+      debts, addDebt, updateDebt, categories, setCategories, onboarded, setOnboarded,
       totalIncome: totalIncomeValue, totalExpenses: totalExpensesValue, balance: balanceValue,
+      getCategorySpent, getCategoryBudget,
       daysRemaining: Math.max(1, new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1),
       resteAVivre: balanceValue > 0 ? Math.round(balanceValue / 30) : 0,
-      startNewPeriod, currency, setCurrency, formatCurrency, savings, setSavings,
+      startNewPeriod, currency, setCurrency, formatCurrency, savings, setSavings, addToSavings, withdrawFromSavings,
       resetData: () => { localStorage.clear(); window.location.reload(); },
-      getFinancialHealth: () => ({ score: 75, projectedBalance: balanceValue, insights: ["Analyse en cours..."] })
+      getFinancialHealth: () => {
+        let score = 70;
+        if (balanceValue < 0) score -= 20;
+        if (savings > totalIncomeValue * 0.1) score += 10;
+        return { score: Math.max(0, Math.min(100, score)), projectedBalance: balanceValue, insights: ["Tout est prêt !"] };
+      }
     }}>
       {children}
     </FinanceContext.Provider>
