@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './screens/Dashboard';
@@ -14,12 +14,12 @@ import NotificationObserver from './components/NotificationObserver';
 import InstallPWA from './components/InstallPWA';
 
 const AppContent = () => {
-  const { onboarded } = useFinance();
+  const { onboarded, isInitialized } = useFinance();
   const { session, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Chargement...</div>;
+  if (loading || !isInitialized) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-main)', color: 'var(--navy)', fontWeight: '600' }}>Chargement de vos données...</div>;
   }
 
   if (!session) {
@@ -38,7 +38,7 @@ const AppContent = () => {
       case 'debts': return <Debts />;
       case 'savings': return <Savings />;
       case 'settings': return <Settings />;
-      default: return <Dashboard />;
+      default: return <Dashboard setActiveTab={setActiveTab} />;
     }
   };
 

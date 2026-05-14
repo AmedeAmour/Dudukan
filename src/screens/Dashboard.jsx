@@ -14,15 +14,27 @@ const Dashboard = ({ setActiveTab }) => {
   const { user } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || '';
   const [showAll, setShowAll] = useState(false);
-  const [notifPermission, setNotifPermission] = useState(Notification.permission);
+  const [notifPermission, setNotifPermission] = useState(() => {
+    try {
+      return typeof Notification !== 'undefined' ? Notification.permission : 'denied';
+    } catch (e) {
+      return 'denied';
+    }
+  });
 
   const { score, projectedBalance, insights } = getFinancialHealth();
 
   const handleRequestNotif = async () => {
-    const granted = await NotificationService.requestPermission();
-    setNotifPermission(granted ? 'granted' : 'denied');
-    if (granted) {
-      NotificationService.sendNotification("C'est parti !", "Vous recevrez désormais des rappels intelligents.");
+    try {
+      const granted = await NotificationService.requestPermission();
+      setNotifPermission(granted ? 'granted' : 'denied');
+      if (granted) {
+        NotificationService.sendNotification("C'est parti !", "Vous recevrez désormais des rappels intelligents.");
+      } else {
+        alert("Les notifications semblent bloquées. Pour les activer, cliquez sur l'icône de cadenas à gauche de l'adresse du site (URL) et autorisez les notifications.");
+      }
+    } catch (e) {
+      alert("Votre appareil ne semble pas supporter les notifications.");
     }
   };
 
@@ -55,9 +67,33 @@ const Dashboard = ({ setActiveTab }) => {
       style={{ padding: '24px 20px' }}
     >
       <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: '24px' }}>Bonjour {firstName ? firstName : '!'}</h1>
-          <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Voici l'état de vos finances</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div 
+            onClick={() => setActiveTab('settings')}
+            style={{ 
+              width: '56px', 
+              height: '56px', 
+              borderRadius: '50%', 
+              background: 'var(--accent-blue-light)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              overflow: 'hidden',
+              border: '2px solid white',
+              boxShadow: 'var(--shadow-soft)',
+              cursor: 'pointer'
+            }}
+          >
+            {user?.user_metadata?.avatar_url ? (
+              <img src={user.user_metadata.avatar_url} alt="Profil" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <User size={28} color="var(--accent-blue)" />
+            )}
+          </div>
+          <div>
+            <h1 style={{ fontSize: '24px', lineHeight: '1.2' }}>Bonjour {firstName ? firstName : '!'}</h1>
+            <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Voici l'état de vos finances</p>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button 
@@ -65,12 +101,6 @@ const Dashboard = ({ setActiveTab }) => {
             style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--white)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifySelf: 'center', boxShadow: 'var(--shadow-soft)', color: 'var(--text-light)' }}
           >
             <SettingsIcon size={20} style={{ margin: '0 auto' }} />
-          </button>
-          <button 
-            onClick={() => alert(`Aujourd'hui nous sommes le ${new Date().toLocaleDateString('fr-FR')}`)}
-            style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--white)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifySelf: 'center', boxShadow: 'var(--shadow-soft)', color: 'var(--navy)' }}
-          >
-            <Calendar size={20} style={{ margin: '0 auto' }} />
           </button>
         </div>
       </header>
@@ -179,7 +209,7 @@ const Dashboard = ({ setActiveTab }) => {
       )}
 
       {/* Notification Permission Banner */}
-      {notifPermission === 'default' && (
+      {notifPermission !== 'granted' && (
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -204,19 +234,25 @@ const Dashboard = ({ setActiveTab }) => {
             </div>
           </div>
           <button 
-            onClick={handleRequestNotif}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRequestNotif();
+            }}
             style={{ 
               background: 'white', 
               color: 'var(--navy)', 
               border: 'none', 
-              padding: '12px', 
+              padding: '14px', 
               borderRadius: '12px', 
-              fontWeight: '600', 
+              fontWeight: '700', 
               fontSize: '14px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              position: 'relative',
+              zIndex: 10
             }}
           >
-            Activer maintenant
+            {notifPermission === 'denied' ? 'Réessayer l\'activation' : 'Activer maintenant'}
           </button>
         </motion.div>
       )}

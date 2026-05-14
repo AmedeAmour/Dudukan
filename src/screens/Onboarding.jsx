@@ -10,10 +10,22 @@ const Onboarding = () => {
 
   const currencies = [
     { code: 'XOF', locale: 'fr-FR', name: 'Franc CFA (BCEAO)' },
+    { code: 'XAF', locale: 'fr-FR', name: 'Franc CFA (BEAC)' },
+    { code: 'GNF', locale: 'fr-GN', name: 'Franc Guinéen (GNF)' },
+    { code: 'CDF', locale: 'fr-CD', name: 'Franc Congolais (CDF)' },
+    { code: 'NGN', locale: 'en-NG', name: 'Naira Nigérian (NGN)' },
+    { code: 'GHS', locale: 'en-GH', name: 'Cedi Ghanéen (GHS)' },
+    { code: 'KES', locale: 'en-KE', name: 'Shilling Kényan (KES)' },
+    { code: 'ZAR', locale: 'en-ZA', name: 'Rand Sud-Africain (ZAR)' },
+    { code: 'MAD', locale: 'ar-MA', name: 'Dirham Marocain (MAD)' },
+    { code: 'DZD', locale: 'ar-DZ', name: 'Dinar Algérien (DZD)' },
+    { code: 'TND', locale: 'ar-TN', name: 'Dinar Tunisien (TND)' },
+    { code: 'EGP', locale: 'ar-EG', name: 'Livre Égyptienne (EGP)' },
+    { code: 'ETB', locale: 'am-ET', name: 'Birr Éthiopien (ETB)' },
+    { code: 'RWF', locale: 'rw-RW', name: 'Franc Rwandais (RWF)' },
+    { code: 'MUR', locale: 'en-MU', name: 'Roupie Mauricienne (MUR)' },
     { code: 'EUR', locale: 'fr-FR', name: 'Euro (€)' },
     { code: 'USD', locale: 'en-US', name: 'Dollar ($)' },
-    { code: 'MAD', locale: 'ar-MA', name: 'Dirham (MAD)' },
-    { code: 'GNF', locale: 'fr-GN', name: 'Franc Guinéen' },
   ];
 
   const handleStart = () => {
