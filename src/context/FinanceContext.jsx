@@ -72,9 +72,6 @@ export const FinanceProvider = ({ children }) => {
     if (data.lastActivity) setLastActivity(data.lastActivity);
     if (data.notificationSchedule) setNotificationSchedule(data.notificationSchedule);
     if (data.lastNotifiedDate) setLastNotifiedDate(data.lastNotifiedDate);
-    if (data.notificationTime && !data.notificationSchedule) {
-      setNotificationSchedule(DEFAULT_SCHEDULE.map(s => ({ ...s, time: data.notificationTime })));
-    }
   };
 
   useEffect(() => {
@@ -194,25 +191,36 @@ export const FinanceProvider = ({ children }) => {
     const dayOfMonth = today.getDate();
     const monthProgress = dayOfMonth / daysInMonth;
     
-    let score = 80;
+    let score = 50; // Start at 50 (neutral)
     const insights = [];
+
+    // 0. Initial State Check
+    if (totalIncomeValue === 0 && totalExpensesValue === 0) {
+      return { score: 50, projectedBalance: 0, insights: ["Bienvenue ! Enregistrez vos premiers revenus pour obtenir des conseils personnalisés."] };
+    }
 
     // 1. Balance check
     if (balanceValue < 0) {
-      score -= 30;
-      insights.push("Attention : Vous avez dépassé vos revenus. Réduisez vos dépenses immédiatement.");
-    } else if (balanceValue < totalIncomeValue * 0.1) {
+      score -= 40;
+      insights.push("Critique : Votre budget est en déficit. Vous vivez au-dessus de vos moyens.");
+    } else if (balanceValue === 0 && totalIncomeValue > 0) {
       score -= 10;
-      insights.push("Votre solde est serré. Évitez les achats non essentiels jusqu'à la fin du mois.");
+      insights.push("Attention : Votre solde est à zéro. Vous n'avez aucune marge de sécurité.");
+    } else if (balanceValue > totalIncomeValue * 0.2) {
+      score += 20;
+      insights.push("Excellent : Vous maintenez un surplus confortable de plus de 20%.");
     } else {
-      insights.push("Bonne gestion : Vous maintenez un solde positif.");
+      score += 10;
+      insights.push("Correct : Votre solde est positif, mais surveillez vos prochaines dépenses.");
     }
 
     // 2. Spending Pacing
     const spendingRate = totalExpensesValue / (totalIncomeValue || 1);
-    if (spendingRate > monthProgress + 0.15) {
-      score -= 15;
-      insights.push(`Rythme élevé : Vous avez déjà consommé ${Math.round(spendingRate * 100)}% de votre budget en seulement ${dayOfMonth} jours.`);
+    if (totalIncomeValue > 0) {
+      if (spendingRate > monthProgress + 0.2) {
+        score -= 20;
+        insights.push(`Alerte Rythme : Vous dépensez trop vite (${Math.round(spendingRate * 100)}% du budget consommé à mi-chemin).`);
+      }
     }
 
     // 3. Category alerts
@@ -220,33 +228,38 @@ export const FinanceProvider = ({ children }) => {
       const spent = getCategorySpent(cat.id);
       const budget = getCategoryBudget(cat.id);
       if (budget > 0 && spent > budget) {
-        insights.push(`Alerte ${cat.name} : Vous avez dépassé votre limite prévue de ${formatCurrency(spent - budget)}.`);
-      } else if (budget > 0 && spent > budget * 0.8) {
-        insights.push(`Surveillance ${cat.name} : Vous approchez de la limite (${Math.round((spent/budget)*100)}%).`);
+        score -= 5;
+        insights.push(`Dépassement ${cat.name} : Vous avez excédé le budget prévu.`);
       }
     });
 
     // 4. Savings check
-    const savingsRate = savings / (totalIncomeValue * 6 || 1); // 6 months of income target
-    if (savings < totalIncomeValue * 0.1) {
-      score -= 10;
-      insights.push("Épargne : Essayez de mettre de côté au moins 10% de vos revenus pour les imprévus.");
+    if (savings === 0) {
+      score -= 15;
+      insights.push("Épargne Inexistante : Votre fond de sécurité est vide. C'est risqué en cas d'imprévu.");
+    } else if (savings < totalIncomeValue * 0.1) {
+      score -= 5;
+      insights.push("Épargne Faible : Essayez d'atteindre au moins 10% de vos revenus en réserve.");
     } else {
-      score += 10;
-      insights.push("Félicitations : Votre épargne progresse bien.");
+      score += 15;
+      insights.push("Félicitations : Votre épargne constitue un bon filet de sécurité.");
     }
 
     // 5. Debt check
     const totalDebt = debts.reduce((acc, d) => acc + d.remaining, 0);
-    if (totalDebt > totalIncomeValue * 3) {
-      score -= 20;
-      insights.push("Endettement : Vos dettes sont élevées par rapport à vos revenus. Priorisez les remboursements.");
+    if (totalDebt > 0) {
+      if (totalDebt > totalIncomeValue * 2) {
+        score -= 20;
+        insights.push("Endettement Élevé : Vos dettes pèsent lourd. Priorisez leur remboursement.");
+      } else {
+        insights.push("Rappel Dettes : Continuez vos remboursements pour libérer du budget.");
+      }
     }
 
     return { 
       score: Math.max(0, Math.min(100, score)), 
       projectedBalance: balanceValue, 
-      insights: insights.length > 0 ? insights : ["Tout semble en ordre. Continuez ainsi !"] 
+      insights: insights.length > 0 ? insights : ["Analyse en cours... Continuez à noter vos transactions."] 
     };
   };
 
