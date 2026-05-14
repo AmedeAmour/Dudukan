@@ -10,11 +10,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationService } from '../NotificationService';
 
 const Dashboard = ({ setActiveTab }) => {
-  const { salary, totalIncome, balance, totalExpenses, resteAVivre, daysRemaining, expenses, allTransactions, formatCurrency, savings, categories } = useFinance();
+  const { salary, totalIncome, balance, totalExpenses, resteAVivre, daysRemaining, expenses, allTransactions, formatCurrency, savings, categories, getFinancialHealth } = useFinance();
   const { user } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || '';
   const [showAll, setShowAll] = useState(false);
   const [notifPermission, setNotifPermission] = useState(Notification.permission);
+
+  const { score, projectedBalance, insights } = getFinancialHealth();
 
   const handleRequestNotif = async () => {
     const granted = await NotificationService.requestPermission();
@@ -29,6 +31,12 @@ const Dashboard = ({ setActiveTab }) => {
   const lastExpense = expenses.length > 0 ? expenses[expenses.length - 1] : null;
   const daysSinceLastExpense = lastExpense ? Math.floor((new Date() - new Date(lastExpense.date)) / (1000 * 60 * 60 * 24)) : 0;
   const showReminder = expenses.length === 0 || daysSinceLastExpense >= 2;
+
+  const getScoreColor = (s) => {
+    if (s >= 80) return 'var(--emerald)';
+    if (s >= 50) return 'var(--accent-orange)';
+    return 'var(--accent-red)';
+  };
 
   const iconMap = {
     Utensils: Utensils,
@@ -70,8 +78,27 @@ const Dashboard = ({ setActiveTab }) => {
       {/* Main Balance Card */}
       <div className="card" style={{ background: 'var(--navy)', color: 'white', border: 'none', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <p style={{ opacity: 0.8, fontSize: '14px', marginBottom: '8px' }}>Reste à vivre (Solde total)</p>
-          <h2 style={{ color: 'white', fontSize: '32px', marginBottom: '24px' }}>{formatCurrency(balance)}</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <p style={{ opacity: 0.8, fontSize: '14px', marginBottom: '8px' }}>Reste à vivre (Solde total)</p>
+              <h2 style={{ color: 'white', fontSize: '32px', marginBottom: '24px' }}>{formatCurrency(balance)}</h2>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ 
+                width: '50px', 
+                height: '50px', 
+                borderRadius: '50%', 
+                border: `3px solid ${getScoreColor(score)}`, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                background: 'rgba(255,255,255,0.05)'
+              }}>
+                <span style={{ fontSize: '16px', fontWeight: 'bold', color: getScoreColor(score) }}>{score}</span>
+              </div>
+              <p style={{ fontSize: '10px', opacity: 0.7, marginTop: '4px' }}>Score Santé</p>
+            </div>
+          </div>
           
           <div style={{ display: 'flex', gap: '20px' }}>
             <div>
@@ -108,17 +135,36 @@ const Dashboard = ({ setActiveTab }) => {
         </div>
         <div 
           className="card" 
-          style={{ margin: 0, background: 'var(--emerald-light)', cursor: 'pointer' }}
-          onClick={() => setActiveTab('savings')}
+          style={{ margin: 0, background: projectedBalance >= 0 ? 'var(--emerald-light)' : 'var(--accent-red-light)', cursor: 'pointer' }}
+          onClick={() => setActiveTab('budget')}
         >
-          <p style={{ color: 'var(--emerald)', fontSize: '12px', marginBottom: '4px' }}>Épargne totale</p>
-          <h3 style={{ fontSize: '18px', color: 'var(--navy)' }}>{formatCurrency(savings)}</h3>
+          <p style={{ color: projectedBalance >= 0 ? 'var(--emerald)' : 'var(--accent-red)', fontSize: '12px', marginBottom: '4px' }}>Prévision fin de mois</p>
+          <h3 style={{ fontSize: '18px', color: 'var(--navy)' }}>{formatCurrency(projectedBalance)}</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-            <TrendingUp size={10} color="var(--emerald)" />
-            <span style={{ fontSize: '11px', color: 'var(--emerald)', fontWeight: '600' }}>En hausse</span>
+            <Info size={10} color={projectedBalance >= 0 ? 'var(--emerald)' : 'var(--accent-red)'} />
+            <span style={{ fontSize: '11px', color: projectedBalance >= 0 ? 'var(--emerald)' : 'var(--accent-red)', fontWeight: '600' }}>
+              {projectedBalance >= 0 ? 'Surplus estimé' : 'Déficit estimé'}
+            </span>
           </div>
         </div>
       </div>
+
+      {/* Intelligent Insights */}
+      {insights.length > 0 && (
+        <div className="card" style={{ background: 'var(--bg-main)', border: '1.5px solid #F3F4F6', marginBottom: '12px' }}>
+          <h4 style={{ fontSize: '14px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Info size={16} color="var(--accent-blue)" /> Conseils intelligents
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {insights.map((insight, i) => (
+              <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-blue)', marginTop: '6px', flexShrink: 0 }} />
+                <p style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: '1.4' }}>{insight}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Reminder Alert */}
       {showReminder && (

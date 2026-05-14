@@ -86,66 +86,92 @@ const Debts = () => {
       <div style={{ marginTop: '24px' }}>
         <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Liste des dettes</h3>
         {debts.length > 0 ? (
-          debts.map((debt) => (
-            <div key={debt.id} className="card" style={{ opacity: debt.remaining === 0 ? 0.6 : 1 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-red-light)', color: 'var(--accent-red)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <User size={20} />
-                  </div>
-                  <div>
-                    <p style={{ fontWeight: '600' }}>{debt.lender}</p>
-                    <p style={{ fontSize: '12px', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Calendar size={12} /> {debt.dueDate || 'Non définie'}
-                    </p>
-                  </div>
-                </div>
-                {debt.remaining === 0 ? (
-                  <span className="badge badge-emerald">Payée</span>
-                ) : (
-                  <p style={{
-                        fontWeight: '700',
-                        color: debt.remaining > 0 ? 'var(--accent-red)' : 'var(--navy)'
-                      }}>{formatCurrency(debt.remaining)}</p>
-                )}
-              </div>
+          <>
+            {debts.map((debt) => {
+              const isPastDue = debt.dueDate && new Date(debt.dueDate) < new Date() && debt.remaining > 0;
+              const progress = Math.round(((debt.amount - debt.remaining) / debt.amount) * 100);
 
-              {debt.remaining > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <div style={{ flex: 1, position: 'relative' }}>
-                      <input 
-                        type="number" 
-                        placeholder="Montant" 
-                        id={`pay-${debt.id}`}
-                        style={{ padding: '8px 12px', fontSize: '14px', height: '38px' }}
-                      />
+              return (
+                <div key={debt.id} className="card" style={{ opacity: debt.remaining === 0 ? 0.6 : 1, border: isPastDue ? '1px solid var(--accent-red-light)' : 'none' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-red-light)', color: 'var(--accent-red)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <User size={20} />
+                      </div>
+                      <div>
+                        <p style={{ fontWeight: '600' }}>{debt.lender}</p>
+                        <p style={{ fontSize: '12px', color: isPastDue ? 'var(--accent-red)' : 'var(--text-light)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Calendar size={12} /> {debt.dueDate ? new Date(debt.dueDate).toLocaleDateString('fr-FR') : 'Non définie'}
+                          {isPastDue && <span style={{ fontWeight: 'bold' }}>(Retard)</span>}
+                        </p>
+                      </div>
                     </div>
-                    <button 
-                      onClick={() => {
-                        const val = document.getElementById(`pay-${debt.id}`).value;
-                        if (val && parseFloat(val) > 0) {
-                          updateDebt(debt.id, parseFloat(val));
-                          document.getElementById(`pay-${debt.id}`).value = '';
-                        }
-                      }}
-                      className="btn-secondary" 
-                      style={{ padding: '0 16px', fontSize: '12px', width: 'auto', height: '38px' }}
-                    >
-                      Payer
-                    </button>
+                    {debt.remaining === 0 ? (
+                      <span className="badge badge-emerald">Payée</span>
+                    ) : (
+                      <p style={{
+                            fontWeight: '700',
+                            color: debt.remaining > 0 ? 'var(--accent-red)' : 'var(--navy)'
+                          }}>{formatCurrency(debt.remaining)}</p>
+                    )}
                   </div>
-                  <button 
-                    onClick={() => updateDebt(debt.id, debt.remaining)}
-                    className="btn-primary" 
-                    style={{ padding: '8px', fontSize: '12px', height: '38px' }}
-                  >
-                    Tout régler
-                  </button>
+
+                  {debt.remaining > 0 && (
+                    <>
+                      <div className="progress-bar-container" style={{ marginBottom: '16px' }}>
+                        <div className="progress-bar-fill" style={{ width: `${progress}%`, background: 'var(--accent-red)' }} />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <div style={{ flex: 1, position: 'relative' }}>
+                            <input 
+                              type="number" 
+                              placeholder="Montant" 
+                              id={`pay-${debt.id}`}
+                              style={{ padding: '8px 12px', fontSize: '14px', height: '38px' }}
+                            />
+                          </div>
+                          <button 
+                            onClick={() => {
+                              const val = document.getElementById(`pay-${debt.id}`).value;
+                              if (val && parseFloat(val) > 0) {
+                                updateDebt(debt.id, parseFloat(val));
+                                document.getElementById(`pay-${debt.id}`).value = '';
+                              }
+                            }}
+                            className="btn-secondary" 
+                            style={{ padding: '0 16px', fontSize: '12px', width: 'auto', height: '38px' }}
+                          >
+                            Payer
+                          </button>
+                        </div>
+                        <button 
+                          onClick={() => updateDebt(debt.id, debt.remaining)}
+                          className="btn-primary" 
+                          style={{ padding: '8px', fontSize: '12px', height: '38px' }}
+                        >
+                          Tout régler
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
-              )}
-            </div>
-          ))
+              );
+            })}
+
+            {totalDebt > 0 && (
+              <div className="card" style={{ background: 'var(--accent-blue-light)', border: 'none', marginTop: '24px' }}>
+                <h4 style={{ fontSize: '15px', color: 'var(--navy)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CreditCard size={18} /> Stratégie de remboursement
+                </h4>
+                <p style={{ fontSize: '13px', color: 'var(--navy)', lineHeight: '1.4' }}>
+                  {debts.some(d => d.dueDate && new Date(d.dueDate) < new Date() && d.remaining > 0) 
+                    ? "Priorité : Remboursez immédiatement vos dettes en retard pour éviter les pénalités ou tensions." 
+                    : "Conseil : Utilisez la méthode 'Boule de Neige'. Remboursez d'abord la plus petite dette pour gagner en motivation."}
+                </p>
+              </div>
+            )}
+          </>
         ) : (
           <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-light)' }}>
             <CheckCircle2 size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />

@@ -1,24 +1,31 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const FinanceContext = createContext();
 
 export const useFinance = () => useContext(FinanceContext);
 
+const DEFAULT_CATEGORIES = [
+  { id: 'food', name: 'Alimentation', icon: 'Utensils', color: '--accent-orange', limit: 0.3 },
+  { id: 'transport', name: 'Transport', icon: 'Car', color: '--accent-blue', limit: 0.15 },
+  { id: 'housing', name: 'Logement', icon: 'Home', color: '--navy', limit: 0.2 },
+  { id: 'debt', name: 'Dettes', icon: 'CreditCard', color: '--accent-red', limit: 0.15 },
+  { id: 'savings', name: 'Épargne', icon: 'PiggyBank', color: '--emerald', limit: 0.05 },
+  { id: 'emergency', name: 'Imprévus', icon: 'AlertCircle', color: '--accent-red', limit: 0.05 },
+  { id: 'personal', name: 'Dépenses personnelles', icon: 'User', color: '--accent-blue', limit: 0.1 },
+];
+
+const DEFAULT_CURRENCY = { locale: 'fr-FR', code: 'XOF' };
+
 export const FinanceProvider = ({ children }) => {
+  const { user } = useAuth();
   const [salary, setSalary] = useState(0);
+  const [nextMonthSalary, setNextMonthSalary] = useState(0);
   const [extraIncome, setExtraIncome] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [debts, setDebts] = useState([]);
-  const [categories, setCategories] = useState([
-    { id: 'food', name: 'Alimentation', icon: 'Utensils', color: '--accent-orange', limit: 0.3 },
-    { id: 'transport', name: 'Transport', icon: 'Car', color: '--accent-blue', limit: 0.15 },
-    { id: 'housing', name: 'Logement', icon: 'Home', color: '--navy', limit: 0.2 },
-    { id: 'debt', name: 'Dettes', icon: 'CreditCard', color: '--accent-red', limit: 0.15 },
-    { id: 'savings', name: 'Épargne', icon: 'PiggyBank', color: '--emerald', limit: 0.05 },
-    { id: 'emergency', name: 'Imprévus', icon: 'AlertCircle', color: '--accent-red', limit: 0.05 },
-    { id: 'personal', name: 'Dépenses personnelles', icon: 'User', color: '--accent-blue', limit: 0.1 },
-  ]);
-  const [currency, setCurrency] = useState({ locale: 'fr-FR', code: 'XOF' });
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
   const [savings, setSavings] = useState(0);
 
   const [onboarded, setOnboarded] = useState(false);
@@ -31,41 +38,72 @@ export const FinanceProvider = ({ children }) => {
     return new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
   });
 
+  const storageKey = user ? `dudukan_data_${user.id}` : null;
+
   // Load from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('dudukan_data');
-    if (saved) {
-      const data = JSON.parse(saved);
-      const fiftyDaysAgo = new Date();
-      fiftyDaysAgo.setDate(fiftyDaysAgo.getDate() - 50);
+    if (!user) return;
 
-      // Cleanup old data
-      const filteredExpenses = (data.expenses || []).filter(e => new Date(e.date) >= fiftyDaysAgo);
-      const filteredIncome = (data.extraIncome || []).filter(i => new Date(i.date) >= fiftyDaysAgo);
-
-      setSalary(data.salary || 0);
-      setExtraIncome(filteredIncome);
-      setExpenses(filteredExpenses);
-      setDebts(data.debts || []);
-      setCategories(data.categories || categories);
-      setCurrency(data.currency || { locale: 'fr-FR', code: 'XOF' });
-      setSavings(data.savings || 0);
-      setOnboarded(data.onboarded || false);
-      setLastActivity(data.lastActivity || new Date().toISOString());
-      setNotificationTime(data.notificationTime || '20:00');
-      setLastNotifiedDate(data.lastNotifiedDate || null);
-      if (data.periodStart) {
-        setPeriodStart(data.periodStart);
+    const loadData = () => {
+      let saved = localStorage.getItem(storageKey);
+      
+      // Migration: if first time for this user and legacy data exists, migrate it
+      if (!saved && !localStorage.getItem(`migrated_${user.id}`)) {
+        const legacyData = localStorage.getItem('dudukan_data');
+        if (legacyData) {
+          localStorage.setItem(storageKey, legacyData);
+          localStorage.setItem(`migrated_${user.id}`, 'true');
+          saved = legacyData;
+        }
       }
-    }
-  }, []);
+
+      if (saved) {
+        const data = JSON.parse(saved);
+        const fiftyDaysAgo = new Date();
+        fiftyDaysAgo.setDate(fiftyDaysAgo.getDate() - 50);
+
+        setSalary(data.salary || 0);
+        setNextMonthSalary(data.nextMonthSalary || 0);
+        setExtraIncome((data.extraIncome || []).filter(i => new Date(i.date) >= fiftyDaysAgo));
+        setExpenses((data.expenses || []).filter(e => new Date(e.date) >= fiftyDaysAgo));
+        setDebts(data.debts || []);
+        setCategories(data.categories || DEFAULT_CATEGORIES);
+        setCurrency(data.currency || DEFAULT_CURRENCY);
+        setSavings(data.savings || 0);
+        setOnboarded(data.onboarded || false);
+        setLastActivity(data.lastActivity || new Date().toISOString());
+        setNotificationTime(data.notificationTime || '20:00');
+        setLastNotifiedDate(data.lastNotifiedDate || null);
+        setPeriodStart(data.periodStart || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
+      } else {
+        // Reset state for new user
+        setSalary(0);
+        setNextMonthSalary(0);
+        setExtraIncome([]);
+        setExpenses([]);
+        setDebts([]);
+        setCategories(DEFAULT_CATEGORIES);
+        setCurrency(DEFAULT_CURRENCY);
+        setSavings(0);
+        setOnboarded(false);
+        setLastActivity(new Date().toISOString());
+        setNotificationTime('20:00');
+        setLastNotifiedDate(null);
+        setPeriodStart(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
+      }
+    };
+
+    loadData();
+  }, [user, storageKey]);
 
   // Save to localStorage
   useEffect(() => {
-    localStorage.setItem('dudukan_data', JSON.stringify({
-      salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationTime, lastNotifiedDate
-    }));
-  }, [salary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationTime, lastNotifiedDate]);
+    if (storageKey) {
+      localStorage.setItem(storageKey, JSON.stringify({
+        salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationTime, lastNotifiedDate
+      }));
+    }
+  }, [storageKey, salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationTime, lastNotifiedDate]);
 
   const addExpense = (expense, skipDebtUpdate = false) => {
     const amount = parseFloat(expense.amount);
@@ -160,8 +198,25 @@ export const FinanceProvider = ({ children }) => {
   };
 
   const startNewPeriod = () => {
-    if (window.confirm('Voulez-vous vraiment commencer un nouveau mois maintenant ? Vos compteurs de budget seront réinitialisés.')) {
-      setPeriodStart(new Date().toISOString());
+    if (window.confirm('Voulez-vous vraiment commencer un nouveau mois maintenant ? Votre solde actuel sera reporté sur le nouveau mois.')) {
+      const rolloverBalance = balance;
+      const now = new Date().toISOString();
+      
+      setPeriodStart(now);
+      
+      // Applique le salaire prévu pour le mois suivant s'il existe
+      if (nextMonthSalary > 0) {
+        setSalary(nextMonthSalary);
+        setNextMonthSalary(0);
+      }
+
+      if (rolloverBalance > 0) {
+        // Ajoute le reste du mois précédent comme un revenu de report
+        addIncome({
+          amount: rolloverBalance,
+          note: 'Report du mois précédent'
+        });
+      }
     }
   };
 
@@ -212,6 +267,7 @@ export const FinanceProvider = ({ children }) => {
   return (
     <FinanceContext.Provider value={{
       salary, setSalary,
+      nextMonthSalary, setNextMonthSalary,
       extraIncome: currentMonthIncome, addIncome,
       expenses: currentMonthExpenses, addExpense,
       allExpenses: expenses,
@@ -228,7 +284,73 @@ export const FinanceProvider = ({ children }) => {
       savings, setSavings, addToSavings, withdrawFromSavings,
       lastActivity, setLastActivity,
       notificationTime, setNotificationTime,
-      lastNotifiedDate, setLastNotifiedDate
+      lastNotifiedDate, setLastNotifiedDate,
+      resetData: () => {
+        if (storageKey) {
+          localStorage.removeItem(storageKey);
+          window.location.reload();
+        }
+      },
+      getFinancialHealth: () => {
+        const today = new Date();
+        const currentDay = today.getDate();
+        const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+        
+        // 1. Month-end Projection
+        const dailyBurnRate = currentDay > 0 ? totalExpenses / currentDay : 0;
+        const projectedExpenses = dailyBurnRate * daysInMonth;
+        const projectedBalance = totalIncome - projectedExpenses;
+        
+        // 2. Score Calculation (0-100)
+        let score = 70; // Starting point
+        
+        // Savings impact
+        const savingsRate = totalIncome > 0 ? (savings / totalIncome) : 0;
+        if (savingsRate > 0.2) score += 20;
+        else if (savingsRate > 0.1) score += 10;
+        
+        // Debt impact
+        const totalDebt = debts.reduce((acc, d) => acc + d.remaining, 0);
+        const debtRatio = totalIncome > 0 ? (totalDebt / (totalIncome * 12)) : 0; // Debt vs Annual Income
+        if (debtRatio > 0.5) score -= 20;
+        else if (debtRatio > 0.3) score -= 10;
+        
+        // Budget compliance
+        let overBudgetCount = 0;
+        categories.forEach(cat => {
+          if (getCategorySpent(cat.id) > getCategoryBudget(cat.id)) {
+            overBudgetCount++;
+          }
+        });
+        score -= (overBudgetCount * 5);
+        
+        // Stability
+        if (balance < 0) score -= 20;
+        else if (balance < totalIncome * 0.1) score -= 5;
+        
+        score = Math.max(0, Math.min(100, score));
+        
+        // 3. Insights (Logic-based recommendations)
+        const insights = [];
+        if (overBudgetCount > 0) {
+          insights.push(`Attention : vous dépassez le budget sur ${overBudgetCount} catégorie(s).`);
+        }
+        if (projectedBalance < 0) {
+          insights.push(`Alerte : à ce rythme, vous finirez le mois avec un déficit de ${formatCurrency(Math.abs(projectedBalance))}.`);
+        } else if (projectedBalance > 0 && balance > 0) {
+          insights.push(`Bravo : vous devriez finir le mois avec environ ${formatCurrency(projectedBalance)} de surplus.`);
+        }
+        
+        if (debtRatio > 0.4) {
+          insights.push("Conseil : votre niveau d'endettement est élevé. Priorisez le remboursement des petites dettes.");
+        }
+        
+        if (savingsRate < 0.05 && balance > 0) {
+          insights.push("Suggestion : essayez de mettre de côté au moins 5% de vos revenus dès le début du mois.");
+        }
+
+        return { score, projectedBalance, projectedExpenses, insights, overBudgetCount };
+      }
     }}>
       {children}
     </FinanceContext.Provider>

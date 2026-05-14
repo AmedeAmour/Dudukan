@@ -93,6 +93,11 @@ const Budget = () => {
           const percent = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
           const color = `var(${cat.color})`;
 
+          const today = new Date().getDate();
+          const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+          const monthProgress = (today / daysInMonth) * 100;
+          const isSpendingTooFast = percent > monthProgress + 10; // 10% tolerance
+
           const iconMap = {
             Utensils: Utensils,
             Car: Car,
@@ -109,14 +114,21 @@ const Budget = () => {
           const isOver = spent > budget;
           
           return (
-            <div key={cat.id} className="card" style={{ marginBottom: '12px' }}>
+            <div key={cat.id} className="card" style={{ marginBottom: '12px', border: isSpendingTooFast && !isOver ? '1px solid var(--accent-orange-light)' : 'none' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color }}>
                     <IconComponent size={20} />
                   </div>
                   <div>
-                    <p style={{ fontWeight: '600' }}>{cat.name}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <p style={{ fontWeight: '600' }}>{cat.name}</p>
+                      {isSpendingTooFast && !isOver && (
+                        <span style={{ fontSize: '9px', background: 'var(--accent-orange-light)', color: 'var(--accent-orange)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                          RISQUE
+                        </span>
+                      )}
+                    </div>
                     <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>
                       Budget: {formatCurrency(budget)}
                     </p>
@@ -156,6 +168,12 @@ const Budget = () => {
                   {isOver && isInvestmentCat ? `+${formatCurrency(Math.abs(remaining))}` : formatCurrency(remaining)} restants
                 </p>
               </div>
+
+              {isSpendingTooFast && !isOver && (
+                <p style={{ fontSize: '11px', color: 'var(--accent-orange)', marginTop: '8px', fontStyle: 'italic' }}>
+                  Vous dépensez plus vite que prévu pour ce mois. Ralentissez pour tenir jusqu'à la fin !
+                </p>
+              )}
             </div>
           );
         })}

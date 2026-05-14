@@ -7,10 +7,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationService } from '../NotificationService';
 
 const Settings = () => {
-  const { salary, setSalary, setOnboarded, startNewPeriod, currency, setCurrency, formatCurrency, notificationTime, setNotificationTime } = useFinance();
+  const { salary, setSalary, nextMonthSalary, setNextMonthSalary, setOnboarded, startNewPeriod, currency, setCurrency, formatCurrency, notificationTime, setNotificationTime, resetData } = useFinance();
   const { user, signOut, updateProfile } = useAuth();
+  const [tempSalary, setTempSalary] = useState('');
   const [showSim, setShowSim] = useState(false);
   const [targetSalary, setTargetSalary] = useState('');
+
+  useEffect(() => {
+    if (nextMonthSalary > 0) {
+      setTempSalary(nextMonthSalary.toString());
+    } else {
+      setTempSalary(salary.toString());
+    }
+  }, [salary, nextMonthSalary]);
+
+  const handleUpdateSalary = () => {
+    const val = parseFloat(tempSalary);
+    if (isNaN(val) || val < 0) return;
+    
+    if (val === salary) {
+      setNextMonthSalary(0);
+      alert('Planification annulée : le salaire reste inchangé.');
+    } else {
+      setNextMonthSalary(val);
+      alert(`C'est noté ! Votre nouveau salaire de ${formatCurrency(val)} prendra effet au démarrage du prochain mois.`);
+    }
+  };
+
+  const { user: authUser, signOut: authSignOut, updateProfile: authUpdateProfile } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(user?.user_metadata?.full_name || '');
@@ -43,8 +67,7 @@ const Settings = () => {
 
   const handleReset = () => {
     if (window.confirm('Voulez-vous vraiment réinitialiser toutes vos données locales ?')) {
-      localStorage.removeItem('dudukan_data');
-      window.location.reload();
+      resetData();
     }
   };
 
@@ -199,7 +222,59 @@ const Settings = () => {
       </div>
 
       <div style={{ marginTop: '24px' }}>
-        <h3 style={{ fontSize: '16px', color: 'var(--text-light)', marginBottom: '12px', marginLeft: '4px' }}>MONNAIE</h3>
+        <h3 style={{ fontSize: '16px', color: 'var(--text-light)', marginBottom: '12px', marginLeft: '4px' }}>PLANIFIER MON REVENU</h3>
+        <div className="card" style={{ padding: '20px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '12px' }}>
+            Actuel : <strong>{formatCurrency(salary)}</strong>
+          </p>
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+            <input 
+              type="number" 
+              value={tempSalary}
+              placeholder="Nouveau montant"
+              onChange={(e) => setTempSalary(e.target.value)}
+              style={{ 
+                flex: 1,
+                padding: '12px', 
+                borderRadius: '12px', 
+                border: '1.5px solid #F3F4F6',
+                fontSize: '15px',
+                background: 'var(--bg-main)',
+                color: 'var(--text-main)',
+                fontWeight: '600',
+                outline: 'none'
+              }}
+            />
+            <button 
+              onClick={handleUpdateSalary}
+              style={{ 
+                background: 'var(--navy)', 
+                color: 'white', 
+                padding: '0 20px', 
+                borderRadius: '12px', 
+                border: 'none',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Valider
+            </button>
+          </div>
+          
+          {nextMonthSalary > 0 && (
+            <div style={{ background: 'var(--accent-blue-light)', padding: '12px', borderRadius: '12px', border: '1px solid var(--accent-blue)' }}>
+              <p style={{ fontSize: '12px', color: 'var(--navy)', fontWeight: '500' }}>
+                Prochain mois : <strong>{formatCurrency(nextMonthSalary)}</strong> planifiés.
+              </p>
+            </div>
+          )}
+          
+          <p style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '8px' }}>
+            Toute modification validée ici n'entrera en vigueur qu'au **démarrage du mois prochain**.
+          </p>
+        </div>
+
+        <h3 style={{ fontSize: '16px', color: 'var(--text-light)', marginBottom: '12px', marginTop: '24px', marginLeft: '4px' }}>MONNAIE</h3>
         <div className="card" style={{ padding: '20px' }}>
           <select 
             value={currency.code}
@@ -276,10 +351,8 @@ const Settings = () => {
               const newTime = e.target.value;
               setNotificationTime(newTime);
               
-              // Request permission if not already granted
               const granted = await NotificationService.requestPermission();
               if (granted) {
-                // Attempt to schedule it natively in the background
                 NotificationService.scheduleNotification(
                   "C'est l'heure !", 
                   "N'oubliez pas d'enregistrer vos transactions du jour sur Dudukan.", 
