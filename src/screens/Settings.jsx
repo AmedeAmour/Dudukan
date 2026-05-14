@@ -21,9 +21,9 @@ const Settings = () => {
   const { 
     salary = 0, nextMonthSalary = 0, currency = { code: 'XOF', locale: 'fr-FR' },
     formatCurrency = (v) => v, totalIncome = 0, totalExpenses = 0, balance = 0, 
-    allTransactions = [], notificationTime = '20:00', startNewPeriod = () => {},
+    allTransactions = [], startNewPeriod = () => {},
     setNextMonthSalary = () => {}, resetData = () => {}, setCurrency = () => {},
-    setNotificationTime = () => {}
+    notificationSchedule = [], setNotificationSchedule = () => {}
   } = finance || {};
 
   const { user = null, signOut = () => {}, updateProfile = () => {} } = auth || {};
@@ -284,6 +284,46 @@ const Settings = () => {
               <p style={{ fontSize: '12px', color: 'var(--navy)' }}>Planifié : <strong>{formatCurrency(nextMonthSalary)}</strong> (actif au prochain mois)</p>
             </div>
           )}
+        </div>
+
+        <h3 style={{ fontSize: '14px', color: 'var(--text-light)', marginBottom: '12px', marginTop: '24px' }}>PLANNING DES RAPPELS</h3>
+        <div className="card" style={{ padding: '8px 16px' }}>
+          {notificationSchedule.map((s, idx) => (
+            <div key={s.day} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx === 6 ? 'none' : '1px solid #F3F4F6' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <input 
+                  type="checkbox" 
+                  checked={s.enabled} 
+                  onChange={(e) => {
+                    const newSched = [...notificationSchedule];
+                    newSched[idx].enabled = e.target.checked;
+                    setNotificationSchedule(newSched);
+                  }}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <span style={{ fontWeight: '600', width: '40px', fontSize: '14px' }}>{s.label}</span>
+              </div>
+              <input 
+                type="time" 
+                value={s.time}
+                disabled={!s.enabled}
+                onChange={(e) => {
+                  const newSched = [...notificationSchedule];
+                  newSched[idx].time = e.target.value;
+                  setNotificationSchedule(newSched);
+                }}
+                style={{ 
+                  border: '1px solid #E5E7EB', 
+                  borderRadius: '8px', 
+                  padding: '4px 8px', 
+                  fontSize: '14px',
+                  background: s.enabled ? 'white' : '#F9FAFB',
+                  opacity: s.enabled ? 1 : 0.5,
+                  cursor: s.enabled ? 'pointer' : 'default'
+                }}
+              />
+            </div>
+          ))}
         </div>
 
         <h3 style={{ fontSize: '14px', color: 'var(--text-light)', marginBottom: '12px', marginTop: '24px' }}>MONNAIE</h3>

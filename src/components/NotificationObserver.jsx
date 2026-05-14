@@ -3,29 +3,30 @@ import { useFinance } from '../context/FinanceContext';
 import { NotificationService } from '../NotificationService';
 
 const NotificationObserver = () => {
-  const { notificationTime, lastNotifiedDate, setLastNotifiedDate } = useFinance();
+  const { notificationSchedule, lastNotifiedDate, setLastNotifiedDate } = useFinance();
 
   useEffect(() => {
-    // Check if we should notify
     const checkTime = () => {
-      if (!notificationTime) return;
+      if (!notificationSchedule || notificationSchedule.length === 0) return;
 
       const now = new Date();
+      const currentDay = now.getDay(); // 0: Dim, 1: Lun, etc.
+      const dayConfig = notificationSchedule.find(s => s.day === currentDay);
+
+      if (!dayConfig || !dayConfig.enabled) return;
+
       const currentHour = now.getHours();
       const currentMinute = now.getMinutes();
+      const [targetHour, targetMinute] = dayConfig.time.split(':').map(Number);
       
-      const [targetHour, targetMinute] = notificationTime.split(':').map(Number);
-      
-      // Get current date string (YYYY-MM-DD) to check if we already notified today
       const todayStr = now.toISOString().split('T')[0];
 
       if (lastNotifiedDate !== todayStr) {
-        // If current time is past the target time (within a reasonable 1-hour window to catch them if they open app slightly late)
-        // Or if we check every minute and it's exactly the time
         const nowMinutes = currentHour * 60 + currentMinute;
         const targetMinutes = targetHour * 60 + targetMinute;
 
-        if (nowMinutes >= targetMinutes && nowMinutes <= targetMinutes + 60) {
+        // On notifie si on est à l'heure ou dans la fenêtre de 30 minutes qui suit
+        if (nowMinutes >= targetMinutes && nowMinutes <= targetMinutes + 30) {
           NotificationService.sendNotification(
             "C'est l'heure de faire les comptes !",
             "N'oubliez pas d'enregistrer vos transactions du jour sur Dudukan."
@@ -35,23 +36,11 @@ const NotificationObserver = () => {
       }
     };
 
-    // Check immediately on mount
     checkTime();
-
-    // Then check every minute
     const interval = setInterval(checkTime, 60000);
     
-    // Also try to schedule native background notification (if supported)
-    if (notificationTime) {
-      NotificationService.scheduleNotification(
-        "C'est l'heure de faire les comptes !",
-        "N'oubliez pas d'enregistrer vos transactions du jour sur Dudukan.",
-        notificationTime
-      );
-    }
-
     return () => clearInterval(interval);
-  }, [notificationTime, lastNotifiedDate, setLastNotifiedDate]);
+  }, [notificationSchedule, lastNotifiedDate, setLastNotifiedDate]);
 
   return null;
 };

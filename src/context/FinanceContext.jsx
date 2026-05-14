@@ -18,6 +18,16 @@ const DEFAULT_CATEGORIES = [
 
 const DEFAULT_CURRENCY = { locale: 'fr-FR', code: 'XOF' };
 
+const DEFAULT_SCHEDULE = [
+  { day: 0, label: 'Dim', enabled: true, time: '20:00' },
+  { day: 1, label: 'Lun', enabled: true, time: '20:00' },
+  { day: 2, label: 'Mar', enabled: true, time: '20:00' },
+  { day: 3, label: 'Mer', enabled: true, time: '20:00' },
+  { day: 4, label: 'Jeu', enabled: true, time: '20:00' },
+  { day: 5, label: 'Ven', enabled: true, time: '20:00' },
+  { day: 6, label: 'Sam', enabled: true, time: '20:00' },
+];
+
 export const FinanceProvider = ({ children }) => {
   const { user } = useAuth();
   const [salary, setSalary] = useState(0);
@@ -34,7 +44,9 @@ export const FinanceProvider = ({ children }) => {
     return new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
   });
   const [lastActivity, setLastActivity] = useState(new Date().toISOString());
-  const [notificationTime, setNotificationTime] = useState('20:00');
+  
+  // Advanced Notifications
+  const [notificationSchedule, setNotificationSchedule] = useState(DEFAULT_SCHEDULE);
   const [lastNotifiedDate, setLastNotifiedDate] = useState(null);
   
   const [isInitialized, setIsInitialized] = useState(false);
@@ -65,8 +77,12 @@ export const FinanceProvider = ({ children }) => {
     if (data.onboarded !== undefined) setOnboarded(data.onboarded);
     if (data.periodStart) setPeriodStart(data.periodStart);
     if (data.lastActivity) setLastActivity(data.lastActivity);
-    if (data.notificationTime) setNotificationTime(data.notificationTime);
+    if (data.notificationSchedule) setNotificationSchedule(data.notificationSchedule);
     if (data.lastNotifiedDate) setLastNotifiedDate(data.lastNotifiedDate);
+    // Legacy support
+    if (data.notificationTime && !data.notificationSchedule) {
+      setNotificationSchedule(DEFAULT_SCHEDULE.map(s => ({ ...s, time: data.notificationTime })));
+    }
   };
 
   useEffect(() => {
@@ -101,11 +117,11 @@ export const FinanceProvider = ({ children }) => {
 
   useEffect(() => {
     if (!user || !isInitialized) return;
-    const dataToSave = { salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationTime, lastNotifiedDate };
+    const dataToSave = { salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationSchedule, lastNotifiedDate };
     localStorage.setItem(storageKey, JSON.stringify(dataToSave));
     const timeoutId = setTimeout(() => syncWithCloud(dataToSave), 2000);
     return () => clearTimeout(timeoutId);
-  }, [isInitialized, user, salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationTime, lastNotifiedDate]);
+  }, [isInitialized, user, salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationSchedule, lastNotifiedDate]);
 
   // DERIVED DATA
   const currentMonthExpenses = expenses.filter(e => new Date(e.date) >= new Date(periodStart));
@@ -114,7 +130,6 @@ export const FinanceProvider = ({ children }) => {
   const totalExpensesValue = currentMonthExpenses.reduce((acc, curr) => acc + curr.amount, 0);
   const balanceValue = totalIncomeValue - totalExpensesValue;
 
-  // HELPERS
   const getCategorySpent = (categoryId) => currentMonthExpenses.filter(e => e.categoryId === categoryId).reduce((acc, curr) => acc + curr.amount, 0);
   const getCategoryBudget = (categoryId) => {
     const cat = categories.find(c => c.id === categoryId);
@@ -195,22 +210,18 @@ export const FinanceProvider = ({ children }) => {
       daysRemaining: Math.max(1, new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1),
       resteAVivre: balanceValue > 0 ? Math.round(balanceValue / 30) : 0,
       startNewPeriod, currency, setCurrency, formatCurrency, savings, setSavings, addToSavings, withdrawFromSavings,
+      notificationSchedule, setNotificationSchedule, lastNotifiedDate, setLastNotifiedDate,
       resetData: async () => { 
         if (user) {
-          try {
-            await supabase.from('user_data').delete().eq('id', user.id);
-          } catch (e) {
-            console.error("Erreur lors de la suppression cloud:", e);
-          }
+          try { await supabase.from('user_data').delete().eq('id', user.id); } catch (e) {}
         }
-        localStorage.clear(); 
-        window.location.reload(); 
+        localStorage.clear(); window.location.reload(); 
       },
       getFinancialHealth: () => {
         let score = 70;
         if (balanceValue < 0) score -= 20;
         if (savings > totalIncomeValue * 0.1) score += 10;
-        return { score: Math.max(0, Math.min(100, score)), projectedBalance: balanceValue, insights: ["Tout est prêt !"] };
+        return { score: Math.max(0, Math.min(100, score)), projectedBalance: balanceValue, insights: ["Analyse terminée."] };
       }
     }}>
       {children}
