@@ -44,11 +44,8 @@ export const FinanceProvider = ({ children }) => {
     return new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
   });
   const [lastActivity, setLastActivity] = useState(new Date().toISOString());
-  
-  // Advanced Notifications
   const [notificationSchedule, setNotificationSchedule] = useState(DEFAULT_SCHEDULE);
   const [lastNotifiedDate, setLastNotifiedDate] = useState(null);
-  
   const [isInitialized, setIsInitialized] = useState(false);
 
   const storageKey = user ? `dudukan_data_${user.id}` : 'dudukan_data_anon';
@@ -56,11 +53,7 @@ export const FinanceProvider = ({ children }) => {
   const syncWithCloud = async (dataToSync) => {
     if (!user || !isInitialized) return;
     try {
-      await supabase.from('user_data').upsert({ 
-        id: user.id, 
-        data: dataToSync,
-        updated_at: new Date().toISOString() 
-      });
+      await supabase.from('user_data').upsert({ id: user.id, data: dataToSync, updated_at: new Date().toISOString() });
     } catch (err) {}
   };
 
@@ -79,7 +72,6 @@ export const FinanceProvider = ({ children }) => {
     if (data.lastActivity) setLastActivity(data.lastActivity);
     if (data.notificationSchedule) setNotificationSchedule(data.notificationSchedule);
     if (data.lastNotifiedDate) setLastNotifiedDate(data.lastNotifiedDate);
-    // Legacy support
     if (data.notificationTime && !data.notificationSchedule) {
       setNotificationSchedule(DEFAULT_SCHEDULE.map(s => ({ ...s, time: data.notificationTime })));
     }
@@ -123,7 +115,6 @@ export const FinanceProvider = ({ children }) => {
     return () => clearTimeout(timeoutId);
   }, [isInitialized, user, salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationSchedule, lastNotifiedDate]);
 
-  // DERIVED DATA
   const currentMonthExpenses = expenses.filter(e => new Date(e.date) >= new Date(periodStart));
   const currentMonthIncome = extraIncome.filter(i => i.date ? new Date(i.date) >= new Date(periodStart) : true);
   const totalIncomeValue = salary + currentMonthIncome.reduce((acc, curr) => acc + curr.amount, 0);
@@ -143,7 +134,6 @@ export const FinanceProvider = ({ children }) => {
     }).format(amount);
   };
 
-  // ACTIONS
   const addExpense = (expense, skipDebtUpdate = false) => {
     const amount = parseFloat(expense.amount);
     if (isNaN(amount)) return;
@@ -198,6 +188,68 @@ export const FinanceProvider = ({ children }) => {
     }
   };
 
+  const getFinancialHealth = () => {
+    const today = new Date();
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const dayOfMonth = today.getDate();
+    const monthProgress = dayOfMonth / daysInMonth;
+    
+    let score = 80;
+    const insights = [];
+
+    // 1. Balance check
+    if (balanceValue < 0) {
+      score -= 30;
+      insights.push("Attention : Vous avez dépassé vos revenus. Réduisez vos dépenses immédiatement.");
+    } else if (balanceValue < totalIncomeValue * 0.1) {
+      score -= 10;
+      insights.push("Votre solde est serré. Évitez les achats non essentiels jusqu'à la fin du mois.");
+    } else {
+      insights.push("Bonne gestion : Vous maintenez un solde positif.");
+    }
+
+    // 2. Spending Pacing
+    const spendingRate = totalExpensesValue / (totalIncomeValue || 1);
+    if (spendingRate > monthProgress + 0.15) {
+      score -= 15;
+      insights.push(`Rythme élevé : Vous avez déjà consommé ${Math.round(spendingRate * 100)}% de votre budget en seulement ${dayOfMonth} jours.`);
+    }
+
+    // 3. Category alerts
+    categories.forEach(cat => {
+      const spent = getCategorySpent(cat.id);
+      const budget = getCategoryBudget(cat.id);
+      if (budget > 0 && spent > budget) {
+        insights.push(`Alerte ${cat.name} : Vous avez dépassé votre limite prévue de ${formatCurrency(spent - budget)}.`);
+      } else if (budget > 0 && spent > budget * 0.8) {
+        insights.push(`Surveillance ${cat.name} : Vous approchez de la limite (${Math.round((spent/budget)*100)}%).`);
+      }
+    });
+
+    // 4. Savings check
+    const savingsRate = savings / (totalIncomeValue * 6 || 1); // 6 months of income target
+    if (savings < totalIncomeValue * 0.1) {
+      score -= 10;
+      insights.push("Épargne : Essayez de mettre de côté au moins 10% de vos revenus pour les imprévus.");
+    } else {
+      score += 10;
+      insights.push("Félicitations : Votre épargne progresse bien.");
+    }
+
+    // 5. Debt check
+    const totalDebt = debts.reduce((acc, d) => acc + d.remaining, 0);
+    if (totalDebt > totalIncomeValue * 3) {
+      score -= 20;
+      insights.push("Endettement : Vos dettes sont élevées par rapport à vos revenus. Priorisez les remboursements.");
+    }
+
+    return { 
+      score: Math.max(0, Math.min(100, score)), 
+      projectedBalance: balanceValue, 
+      insights: insights.length > 0 ? insights : ["Tout semble en ordre. Continuez ainsi !"] 
+    };
+  };
+
   return (
     <FinanceContext.Provider value={{
       isInitialized, salary, setSalary, nextMonthSalary, setNextMonthSalary,
@@ -211,18 +263,8 @@ export const FinanceProvider = ({ children }) => {
       resteAVivre: balanceValue > 0 ? Math.round(balanceValue / 30) : 0,
       startNewPeriod, currency, setCurrency, formatCurrency, savings, setSavings, addToSavings, withdrawFromSavings,
       notificationSchedule, setNotificationSchedule, lastNotifiedDate, setLastNotifiedDate,
-      resetData: async () => { 
-        if (user) {
-          try { await supabase.from('user_data').delete().eq('id', user.id); } catch (e) {}
-        }
-        localStorage.clear(); window.location.reload(); 
-      },
-      getFinancialHealth: () => {
-        let score = 70;
-        if (balanceValue < 0) score -= 20;
-        if (savings > totalIncomeValue * 0.1) score += 10;
-        return { score: Math.max(0, Math.min(100, score)), projectedBalance: balanceValue, insights: ["Analyse terminée."] };
-      }
+      resetData: async () => { if (user) { try { await supabase.from('user_data').delete().eq('id', user.id); } catch (e) {} } localStorage.clear(); window.location.reload(); },
+      getFinancialHealth
     }}>
       {children}
     </FinanceContext.Provider>
