@@ -110,6 +110,7 @@ const Settings = () => {
     try {
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
+      
       const clean = (str) => {
         if (!str) return '';
         return String(str).replace(/\u00A0/g, ' ').replace(/\u202F/g, ' ').replace(/[^\x00-\x7F]/g, (c) => {
@@ -128,58 +129,103 @@ const Settings = () => {
       };
       
       const logo = await loadLogo();
-      if (logo) { doc.addImage(logo, 'PNG', 15, 10, 20, 20); }
+      const navyColor = [26, 43, 85]; // Dark Navy from logo/design
       
-      doc.setFontSize(22);
-      doc.setTextColor(26, 43, 85);
-      doc.text("Dudukan", 40, 20);
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text(clean("L'assistant financier intelligent"), 40, 26);
+      // 1. Header Background (Dark Blue)
+      doc.setFillColor(navyColor[0], navyColor[1], navyColor[2]);
+      doc.rect(0, 0, 210, 50, 'F');
+
+      // 2. Logo & App Title
+      if (logo) {
+        doc.addImage(logo, 'PNG', 20, 10, 20, 20);
+      }
       
-      doc.setDrawColor(200, 200, 200);
-      doc.line(15, 35, 195, 35);
-      
-      doc.setFontSize(16);
-      doc.setTextColor(0, 0, 0);
-      doc.text(clean("Rapport d'Activité Financière"), 15, 50);
-      
-      doc.setFontSize(12);
-      doc.text(`Client : ${clean(user?.user_metadata?.full_name || 'Utilisateur')}`, 15, 60);
-      doc.text(`Date : ${new Date().toLocaleDateString('fr-FR')}`, 15, 67);
-      
-      doc.setFillColor(240, 244, 255);
-      doc.rect(15, 75, 180, 35, 'F');
-      doc.setFontSize(11);
-      doc.setTextColor(26, 43, 85);
-      doc.text(clean("Résumé de la période"), 20, 82);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`${clean("Total Revenus :")} ${formatCurrency(totalIncome)}`, 20, 92);
-      doc.text(`${clean("Total Dépenses :")} ${formatCurrency(totalExpenses)}`, 20, 99);
-      doc.setFontSize(12);
+      doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
-      doc.text(`${clean("Solde Final :")} ${formatCurrency(balance)}`, 20, 107);
+      doc.setFontSize(28);
+      doc.text("Dudukan", 45, 22);
       
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(14);
-      doc.text(clean("Détail des transactions récentes"), 15, 125);
-      
-      let y = 135;
       doc.setFontSize(10);
-      allTransactions.slice(0, 20).forEach((tx) => {
-        if (y > 270) { doc.addPage(); y = 20; }
-        const dateStr = new Date(tx.date).toLocaleDateString('fr-FR');
-        const typeStr = tx.type === 'income' ? '(+)' : '(-)';
-        const noteStr = clean(tx.note || (tx.type === 'income' ? 'Revenu' : 'Dépense'));
-        doc.text(`${dateStr}  ${typeStr}  ${noteStr}`, 15, y);
-        doc.text(formatCurrency(tx.amount), 170, y, { align: 'right' });
+      doc.text(clean("L'assistant financier intelligent"), 45, 28);
+
+      // 3. Right side header info
+      doc.setFontSize(20);
+      doc.text("RAPPORT FINANCIER", 195, 25, { align: 'right' });
+      
+      doc.setFontSize(9);
+      const today = new Date().toLocaleDateString('fr-FR');
+      doc.text(`Genere le : ${today}`, 195, 33, { align: 'right' });
+      
+      // Client Name Addition
+      const clientName = user?.user_metadata?.full_name || 'Utilisateur';
+      doc.text(`Client : ${clean(clientName)}`, 195, 38, { align: 'right' });
+
+      // 4. RESUME DU MOIS Section
+      let y = 70;
+      doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("RESUME DU MOIS", 20, y);
+      doc.line(20, y + 2, 60, y + 2); // Underline
+      
+      y += 15;
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80, 80, 80);
+      
+      const resume = [
+        { label: "Salaire de base :", value: formatCurrency(salary) },
+        { label: "Revenus complementaires :", value: formatCurrency(totalIncome - salary) },
+        { label: "Total des depenses :", value: formatCurrency(totalExpenses) },
+        { label: "Solde actuel :", value: formatCurrency(balance) }
+      ];
+
+      resume.forEach(item => {
+        doc.text(clean(item.label), 25, y);
+        doc.text(clean(item.value), 185, y, { align: 'right' });
         y += 8;
       });
+
+      // 5. DERNIERES OPERATIONS Section
+      y += 15;
+      doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("DERNIERES OPERATIONS", 20, y);
+      doc.line(20, y + 2, 80, y + 2); // Underline
       
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text("Généré par Dudukan - Votre gestion financière simplifiée", 105, 285, { align: 'center' });
+      y += 15;
+      doc.setFontSize(9);
+      doc.setTextColor(120, 120, 120);
       
+      // Table Header
+      doc.text("Date", 25, y);
+      doc.text("Description", 55, y);
+      doc.text("Montant", 185, y, { align: 'right' });
+      
+      y += 4;
+      doc.setDrawColor(220, 220, 220);
+      doc.line(20, y, 190, y);
+      y += 8;
+
+      // Table Content
+      doc.setTextColor(50, 50, 50);
+      allTransactions.slice(0, 25).forEach((tx) => {
+        if (y > 275) { doc.addPage(); y = 20; }
+        
+        const dateStr = new Date(tx.date).toLocaleDateString('fr-FR');
+        const noteStr = clean(tx.note || (tx.type === 'income' ? 'Revenu' : 'Depense'));
+        const prefix = tx.type === 'income' ? '+' : '-';
+        const amountStr = `${prefix}${formatCurrency(tx.amount)}`;
+        
+        doc.text(dateStr, 25, y);
+        doc.text(noteStr, 55, y);
+        doc.text(clean(amountStr), 185, y, { align: 'right' });
+        
+        y += 7;
+      });
+
       doc.save(`Rapport_Dudukan_${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (err) {
       console.error(err);

@@ -75,11 +75,34 @@ export const FinanceProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (!user) { setIsInitialized(true); return; }
+    // RESET state when user changes to prevent data leaks
+    setIsInitialized(false);
+    setSalary(0);
+    setNextMonthSalary(0);
+    setExtraIncome([]);
+    setExpenses([]);
+    setDebts([]);
+    setCategories(DEFAULT_CATEGORIES);
+    setCurrency(DEFAULT_CURRENCY);
+    setSavings(0);
+    setOnboarded(false);
+    setPeriodStart(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
+    setNotificationSchedule(DEFAULT_SCHEDULE);
+    setLastNotifiedDate(null);
+
+    if (!user) { 
+      setIsInitialized(true); 
+      return; 
+    }
+
     const loadData = async () => {
       let bestLocalData = null;
       let newestTimestamp = 0;
-      ['dudukan_data', `dudukan_data_${user.id}`].forEach(key => {
+      
+      // For logged in users, we ONLY want their specific data
+      const storageKeys = [`dudukan_data_${user.id}`];
+      
+      storageKeys.forEach(key => {
         const saved = localStorage.getItem(key);
         if (saved) {
           try {
@@ -89,15 +112,19 @@ export const FinanceProvider = ({ children }) => {
           } catch(e) {}
         }
       });
+
       try {
         const { data: cloudRow } = await supabase.from('user_data').select('data, updated_at').eq('id', user.id).single();
         if (cloudRow && cloudRow.data && Object.keys(cloudRow.data).length > 2) {
           const cloudTs = new Date(cloudRow.updated_at).getTime();
           if (cloudTs >= newestTimestamp || !bestLocalData) {
-            applyData(cloudRow.data); setIsInitialized(true); return;
+            applyData(cloudRow.data); 
+            setIsInitialized(true); 
+            return;
           }
         }
       } catch (err) {}
+
       if (bestLocalData) applyData(bestLocalData);
       setIsInitialized(true);
     };
