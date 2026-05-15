@@ -112,8 +112,6 @@ const Settings = () => {
       resetData();
     }
   };
-    }
-  };
 
   const handleAvatarUpload = async (event) => {
     try {
