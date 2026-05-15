@@ -14,17 +14,6 @@ const Settings = () => {
   const finance = useFinance();
   const auth = useAuth();
   
-  const [tempSalary, setTempSalary] = useState('');
-  const [showSim, setShowSim] = useState(false);
-  const [targetSalary, setTargetSalary] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [expandedSection, setExpandedSection] = useState(null); // 'income', 'notifications', 'currency'
-  const [newSalary, setNewSalary] = useState(salary.toString());
-  const [isEditingSalary, setIsEditingSalary] = useState(false);
-  const fileInputRef = useRef(null);
-
   const { 
     salary = 0, nextMonthSalary = 0, currency = { code: 'XOF', locale: 'fr-FR' },
     formatCurrency = (v) => v, totalIncome = 0, totalExpenses = 0, balance = 0, 
@@ -35,6 +24,17 @@ const Settings = () => {
   } = finance || {};
 
   const { user = null, signOut = () => {}, updateProfile = () => {} } = auth || {};
+
+  const [tempSalary, setTempSalary] = useState('');
+  const [showSim, setShowSim] = useState(false);
+  const [targetSalary, setTargetSalary] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [expandedSection, setExpandedSection] = useState(null); // 'income', 'notifications', 'currency'
+  const [newSalary, setNewSalary] = useState(salary.toString());
+  const [isEditingSalary, setIsEditingSalary] = useState(false);
+  const fileInputRef = useRef(null);
 
   const currencies = [
     { code: 'XOF', locale: 'fr-FR', name: 'Franc CFA (BCEAO)' },
