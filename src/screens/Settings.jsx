@@ -21,6 +21,8 @@ const Settings = () => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const [expandedSection, setExpandedSection] = useState(null); // 'income', 'notifications', 'currency'
+  const [newSalary, setNewSalary] = useState(salary.toString());
+  const [isEditingSalary, setIsEditingSalary] = useState(false);
   const fileInputRef = useRef(null);
 
   const { 
@@ -59,6 +61,10 @@ const Settings = () => {
   }, [salary, nextMonthSalary]);
 
   useEffect(() => {
+    setNewSalary(salary.toString());
+  }, [salary]);
+
+  useEffect(() => {
     if (user?.user_metadata?.full_name) {
       setNewName(user.user_metadata.full_name);
     }
@@ -85,6 +91,27 @@ const Settings = () => {
     if (!error) {
       setIsEditingName(false);
       alert('Nom mis à jour !');
+    } else {
+      alert('Erreur: ' + error.message);
+    }
+  };
+
+  const handleUpdateCurrentSalary = () => {
+    const parsed = parseFloat(newSalary);
+    if (!isNaN(parsed) && parsed >= 0) {
+      finance.setSalary(parsed);
+      setIsEditingSalary(false);
+      alert('Salaire mis à jour avec succès !');
+    } else {
+      alert('Veuillez entrer un montant valide.');
+    }
+  };
+
+  const handleReset = () => {
+    if (window.confirm('Voulez-vous vraiment réinitialiser toutes vos données locales ?')) {
+      resetData();
+    }
+  };
     }
   };
 

@@ -16,37 +16,29 @@ const InstallPWA = () => {
     
     setIsStandalone(isStandaloneMode);
 
-    // Detect iOS
+    // Detect OS and Mobile
     const userAgent = window.navigator.userAgent.toLowerCase();
+    const isMobileDevice = /iphone|ipad|ipod|android|blackberry|mini|windows\sce|palm/i.test(userAgent);
     const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isIOSDevice);
 
-    // Listen for beforeinstallprompt (Android/Chrome)
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      
-      // Only show if not dismissed recently
-      const dismissed = localStorage.getItem('pwa_install_dismissed');
-      if (!dismissed && !isStandaloneMode) {
-        setShowPrompt(true);
-      }
-    };
+    if (isMobileDevice && !isStandaloneMode) {
+      // Afficher systématiquement pour les mobiles non installés
+      const timer = setTimeout(() => setShowPrompt(true), 1500);
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      const handleBeforeInstallPrompt = (e) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+      };
 
-    // For iOS, we show it manually since there's no event
-    if (isIOSDevice && !isStandaloneMode) {
-      const dismissed = localStorage.getItem('pwa_install_dismissed');
-      if (!dismissed) {
-        // Show after a short delay to be less intrusive
-        const timer = setTimeout(() => setShowPrompt(true), 3000);
-        return () => clearTimeout(timer);
-      }
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      };
     }
-
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, [isStandalone]);
+  }, []);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
@@ -58,12 +50,6 @@ const InstallPWA = () => {
       setShowPrompt(false);
     }
     setDeferredPrompt(null);
-  };
-
-  const handleDismiss = () => {
-    setShowPrompt(false);
-    // Remember dismissal for 7 days
-    localStorage.setItem('pwa_install_dismissed', Date.now());
   };
 
   if (isStandalone || !showPrompt) return null;
@@ -107,15 +93,9 @@ const InstallPWA = () => {
             </div>
             <div>
               <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--navy)', margin: 0 }}>Installez Dudukan</h4>
-              <p style={{ fontSize: '13px', color: 'var(--text-light)', margin: 0 }}>Accédez plus vite à vos finances</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-light)', margin: 0 }}>L'application doit être installée pour continuer</p>
             </div>
           </div>
-          <button 
-            onClick={handleDismiss}
-            style={{ background: '#F3F4F6', border: 'none', padding: '6px', borderRadius: '50%', cursor: 'pointer', color: 'var(--text-light)' }}
-          >
-            <X size={18} />
-          </button>
         </div>
 
         {isIOS ? (
@@ -139,7 +119,7 @@ const InstallPWA = () => {
               </div>
             </div>
           </div>
-        ) : (
+        ) : deferredPrompt ? (
           <button 
             onClick={handleInstall}
             style={{ 
@@ -157,8 +137,29 @@ const InstallPWA = () => {
               cursor: 'pointer'
             }}
           >
-            <Download size={18} /> Installer maintenant
+            <Download size={18} /> Installer l'application
           </button>
+        ) : (
+          <div style={{ 
+            background: 'var(--accent-blue-light)', 
+            padding: '12px', 
+            borderRadius: '12px',
+            fontSize: '13px',
+            color: 'var(--navy)',
+            lineHeight: '1.5'
+          }}>
+            <p style={{ margin: '0 0 8px 0', fontWeight: '500' }}>Pour installer sur Android :</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ background: 'white', padding: '4px', borderRadius: '4px', fontWeight: 'bold' }}>&#8942;</div>
+                <span>Appuyez sur les <strong>3 points</strong> en haut à droite</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ background: 'white', padding: '4px', borderRadius: '4px' }}><Download size={14} /></div>
+                <span>Puis sur <strong>Installer l'application</strong></span>
+              </div>
+            </div>
+          </div>
         )}
       </motion.div>
     </AnimatePresence>

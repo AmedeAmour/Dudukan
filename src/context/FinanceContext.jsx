@@ -202,7 +202,7 @@ export const FinanceProvider = ({ children }) => {
   };
 
   const startNewPeriod = () => {
-    if (window.confirm('Nouveau mois ?')) {
+    if (window.confirm('Voulez-vous vraiment commencer un nouveau mois maintenant ? Vos compteurs de budget seront réinitialisés.')) {
       const rolloverBalance = balanceValue;
       const now = new Date().toISOString();
       setPeriodStart(now);
