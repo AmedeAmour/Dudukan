@@ -28,7 +28,8 @@ const Settings = () => {
     formatCurrency = (v) => v, totalIncome = 0, totalExpenses = 0, balance = 0, 
     allTransactions = [], startNewPeriod = () => {},
     setNextMonthSalary = () => {}, resetData = () => {}, setCurrency = () => {},
-    notificationSchedule = [], setNotificationSchedule = () => {}
+    notificationSchedule = [], setNotificationSchedule = () => {},
+    categories = []
   } = finance || {};
 
   const { user = null, signOut = () => {}, updateProfile = () => {} } = auth || {};
@@ -200,28 +201,32 @@ const Settings = () => {
       doc.setTextColor(120, 120, 120);
       
       // Table Header
-      doc.text("Date", 25, y);
-      doc.text("Description", 55, y);
-      doc.text("Montant", 185, y, { align: 'right' });
+      doc.text("Date", 20, y);
+      doc.text("Categorie", 45, y);
+      doc.text("Description", 90, y);
+      doc.text("Montant", 190, y, { align: 'right' });
       
       y += 4;
       doc.setDrawColor(220, 220, 220);
-      doc.line(20, y, 190, y);
+      doc.line(20, y, 195, y);
       y += 8;
 
       // Table Content
       doc.setTextColor(50, 50, 50);
-      allTransactions.slice(0, 25).forEach((tx) => {
+      allTransactions.slice(0, 30).forEach((tx) => {
         if (y > 275) { doc.addPage(); y = 20; }
         
         const dateStr = new Date(tx.date).toLocaleDateString('fr-FR');
-        const noteStr = clean(tx.note || (tx.type === 'income' ? 'Revenu' : 'Depense'));
+        const category = categories.find(c => c.id === tx.categoryId);
+        const catStr = clean(category ? category.name : (tx.type === 'income' ? 'Revenu' : 'Autre'));
+        const noteStr = clean(tx.note || (tx.type === 'income' ? 'Encaissement' : 'Depense'));
         const prefix = tx.type === 'income' ? '+' : '-';
         const amountStr = `${prefix}${formatCurrency(tx.amount)}`;
         
-        doc.text(dateStr, 25, y);
-        doc.text(noteStr, 55, y);
-        doc.text(clean(amountStr), 185, y, { align: 'right' });
+        doc.text(dateStr, 20, y);
+        doc.text(catStr, 45, y);
+        doc.text(noteStr.length > 35 ? noteStr.substring(0, 32) + '...' : noteStr, 90, y);
+        doc.text(clean(amountStr), 190, y, { align: 'right' });
         
         y += 7;
       });
