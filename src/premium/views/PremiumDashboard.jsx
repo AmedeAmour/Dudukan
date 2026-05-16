@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePremium } from '../context/PremiumContext';
 import '../PremiumStyles.css';
 import DistributionRecap from './DistributionRecap';
+import { FolderOpen, Plus } from 'lucide-react';
 
 const PremiumDashboard = ({ onAddProject }) => {
   const { projects, profile, availableFunds, loading, calculateMonthlyNeeds } = usePremium();
