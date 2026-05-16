@@ -3,7 +3,7 @@ import { usePremium } from '../context/PremiumContext';
 import '../PremiumStyles.css';
 import DistributionRecap from './DistributionRecap';
 
-const PremiumDashboard = () => {
+const PremiumDashboard = ({ onAddProject }) => {
   const { projects, profile, availableFunds, loading, calculateMonthlyNeeds } = usePremium();
   const [distributeAmount, setDistributeAmount] = useState('');
   const [showRecap, setShowRecap] = useState(false);
@@ -107,7 +107,7 @@ const PremiumDashboard = () => {
         {projects.length === 0 ? (
           <div className="premium-card" style={{ textAlign: 'center', padding: '40px 20px' }}>
             <p style={{ color: 'var(--text-light)', marginBottom: '20px' }}>Aucun projet actif pour le moment.</p>
-            <button className="premium-btn">Créer mon premier projet</button>
+            <button className="premium-btn" onClick={onAddProject}>Créer mon premier projet</button>
           </div>
         ) : (
           projects.map(project => {
@@ -144,17 +144,21 @@ const PremiumDashboard = () => {
       </div>
 
       {/* Floating Action Button (Premium Style) */}
-      <button className="premium-btn" style={{ 
-        position: 'fixed', 
-        bottom: '30px', 
-        right: '20px', 
-        width: '60px', 
-        height: '60px', 
-        borderRadius: '50%',
-        padding: '0',
-        fontSize: '24px',
-        zIndex: 100
-      }}>
+      <button 
+        className="premium-btn" 
+        onClick={onAddProject}
+        style={{ 
+          position: 'fixed', 
+          bottom: '100px', 
+          right: '20px', 
+          width: '60px', 
+          height: '60px', 
+          borderRadius: '50%',
+          padding: '0',
+          fontSize: '24px',
+          zIndex: 100
+        }}
+      >
         +
       </button>
     </div>
