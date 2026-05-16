@@ -73,16 +73,16 @@ const AddProject = ({ onBack }) => {
   };
 
   return (
-    <div className="premium-container fade-in" style={{ padding: '20px' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--navy)', marginBottom: '24px', cursor: 'pointer', fontWeight: '600' }}>
-        <ArrowLeft size={20} /> Retour
+    <div className="premium-container fade-in" style={{ padding: '24px' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--zenith-primary)', marginBottom: '32px', cursor: 'pointer', fontWeight: '700', fontFamily: 'var(--font-headings)' }}>
+        <ArrowLeft size={20} strokeWidth={2.5} /> Retour
       </button>
 
-      <h2 className="font-outfit" style={{ marginBottom: '8px' }}>Nouveau Projet de Vie</h2>
-      <p style={{ color: 'var(--text-light)', marginBottom: '32px' }}>Transformez vos rêves en étapes concrètes.</p>
+      <h2 style={{ fontFamily: 'var(--font-headings)', fontSize: '28px', marginBottom: '8px' }}>Nouveau Projet</h2>
+      <p style={{ color: 'var(--zenith-neutral)', marginBottom: '40px', fontSize: '15px' }}>Transformez vos ambitions en étapes mesurables.</p>
 
-      {/* Type Selector */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '32px' }}>
+      {/* Type Selector Zenith Style */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '40px' }}>
         {[
           { id: 'simple', label: 'Simple', icon: Target },
           { id: 'complex', label: 'Complexe', icon: Layers },
@@ -93,56 +93,66 @@ const AddProject = ({ onBack }) => {
             onClick={() => setType(t.id)}
             style={{
               flex: 1,
-              padding: '16px 10px',
-              borderRadius: 'var(--radius-md)',
-              border: type === t.id ? '2px solid var(--navy)' : '1px solid #E5E7EB',
-              background: type === t.id ? 'rgba(26, 43, 72, 0.05)' : 'white',
+              padding: '20px 10px',
+              borderRadius: 'var(--radius-lg)',
+              border: type === t.id ? '2.5px solid var(--zenith-primary)' : '1.5px solid #E9ECEF',
+              background: type === t.id ? 'rgba(26, 79, 139, 0.05)' : 'var(--zenith-white)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: '8px',
+              gap: '10px',
               cursor: 'pointer',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           >
-            <t.icon size={20} color={type === t.id ? 'var(--navy)' : 'var(--text-light)'} />
-            <span style={{ fontSize: '12px', fontWeight: '600', color: type === t.id ? 'var(--navy)' : 'var(--text-light)' }}>{t.label}</span>
+            <t.icon size={22} strokeWidth={type === t.id ? 2.5 : 2} color={type === t.id ? 'var(--zenith-primary)' : 'var(--zenith-neutral)'} />
+            <span style={{ fontSize: '12px', fontWeight: '700', fontFamily: 'var(--font-headings)', color: type === t.id ? 'var(--zenith-primary)' : 'var(--zenith-neutral)' }}>{t.label}</span>
           </button>
         ))}
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '20px' }}>
-          <label className="label">Nom du projet</label>
+        <div style={{ marginBottom: '24px' }}>
+          <label className="label" style={{ fontFamily: 'var(--font-headings)', fontWeight: '700', color: 'var(--zenith-primary)', marginBottom: '8px', display: 'block' }}>Nom du projet</label>
           <input 
             required 
-            placeholder="Ex: Construction Villa, Voyage, Loyer..." 
+            className="premium-input"
+            placeholder="Ex: Construction Villa, Voyage..." 
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
         </div>
 
         {type !== 'complex' && (
-          <div style={{ marginBottom: '20px' }}>
-            <label className="label">Montant {type === 'recurring' ? 'périodique' : 'total'}</label>
-            <input 
-              required 
-              type="number" 
-              placeholder={`0 ${profile?.currency?.code}`}
-              value={target}
-              onChange={(e) => setTarget(e.target.value)}
-            />
+          <div style={{ marginBottom: '24px' }}>
+            <label className="label" style={{ fontFamily: 'var(--font-headings)', fontWeight: '700', color: 'var(--zenith-primary)', marginBottom: '8px', display: 'block' }}>
+              Montant {type === 'recurring' ? 'périodique' : 'total'}
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input 
+                required 
+                type="number" 
+                className="premium-input"
+                placeholder="0.00"
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                style={{ fontFamily: 'var(--font-data)', fontSize: '18px' }}
+              />
+              <span style={{ position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', fontWeight: '700', color: 'var(--zenith-neutral)' }}>
+                {profile?.currency?.code}
+              </span>
+            </div>
           </div>
         )}
 
         {type === 'recurring' ? (
-          <div style={{ marginBottom: '20px' }}>
-            <label className="label">Fréquence</label>
+          <div style={{ marginBottom: '24px' }}>
+            <label className="label" style={{ fontFamily: 'var(--font-headings)', fontWeight: '700', color: 'var(--zenith-primary)', marginBottom: '8px', display: 'block' }}>Fréquence</label>
             <select 
               className="premium-input" 
-              style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1.5px solid #E5E7EB' }}
               value={frequency}
               onChange={(e) => setFrequency(e.target.value)}
+              style={{ appearance: 'none', background: 'var(--zenith-white)' }}
             >
               <option value="daily">Quotidien</option>
               <option value="weekly">Hebdomadaire</option>
@@ -151,11 +161,12 @@ const AddProject = ({ onBack }) => {
             </select>
           </div>
         ) : (
-          <div style={{ marginBottom: '20px' }}>
-            <label className="label">Date limite souhaitée</label>
+          <div style={{ marginBottom: '24px' }}>
+            <label className="label" style={{ fontFamily: 'var(--font-headings)', fontWeight: '700', color: 'var(--zenith-primary)', marginBottom: '8px', display: 'block' }}>Date limite souhaitée</label>
             <input 
               required 
               type="date" 
+              className="premium-input"
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
             />
@@ -163,42 +174,46 @@ const AddProject = ({ onBack }) => {
         )}
 
         {type === 'complex' && (
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <label className="label" style={{ marginBottom: 0 }}>Étapes du projet</label>
-              <button type="button" onClick={handleAddStep} style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Plus size={16} /> Ajouter
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <label className="label" style={{ fontFamily: 'var(--font-headings)', fontWeight: '700', color: 'var(--zenith-primary)', marginBottom: 0 }}>Étapes Zenith</label>
+              <button type="button" onClick={handleAddStep} style={{ background: 'none', border: 'none', color: 'var(--zenith-secondary)', fontWeight: '700', fontSize: '14px', fontFamily: 'var(--font-headings)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Plus size={18} strokeWidth={2.5} /> Ajouter
               </button>
             </div>
             {steps.map((step, index) => (
-              <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                <input 
-                  required 
-                  placeholder={`Étape ${index + 1}`} 
-                  value={step.name}
-                  onChange={(e) => handleStepChange(index, 'name', e.target.value)}
-                  style={{ flex: 2 }}
-                />
-                <input 
-                  required 
-                  type="number" 
-                  placeholder="Montant"
-                  value={step.amount}
-                  onChange={(e) => handleStepChange(index, 'amount', e.target.value)}
-                  style={{ flex: 1.5 }}
-                />
-                {steps.length > 1 && (
-                  <button type="button" onClick={() => handleRemoveStep(index)} style={{ background: 'none', border: 'none', color: '#EF4444' }}>
-                    <Trash2 size={20} />
-                  </button>
-                )}
+              <div key={index} className="premium-card" style={{ padding: '16px', marginBottom: '12px', background: 'rgba(248, 249, 250, 0.5)' }}>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <input 
+                    required 
+                    className="premium-input"
+                    placeholder={`Libellé étape ${index + 1}`} 
+                    value={step.name}
+                    onChange={(e) => handleStepChange(index, 'name', e.target.value)}
+                    style={{ flex: 2, padding: '12px 16px' }}
+                  />
+                  <input 
+                    required 
+                    type="number" 
+                    className="premium-input"
+                    placeholder="Montant"
+                    value={step.amount}
+                    onChange={(e) => handleStepChange(index, 'amount', e.target.value)}
+                    style={{ flex: 1.5, padding: '12px 16px', fontFamily: 'var(--font-data)' }}
+                  />
+                  {steps.length > 1 && (
+                    <button type="button" onClick={() => handleRemoveStep(index)} style={{ background: 'none', border: 'none', color: 'var(--zenith-error)', padding: '0 8px' }}>
+                      <Trash2 size={22} />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         )}
 
-        <button type="submit" className="premium-btn" style={{ width: '100%', marginTop: '20px' }} disabled={loading}>
-          {loading ? 'Création...' : 'Créer le projet'}
+        <button type="submit" className="premium-btn" style={{ width: '100%', padding: '20px', fontSize: '18px', marginTop: '10px' }} disabled={loading}>
+          {loading ? 'Finalisation...' : 'Valider le Projet Zenith'}
         </button>
       </form>
     </div>
