@@ -10,7 +10,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationService } from '../NotificationService';
 
-const Settings = () => {
+const Settings = ({ onSwitchToPremium }) => {
   const finance = useFinance();
   const auth = useAuth();
   
@@ -322,6 +322,45 @@ const Settings = () => {
         <h1 style={{ fontSize: '28px', fontWeight: '800', color: 'var(--navy)' }}>Réglages</h1>
         <p style={{ color: 'var(--text-light)', fontSize: '15px' }}>Gérez votre profil et vos préférences</p>
       </header>
+
+      {/* Premium Upgrade Section */}
+      <div className="card" style={{ 
+        background: 'linear-gradient(135deg, #1A2B48 0%, #2D3E5E 100%)', 
+        color: 'white',
+        padding: '24px',
+        marginBottom: '32px',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h3 style={{ color: 'white', fontSize: '18px', marginBottom: '8px' }}>Passez au niveau supérieur</h3>
+          <p style={{ fontSize: '14px', opacity: 0.9, marginBottom: '20px' }}>Planification intelligente, projets complexes et gestion automatisée.</p>
+          <button 
+            onClick={onSwitchToPremium}
+            style={{ 
+              background: '#D4AF37', 
+              color: 'white', 
+              border: 'none', 
+              padding: '12px 20px', 
+              borderRadius: '12px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+            }}
+          >
+            Découvrir le mode Premium
+          </button>
+        </div>
+        <div style={{ 
+          position: 'absolute', 
+          top: '-20px', 
+          right: '-20px', 
+          width: '100px', 
+          height: '100px', 
+          background: 'rgba(255,255,255,0.1)', 
+          borderRadius: '50%' 
+        }}></div>
+      </div>
 
       {/* Profil Section */}
       <div className="card" style={{ marginBottom: '32px', padding: '24px', textAlign: 'center' }}>
