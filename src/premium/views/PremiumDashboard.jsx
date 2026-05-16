@@ -154,24 +154,6 @@ const PremiumDashboard = ({ onAddProject }) => {
         )}
       </div>
 
-      {/* Floating Action Button Zenith Style */}
-      <button 
-        className="premium-btn" 
-        onClick={onAddProject}
-        style={{ 
-          position: 'fixed', 
-          bottom: '110px', 
-          right: '24px', 
-          width: '64px', 
-          height: '64px', 
-          borderRadius: 'var(--radius-pill)',
-          padding: '0',
-          boxShadow: '0 8px 25px rgba(26, 79, 139, 0.4)',
-          zIndex: 100
-        }}
-      >
-        <Plus size={32} />
-      </button>
     </div>
   );
 };

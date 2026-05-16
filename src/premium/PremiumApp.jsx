@@ -60,7 +60,11 @@ const PremiumAppContent = ({ onSwitchMode }) => {
       <div style={{ minHeight: '100vh', paddingBottom: '90px' }}>
         {renderScreen()}
       </div>
-      <PremiumBottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+      <PremiumBottomNav 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        onAddClick={() => setIsAddingProject(true)}
+      />
     </>
   );
 };
