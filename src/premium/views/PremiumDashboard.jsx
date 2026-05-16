@@ -16,37 +16,39 @@ const PremiumDashboard = ({ onAddProject }) => {
 
   return (
     <div className="premium-container">
-      {/* Header Premium */}
+      {/* Header Zenith Style */}
       <header className="premium-header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <p style={{ opacity: 0.8, fontSize: '14px' }}>Ravi de vous revoir,</p>
-            <h1>{profile?.full_name || 'Investisseur'}</h1>
+            <p style={{ opacity: 0.8, fontSize: '14px', fontFamily: 'var(--font-body)' }}>Ravi de vous revoir,</p>
+            <h1 style={{ fontSize: '32px' }}>{profile?.full_name || 'Investisseur'}</h1>
           </div>
-          <div className="status-badge status-ready" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
-            Mode Premium
+          <div className="status-badge" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
+            Zenith Premium
           </div>
         </div>
       </header>
 
       {/* Global Progress Card */}
       <div style={{ padding: '0 20px', marginTop: '-40px' }}>
-        <div className="premium-card premium-card-glass">
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <h3 className="font-outfit">Progression Globale</h3>
-            <span className="text-gold" style={{ fontWeight: '700' }}>{Math.round(globalProgress)}%</span>
+        <div className="premium-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <h3 style={{ fontFamily: 'var(--font-headings)', fontSize: '18px' }}>Progression Globale</h3>
+            <span style={{ color: 'var(--zenith-secondary)', fontFamily: 'var(--font-data)', fontWeight: '700', fontSize: '20px' }}>
+              {Math.round(globalProgress)}%
+            </span>
           </div>
           <div className="premium-progress">
             <div className="premium-progress-fill" style={{ width: `${globalProgress}%` }}></div>
           </div>
-          <div className="dashboard-grid" style={{ marginTop: '20px' }}>
+          <div className="dashboard-grid" style={{ marginTop: '24px' }}>
             <div className="dashboard-stat-card">
-              <p className="dashboard-stat-label">Total Objectifs</p>
-              <p className="dashboard-stat-value">{totalTarget.toLocaleString()} {profile?.currency?.code}</p>
+              <p className="dashboard-stat-label" style={{ fontSize: '12px', color: 'var(--zenith-neutral)' }}>Total Objectifs</p>
+              <p className="dashboard-stat-value" style={{ fontSize: '22px' }}>{totalTarget.toLocaleString()} <span style={{ fontSize: '14px' }}>{profile?.currency?.code}</span></p>
             </div>
             <div className="dashboard-stat-card">
-              <p className="dashboard-stat-label">Disponibilité</p>
-              <p className="dashboard-stat-value" style={{ color: 'var(--premium-success)' }}>{availableFunds.toLocaleString()} {profile?.currency?.code}</p>
+              <p className="dashboard-stat-label" style={{ fontSize: '12px', color: 'var(--zenith-neutral)' }}>Disponibilité</p>
+              <p className="dashboard-stat-value" style={{ color: 'var(--zenith-secondary)', fontSize: '22px' }}>{availableFunds.toLocaleString()} <span style={{ fontSize: '14px' }}>{profile?.currency?.code}</span></p>
             </div>
           </div>
         </div>
@@ -54,22 +56,23 @@ const PremiumDashboard = ({ onAddProject }) => {
 
       {/* Intelligence & Smart Distribution */}
       <div style={{ padding: '0 20px' }}>
-        <div className="premium-card" style={{ background: 'white' }}>
-          <h3 className="font-outfit" style={{ marginBottom: '12px' }}>Assistant de Répartition</h3>
-          <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '16px' }}>
-            Combien avez-vous reçu aujourd'hui ? L'IA va optimiser le placement.
+        <div className="premium-card">
+          <h3 style={{ fontFamily: 'var(--font-headings)', marginBottom: '12px', fontSize: '18px' }}>Assistant de Répartition</h3>
+          <p style={{ fontSize: '14px', color: 'var(--zenith-neutral)', marginBottom: '20px', lineHeight: '1.5' }}>
+            Combien avez-vous reçu aujourd'hui ? L'IA Zenith va optimiser le placement de vos fonds.
           </p>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '12px' }}>
             <input 
               type="number" 
-              placeholder="Montant (ex: 50 000)" 
+              className="premium-input"
+              placeholder={`Montant en ${profile?.currency?.code}`} 
               value={distributeAmount}
               onChange={(e) => setDistributeAmount(e.target.value)}
               style={{ flex: 1 }}
             />
             <button 
               className="premium-btn" 
-              style={{ width: 'auto' }}
+              style={{ padding: '0 32px' }}
               onClick={() => setShowRecap(true)}
             >
               Répartir
@@ -79,35 +82,40 @@ const PremiumDashboard = ({ onAddProject }) => {
       </div>
 
       {showRecap && distributeAmount > 0 && (
-        <div style={{ padding: '0 20px' }}>
+        <div style={{ padding: '0 20px' }} className="fade-in">
           <DistributionRecap amount={parseFloat(distributeAmount)} />
         </div>
       )}
 
       {/* Action Alerts */}
       <div style={{ padding: '0 20px' }}>
-        <h3 className="font-outfit" style={{ marginBottom: '16px' }}>Alertes & Actions</h3>
-        <div className="premium-card" style={{ borderLeft: '4px solid var(--premium-gold)', background: 'var(--premium-gold-light)' }}>
-          <p style={{ fontWeight: '600', color: 'var(--navy)', fontSize: '14px' }}>
-            💡 Analyse de faisabilité :
+        <h3 style={{ fontFamily: 'var(--font-headings)', marginBottom: '16px', fontSize: '18px' }}>Alertes & Analyse</h3>
+        <div className="premium-card" style={{ borderLeft: '6px solid var(--zenith-secondary)', background: 'rgba(67, 160, 71, 0.05)' }}>
+          <p style={{ fontWeight: '700', color: 'var(--zenith-primary)', fontSize: '15px', fontFamily: 'var(--font-headings)' }}>
+            💡 Analyse de faisabilité
           </p>
-          <p style={{ fontSize: '13px', color: 'var(--text-main)', marginTop: '4px' }}>
-            Vos revenus actuels permettent de couvrir 85% de vos objectifs mensuels. Une économie supplémentaire est recommandée.
+          <p style={{ fontSize: '14px', color: '#4A5568', marginTop: '8px', lineHeight: '1.6' }}>
+            Vos revenus actuels permettent de couvrir <strong>85%</strong> de vos objectifs mensuels. Une légère optimisation de vos charges fixes pourrait accélérer vos projets.
           </p>
         </div>
       </div>
 
       {/* Active Projects List */}
-      <div style={{ padding: '0 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 className="font-outfit">Projets Actifs</h3>
-          <button style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontWeight: '600', fontSize: '14px' }}>Voir tout</button>
+      <div style={{ padding: '0 20px', paddingBottom: '40px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ fontFamily: 'var(--font-headings)', fontSize: '18px' }}>Projets Actifs</h3>
+          <button style={{ background: 'none', border: 'none', color: 'var(--zenith-primary)', fontWeight: '700', fontSize: '14px', fontFamily: 'var(--font-headings)' }}>Voir tout</button>
         </div>
         
         {projects.length === 0 ? (
-          <div className="premium-card" style={{ textAlign: 'center', padding: '40px 20px' }}>
-            <p style={{ color: 'var(--text-light)', marginBottom: '20px' }}>Aucun projet actif pour le moment.</p>
-            <button className="premium-btn" onClick={onAddProject}>Créer mon premier projet</button>
+          <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div style={{ marginBottom: '20px', opacity: 0.3 }}>
+              <FolderOpen size={48} strokeWidth={1.5} style={{ margin: '0 auto' }} />
+            </div>
+            <p style={{ color: 'var(--zenith-neutral)', marginBottom: '24px', fontSize: '15px' }}>Aucun projet de vie actif pour le moment.</p>
+            <button className="premium-btn" onClick={onAddProject} style={{ margin: '0 auto' }}>
+              <Plus size={20} /> Créer mon premier projet
+            </button>
           </div>
         ) : (
           projects.map(project => {
@@ -116,26 +124,28 @@ const PremiumDashboard = ({ onAddProject }) => {
             
             return (
               <div key={project.id} className="premium-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
                   <div>
-                    <h4 style={{ fontSize: '18px', marginBottom: '4px' }}>{project.name}</h4>
+                    <h4 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-headings)', marginBottom: '6px' }}>{project.name}</h4>
                     <span className={`status-badge ${project.is_complex ? 'status-waiting' : 'status-ready'}`}>
-                      {project.is_complex ? 'Projet Complexe' : 'Projet Simple'}
+                      {project.is_complex ? 'Complexe' : 'Simple'}
                     </span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>Besoin mensuel</p>
-                    <p style={{ fontWeight: '700', color: 'var(--navy)' }}>{Math.round(monthlyNeed).toLocaleString()} {profile?.currency?.code}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--zenith-neutral)', fontWeight: '500' }}>Besoin mensuel</p>
+                    <p style={{ fontWeight: '700', color: 'var(--zenith-primary)', fontFamily: 'var(--font-data)', fontSize: '16px' }}>{Math.round(monthlyNeed).toLocaleString()} <span style={{ fontSize: '10px' }}>{profile?.currency?.code}</span></p>
                   </div>
                 </div>
                 
-                <div className="premium-progress">
+                <div className="premium-progress" style={{ marginBottom: '12px' }}>
                   <div className="premium-progress-fill" style={{ width: `${progress}%` }}></div>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '12px' }}>
-                  <span style={{ color: 'var(--text-light)' }}>{project.current_amount.toLocaleString()} financé</span>
-                  <span style={{ fontWeight: '600' }}>Objectif: {project.target_amount.toLocaleString()}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--zenith-neutral)', fontWeight: '500' }}>
+                    <span style={{ fontFamily: 'var(--font-data)', fontWeight: '700', color: 'var(--zenith-primary)' }}>{project.current_amount.toLocaleString()}</span> financé
+                  </span>
+                  <span style={{ fontWeight: '600', color: 'var(--zenith-neutral)' }}>Objectif: {project.target_amount.toLocaleString()}</span>
                 </div>
               </div>
             );
@@ -143,23 +153,23 @@ const PremiumDashboard = ({ onAddProject }) => {
         )}
       </div>
 
-      {/* Floating Action Button (Premium Style) */}
+      {/* Floating Action Button Zenith Style */}
       <button 
         className="premium-btn" 
         onClick={onAddProject}
         style={{ 
           position: 'fixed', 
-          bottom: '100px', 
-          right: '20px', 
-          width: '60px', 
-          height: '60px', 
-          borderRadius: '50%',
+          bottom: '110px', 
+          right: '24px', 
+          width: '64px', 
+          height: '64px', 
+          borderRadius: 'var(--radius-pill)',
           padding: '0',
-          fontSize: '24px',
+          boxShadow: '0 8px 25px rgba(26, 79, 139, 0.4)',
           zIndex: 100
         }}
       >
-        +
+        <Plus size={32} />
       </button>
     </div>
   );
