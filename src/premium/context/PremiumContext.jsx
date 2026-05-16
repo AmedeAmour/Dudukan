@@ -50,6 +50,9 @@ export const PremiumProvider = ({ children }) => {
 
   // Logic to calculate monthly needs for each project
   const calculateMonthlyNeeds = (project) => {
+    // For recurring projects, the monthly need is the target amount (e.g., monthly rent)
+    if (project.is_recurring) return project.target_amount || 0;
+
     if (!project.deadline || !project.target_amount) return 0;
     
     const remaining = project.target_amount - (project.current_amount || 0);
@@ -59,32 +62,98 @@ export const PremiumProvider = ({ children }) => {
     const deadline = new Date(project.deadline);
     const monthsLeft = (deadline.getFullYear() - today.getFullYear()) * 12 + (deadline.getMonth() - today.getMonth());
     
-    return monthsLeft > 0 ? remaining / monthsLeft : remaining;
+    // Minimum 1 month to avoid division by zero or negative
+    const effectiveMonths = Math.max(1, monthsLeft);
+    return remaining / effectiveMonths;
   };
 
-  // Auto-distribution simulation (AI Recommendation)
+  // ADVANCED AUTO-DISTRIBUTION ALGORITHM
   const suggestDistribution = (amount) => {
     if (!projects.length || amount <= 0) return [];
 
-    // Filter active projects
-    const activeProjects = projects.filter(p => (p.target_amount - (p.current_amount || 0)) > 0);
-    
-    // Sort by priority (hypothetically stored in 'type' or a new field, defaulting to date urgency for now)
-    const sortedProjects = [...activeProjects].sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-
     let remainingToDistribute = amount;
-    const distribution = sortedProjects.map(p => {
-      const need = calculateMonthlyNeeds(p);
+    const finalDistribution = [];
+
+    // STEP 1: Handle Recurring Projects (Fixed Costs) First
+    const recurringProjects = projects.filter(p => p.is_recurring);
+    recurringProjects.forEach(p => {
+      const need = p.target_amount || 0;
       const allocation = Math.min(remainingToDistribute, need);
-      remainingToDistribute -= allocation;
-      return {
-        projectId: p.id,
-        projectName: p.name,
-        amount: allocation
-      };
+      if (allocation > 0) {
+        finalDistribution.push({
+          projectId: p.id,
+          projectName: p.name,
+          amount: allocation,
+          type: 'recurring'
+        });
+        remainingToDistribute -= allocation;
+      }
     });
 
-    return distribution;
+    if (remainingToDistribute <= 0) return finalDistribution;
+
+    // STEP 2: Handle Complex Projects Milestones (Unlock steps)
+    // We prioritize completing the NEXT milestone of complex projects
+    const complexProjects = projects.filter(p => p.is_complex && !p.is_recurring);
+    complexProjects.forEach(p => {
+      const nextMilestone = p.milestones?.find(m => !m.completed);
+      if (nextMilestone) {
+        const milestoneRemaining = nextMilestone.amount - (nextMilestone.current_allocated || 0); // Assuming current_allocated exists or logic
+        const allocation = Math.min(remainingToDistribute, milestoneRemaining);
+        if (allocation > 0) {
+          // Check if already in distribution (unlikely but safe)
+          const existing = finalDistribution.find(d => d.projectId === p.id);
+          if (existing) {
+            existing.amount += allocation;
+          } else {
+            finalDistribution.push({
+              projectId: p.id,
+              projectName: p.name,
+              amount: allocation,
+              type: 'milestone_unlock'
+            });
+          }
+          remainingToDistribute -= allocation;
+        }
+      }
+    });
+
+    if (remainingToDistribute <= 0) return finalDistribution;
+
+    // STEP 3: Proportional Distribution based on Urgency & Priority Score
+    const otherProjects = projects.filter(p => !p.is_recurring && (p.target_amount - (p.current_amount || 0)) > 0);
+    
+    // Calculate scores
+    const projectsWithScores = otherProjects.map(p => {
+      const monthsLeft = Math.max(1, (new Date(p.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 30));
+      const urgency = 1 / monthsLeft;
+      const priority = p.priority || 3; // Default middle priority
+      return { ...p, score: urgency * priority };
+    });
+
+    const totalScore = projectsWithScores.reduce((acc, p) => acc + p.score, 0);
+
+    if (totalScore > 0) {
+      projectsWithScores.forEach(p => {
+        const share = (p.score / totalScore) * remainingToDistribute;
+        const remainingToTarget = p.target_amount - (p.current_amount || 0);
+        const allocation = Math.min(share, remainingToTarget);
+        
+        const existing = finalDistribution.find(d => d.projectId === p.id);
+        if (existing) {
+          existing.amount += allocation;
+        } else {
+          finalDistribution.push({
+            projectId: p.id,
+            projectName: p.name,
+            amount: allocation,
+            type: 'proportional'
+          });
+        }
+      });
+    }
+
+    return finalDistribution;
   };
 
   return (
