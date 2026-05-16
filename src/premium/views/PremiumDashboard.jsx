@@ -9,10 +9,10 @@ const PremiumDashboard = ({ onAddProject }) => {
   const [distributeAmount, setDistributeAmount] = useState('');
   const [showRecap, setShowRecap] = useState(false);
 
-  if (loading) return <div className="premium-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Chargement de l'assistant...</div>;
+  if (loading) return <div className="premium-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Chargement de l'assistant Zenith...</div>;
 
-  const totalTarget = projects.reduce((acc, p) => acc + (p.target_amount || 0), 0);
-  const totalSaved = projects.reduce((acc, p) => acc + (p.current_amount || 0), 0);
+  const totalTarget = projects.reduce((acc, p) => acc + parseFloat(p.target_amount || 0), 0);
+  const totalSaved = projects.reduce((acc, p) => acc + parseFloat(p.current_amount || 0), 0);
   const globalProgress = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
 
   return (

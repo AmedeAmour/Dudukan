@@ -31,7 +31,7 @@ export const PremiumProvider = ({ children }) => {
         .from('projects')
         .select(`
           *,
-          milestones (*)
+          milestones(*)
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -51,11 +51,14 @@ export const PremiumProvider = ({ children }) => {
   // Logic to calculate monthly needs for each project
   const calculateMonthlyNeeds = (project) => {
     // For recurring projects, the monthly need is the target amount (e.g., monthly rent)
-    if (project.is_recurring) return project.target_amount || 0;
+    if (project.is_recurring) return parseFloat(project.target_amount || 0);
 
     if (!project.deadline || !project.target_amount) return 0;
     
-    const remaining = project.target_amount - (project.current_amount || 0);
+    const target = parseFloat(project.target_amount);
+    const current = parseFloat(project.current_amount || 0);
+    const remaining = target - current;
+    
     if (remaining <= 0) return 0;
 
     const today = new Date();
@@ -69,7 +72,7 @@ export const PremiumProvider = ({ children }) => {
 
   // ADVANCED AUTO-DISTRIBUTION ALGORITHM
   const suggestDistribution = (amount) => {
-    if (!projects.length || amount <= 0) return [];
+    if (!projects || !projects.length || amount <= 0) return [];
 
     let remainingToDistribute = amount;
     const finalDistribution = [];
@@ -77,7 +80,7 @@ export const PremiumProvider = ({ children }) => {
     // STEP 1: Handle Recurring Projects (Fixed Costs) First
     const recurringProjects = projects.filter(p => p.is_recurring);
     recurringProjects.forEach(p => {
-      const need = p.target_amount || 0;
+      const need = parseFloat(p.target_amount || 0);
       const allocation = Math.min(remainingToDistribute, need);
       if (allocation > 0) {
         finalDistribution.push({
@@ -93,15 +96,16 @@ export const PremiumProvider = ({ children }) => {
     if (remainingToDistribute <= 0) return finalDistribution;
 
     // STEP 2: Handle Complex Projects Milestones (Unlock steps)
-    // We prioritize completing the NEXT milestone of complex projects
     const complexProjects = projects.filter(p => p.is_complex && !p.is_recurring);
     complexProjects.forEach(p => {
-      const nextMilestone = p.milestones?.find(m => !m.completed);
+      if (!p.milestones) return;
+      const nextMilestone = p.milestones.find(m => !m.completed);
       if (nextMilestone) {
-        const milestoneRemaining = nextMilestone.amount - (nextMilestone.current_allocated || 0); // Assuming current_allocated exists or logic
+        const milestoneAmount = parseFloat(nextMilestone.amount || 0);
+        const milestoneAllocated = parseFloat(nextMilestone.current_allocated || 0);
+        const milestoneRemaining = milestoneAmount - milestoneAllocated;
         const allocation = Math.min(remainingToDistribute, milestoneRemaining);
         if (allocation > 0) {
-          // Check if already in distribution (unlikely but safe)
           const existing = finalDistribution.find(d => d.projectId === p.id);
           if (existing) {
             existing.amount += allocation;
