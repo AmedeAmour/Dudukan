@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePremium } from '../context/PremiumContext';
-import { Check, AlertCircle, Info } from 'lucide-react';
+import { Check, Info } from 'lucide-react';
 
 const DistributionRecap = ({ amount }) => {
   const { suggestDistribution, profile } = usePremium();
@@ -23,9 +23,9 @@ const DistributionRecap = ({ amount }) => {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'recurring': return '#EF4444'; // Red for mandatory
-      case 'milestone_unlock': return '#D4AF37'; // Gold for progress
-      case 'proportional': return '#10B981'; // Green for growth
+      case 'recurring': return '#EF4444';
+      case 'milestone_unlock': return '#D4AF37';
+      case 'proportional': return '#10B981';
       default: return '#6B7280';
     }
   };
@@ -55,7 +55,7 @@ const DistributionRecap = ({ amount }) => {
               alignItems: 'center', 
               padding: '12px', 
               background: 'white', 
-              borderRadius: 'var(--radius-sm)',
+              borderRadius: '12px',
               borderLeft: `4px solid ${getTypeColor(item.type)}`
             }}>
               <div>
@@ -75,10 +75,17 @@ const DistributionRecap = ({ amount }) => {
       </div>
 
       {distribution.length > 0 && (
-        <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(59, 130, 246, 0.05)', borderRadius: 'var(--radius-sm)', display: 'flex', gap: '12px' }}>
-          <Info size={18} color="var(--accent-blue)" />
-          <p style={{ fontSize: '12px', color: 'var(--navy)', lineHeight: '1.4' }}>
-            Cette répartition privilégie vos **charges fixes** et le **déblocage de vos étapes en cours** pour garantir la progression de vos projets complexes.
+        <div style={{ 
+          marginTop: '24px', 
+          padding: '16px', 
+          background: 'rgba(59, 130, 246, 0.05)', 
+          borderRadius: '12px', 
+          display: 'flex', 
+          gap: '12px' 
+        }}>
+          <Info size={18} color="#3B82F6" />
+          <p style={{ fontSize: '12px', color: '#1A2B48', lineHeight: '1.4' }}>
+            Cette répartition privilégie vos charges fixes et le déblocage de vos étapes en cours pour garantir la progression de vos projets complexes.
           </p>
         </div>
       )}
