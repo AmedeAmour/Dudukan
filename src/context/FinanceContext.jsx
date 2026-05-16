@@ -46,6 +46,8 @@ export const FinanceProvider = ({ children }) => {
   const [lastActivity, setLastActivity] = useState(new Date().toISOString());
   const [notificationSchedule, setNotificationSchedule] = useState(DEFAULT_SCHEDULE);
   const [lastNotifiedDate, setLastNotifiedDate] = useState(null);
+  const [appMode, setAppMode] = useState(null); // 'free', 'premium'
+  const [projects, setProjects] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
   const storageKey = user ? `dudukan_data_${user.id}` : 'dudukan_data_anon';
@@ -72,6 +74,8 @@ export const FinanceProvider = ({ children }) => {
     if (data.lastActivity) setLastActivity(data.lastActivity);
     if (data.notificationSchedule) setNotificationSchedule(data.notificationSchedule);
     if (data.lastNotifiedDate) setLastNotifiedDate(data.lastNotifiedDate);
+    if (data.appMode) setAppMode(data.appMode);
+    if (data.projects) setProjects(data.projects);
   };
 
   useEffect(() => {
@@ -89,6 +93,8 @@ export const FinanceProvider = ({ children }) => {
     setPeriodStart(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
     setNotificationSchedule(DEFAULT_SCHEDULE);
     setLastNotifiedDate(null);
+    setAppMode(null);
+    setProjects([]);
 
     if (!user) { 
       setIsInitialized(true); 
@@ -133,11 +139,15 @@ export const FinanceProvider = ({ children }) => {
 
   useEffect(() => {
     if (!user || !isInitialized) return;
-    const dataToSave = { salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationSchedule, lastNotifiedDate };
+    const dataToSave = { 
+      salary, nextMonthSalary, extraIncome, expenses, debts, categories, 
+      onboarded, periodStart, currency, savings, lastActivity, 
+      notificationSchedule, lastNotifiedDate, appMode, projects 
+    };
     localStorage.setItem(storageKey, JSON.stringify(dataToSave));
     const timeoutId = setTimeout(() => syncWithCloud(dataToSave), 2000);
     return () => clearTimeout(timeoutId);
-  }, [isInitialized, user, salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationSchedule, lastNotifiedDate]);
+  }, [isInitialized, user, salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationSchedule, lastNotifiedDate, appMode, projects]);
 
   const currentMonthExpenses = expenses.filter(e => new Date(e.date) >= new Date(periodStart));
   const currentMonthIncome = extraIncome.filter(i => i.date ? new Date(i.date) >= new Date(periodStart) : true);
@@ -210,6 +220,34 @@ export const FinanceProvider = ({ children }) => {
       if (rolloverBalance > 0) addIncome({ amount: rolloverBalance, note: 'Report du mois précédent' });
       setLastActivity(now);
     }
+  };
+
+  const addProject = (project) => {
+    const id = Date.now();
+    setProjects(prev => [...prev, { 
+      ...project, 
+      id, 
+      currentAmount: 0, 
+      createdAt: new Date().toISOString(),
+      milestones: project.milestones ? project.milestones.map((m, i) => ({ ...m, id: i, completed: false })) : []
+    }]);
+  };
+
+  const deleteProject = (id) => setProjects(prev => prev.filter(p => p.id === id));
+
+  const allocateToProjects = (amount) => {
+    // Basic allocation logic: distribute proportionally to projects based on remaining needed
+    const activeProjects = projects.filter(p => p.currentAmount < p.targetAmount);
+    if (activeProjects.length === 0) return;
+
+    const totalRemainingNeeded = activeProjects.reduce((acc, p) => acc + (p.targetAmount - p.currentAmount), 0);
+    
+    setProjects(prev => prev.map(p => {
+      if (p.currentAmount >= p.targetAmount) return p;
+      const remaining = p.targetAmount - p.currentAmount;
+      const share = (remaining / totalRemainingNeeded) * amount;
+      return { ...p, currentAmount: p.currentAmount + share };
+    }));
   };
 
   const getFinancialHealth = () => {
@@ -303,6 +341,7 @@ export const FinanceProvider = ({ children }) => {
       resteAVivre: balanceValue > 0 ? Math.round(balanceValue / 30) : 0,
       startNewPeriod, currency, setCurrency, formatCurrency, savings, setSavings, addToSavings, withdrawFromSavings,
       notificationSchedule, setNotificationSchedule, lastNotifiedDate, setLastNotifiedDate,
+      appMode, setAppMode, projects, setProjects, addProject, deleteProject, allocateToProjects,
       resetData: async () => { if (user) { try { await supabase.from('user_data').delete().eq('id', user.id); } catch (e) {} } localStorage.clear(); window.location.reload(); },
       getFinancialHealth
     }}>

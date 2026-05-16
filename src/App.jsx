@@ -12,9 +12,12 @@ import Auth from './screens/Auth';
 import BottomNav from './components/BottomNav';
 import NotificationObserver from './components/NotificationObserver';
 import InstallPWA from './components/InstallPWA';
+import Portal from './screens/Portal';
+import Projects from './screens/Projects';
+import Analytics from './screens/Analytics';
 
 const AppContent = () => {
-  const { onboarded, isInitialized } = useFinance();
+  const { onboarded, isInitialized, appMode } = useFinance();
   const { session, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -30,15 +33,31 @@ const AppContent = () => {
     return <Onboarding />;
   }
 
+  if (!appMode) {
+    return <Portal />;
+  }
+
   const renderScreen = () => {
-    switch (activeTab) {
-      case 'dashboard': return <Dashboard setActiveTab={setActiveTab} />;
-      case 'budget': return <Budget />;
-      case 'expenses': return <Expenses />;
-      case 'debts': return <Debts />;
-      case 'savings': return <Savings />;
-      case 'settings': return <Settings />;
-      default: return <Dashboard setActiveTab={setActiveTab} />;
+    if (appMode === 'free') {
+      switch (activeTab) {
+        case 'dashboard': return <Dashboard setActiveTab={setActiveTab} />;
+        case 'budget': return <Budget />;
+        case 'expenses': return <Expenses />;
+        case 'debts': return <Debts />;
+        case 'savings': return <Savings />;
+        case 'settings': return <Settings />;
+        default: return <Dashboard setActiveTab={setActiveTab} />;
+      }
+    } else {
+      // Premium Projects Mode
+      switch (activeTab) {
+        case 'dashboard': return <Projects />;
+        case 'budget': return <Budget />;
+        case 'expenses': return <Expenses />;
+        case 'analytics': return <Analytics />;
+        case 'settings': return <Settings />;
+        default: return <Projects />;
+      }
     }
   };
 
