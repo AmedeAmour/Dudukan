@@ -246,13 +246,13 @@ export const FinanceProvider = ({ children }) => {
   };
 
   const allocateToProjects = async (amount) => {
-    const activeProjects = projects.filter(p => p.currentAmount < p.targetAmount);
+    const activeProjects = projects.filter(p => p.current_amount < p.target_amount);
     if (activeProjects.length === 0) return;
 
-    const totalRemainingNeeded = activeProjects.reduce((acc, p) => acc + (p.targetAmount - p.currentAmount), 0);
+    const totalRemainingNeeded = activeProjects.reduce((acc, p) => acc + (p.target_amount - p.current_amount), 0);
     
     for (const p of activeProjects) {
-      const remaining = p.targetAmount - p.currentAmount;
+      const remaining = p.target_amount - p.current_amount;
       const share = (remaining / totalRemainingNeeded) * amount;
       await supabase.from('projects').update({ current_amount: p.current_amount + share }).eq('id', p.id);
     }
