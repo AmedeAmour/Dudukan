@@ -75,7 +75,7 @@ const DistributionRecap = ({ amount }) => {
       </div>
 
       {distribution.length > 0 && (
-        <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(59, 130, 246, 0.05)', borderRadius: var(--radius-sm), display: 'flex', gap: '12px' }}>
+        <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(59, 130, 246, 0.05)', borderRadius: 'var(--radius-sm)', display: 'flex', gap: '12px' }}>
           <Info size={18} color="var(--accent-blue)" />
           <p style={{ fontSize: '12px', color: 'var(--navy)', lineHeight: '1.4' }}>
             Cette répartition privilégie vos **charges fixes** et le **déblocage de vos étapes en cours** pour garantir la progression de vos projets complexes.
