@@ -77,8 +77,13 @@ const Projects = () => {
       {/* Projects List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-          <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-light)' }}>VOS OBJECTIFS</h3>
-          <span style={{ fontSize: '12px', color: 'var(--text-light)' }}>{projects.length} actifs</span>
+          <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-light)', letterSpacing: '0.05em' }}>VOS OBJECTIFS</h3>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            style={{ background: 'var(--navy)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}
+          >
+            + Nouveau
+          </button>
         </div>
 
         {projects.length === 0 ? (
@@ -138,7 +143,7 @@ const Projects = () => {
               
               {/* Intelligent Alert if funded step exists */}
               {project.milestones?.find(m => !m.completed && project.currentAmount >= m.amount) && (
-                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #F3F4F6', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--bg-main)', display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <div style={{ color: 'var(--emerald)' }}><CheckCircle2 size={14} /></div>
                   <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--emerald)' }}>
                     Étape "{project.milestones.find(m => !m.completed && project.currentAmount >= m.amount).name}" finançable !
@@ -150,31 +155,7 @@ const Projects = () => {
         )}
       </div>
 
-      {/* Floating Action Button */}
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setShowAddModal(true)}
-        style={{
-          position: 'fixed',
-          bottom: '100px',
-          right: '20px',
-          width: '56px',
-          height: '56px',
-          borderRadius: '50%',
-          background: 'var(--navy)',
-          color: 'white',
-          border: 'none',
-          boxShadow: '0 8px 24px rgba(26, 43, 85, 0.3)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          zIndex: 10
-        }}
-      >
-        <Plus size={24} />
-      </motion.button>
+
 
       <AddProjectModal 
         isOpen={showAddModal} 
