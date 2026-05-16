@@ -30,6 +30,25 @@
   min-height: 100vh;
   color: #2D3436;
   font-family: var(--font-body);
+  max-width: 500px; /* Mobile width constraint on desktop */
+  margin: 0 auto;   /* Center the app */
+  position: relative;
+  box-shadow: 0 0 50px rgba(0,0,0,0.1); /* Subtle shadow for desktop view */
+  overflow-x: hidden;
+}
+
+/* Hide scrollbars for a cleaner mobile app look */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; /* Disable text selection for app-like feel */
+}
+
+input, textarea {
+  user-select: text; /* Re-enable selection for inputs */
 }
 
 .premium-header {
