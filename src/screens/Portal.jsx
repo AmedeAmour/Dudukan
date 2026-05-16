@@ -28,7 +28,7 @@ const Portal = () => {
   ];
 
   return (
-    <div className="app-container" style={{ padding: '40px 20px', display: 'flex', flexDirection: 'column', minHeight: '100vh', justifyContent: 'center' }}>
+    <div className="app-container" style={{ padding: '40px 20px', display: 'flex', flexDirection: 'column', minHeight: '100vh', justifyContent: 'center', margin: '0 auto' }}>
       <header style={{ textAlign: 'center', marginBottom: '48px' }}>
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}

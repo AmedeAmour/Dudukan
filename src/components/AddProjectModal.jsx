@@ -63,7 +63,17 @@ const AddProjectModal = ({ isOpen, onClose }) => {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          style={{ width: '100%', background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}
+          style={{ 
+            width: '100%', 
+            maxWidth: '500px', 
+            margin: '0 auto',
+            background: 'white', 
+            borderTopLeftRadius: '24px', 
+            borderTopRightRadius: '24px', 
+            padding: '24px', 
+            maxHeight: '90vh', 
+            overflowY: 'auto' 
+          }}
           onClick={e => e.stopPropagation()}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
