@@ -9,8 +9,9 @@ const Projects = () => {
   const [showAddModal, setShowAddModal] = useState(false);
 
   const getGlobalStats = () => {
-    const totalNeeded = projects.reduce((acc, p) => acc + (p.target_amount || 0), 0);
-    const totalSaved = projects.reduce((acc, p) => acc + (p.current_amount || 0), 0);
+    if (!projects || projects.length === 0) return { totalNeeded: 0, totalSaved: 0, percent: 0 };
+    const totalNeeded = projects.reduce((acc, p) => acc + (parseFloat(p.target_amount) || 0), 0);
+    const totalSaved = projects.reduce((acc, p) => acc + (parseFloat(p.current_amount) || 0), 0);
     const percent = totalNeeded > 0 ? Math.round((totalSaved / totalNeeded) * 100) : 0;
     return { totalNeeded, totalSaved, percent };
   };
@@ -108,7 +109,9 @@ const Projects = () => {
           </div>
         ) : (
           projects.map((project) => {
-            const projPercent = Math.min(100, Math.round((project.current_amount / project.target_amount) * 100));
+            const current = parseFloat(project.current_amount) || 0;
+            const target = parseFloat(project.target_amount) || 1; // Avoid div by zero
+            const projPercent = Math.min(100, Math.round((current / target) * 100));
             const iconMap = {
               home: <Home size={20} />,
               car: <Car size={20} />,
