@@ -2,19 +2,28 @@ import React, { useState } from 'react';
 import { PremiumProvider } from './context/PremiumContext';
 import PremiumDashboard from './views/PremiumDashboard';
 import PremiumBottomNav from './components/PremiumBottomNav';
+import AddProject from './views/AddProject';
 
 const PremiumAppContent = ({ onSwitchMode }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isAddingProject, setIsAddingProject] = useState(false);
+
+  if (isAddingProject) {
+    return <AddProject onBack={() => setIsAddingProject(false)} />;
+  }
 
   const renderScreen = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <PremiumDashboard />;
+        return <PremiumDashboard onAddProject={() => setIsAddingProject(true)} />;
       case 'projects':
         return (
           <div className="premium-container" style={{ padding: '40px 20px' }}>
-            <h2 className="font-outfit">Mes Projets de Vie</h2>
-            <p style={{ color: 'var(--text-light)', marginTop: '8px' }}>Gérez vos objectifs simples, complexes et récurrents.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <h2 className="font-outfit">Mes Projets</h2>
+              <button onClick={() => setIsAddingProject(true)} style={{ background: 'var(--navy)', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>+ Nouveau</button>
+            </div>
+            <p style={{ color: 'var(--text-light)' }}>Gérez vos objectifs de vie.</p>
             {/* Project list will go here */}
           </div>
         );
@@ -42,7 +51,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
           </div>
         );
       default:
-        return <PremiumDashboard />;
+        return <PremiumDashboard onAddProject={() => setIsAddingProject(true)} />;
     }
   };
 
