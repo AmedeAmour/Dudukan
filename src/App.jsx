@@ -12,11 +12,19 @@ import Auth from './screens/Auth';
 import BottomNav from './components/BottomNav';
 import NotificationObserver from './components/NotificationObserver';
 import InstallPWA from './components/InstallPWA';
+import PremiumApp from './premium/PremiumApp';
 
 const AppContent = () => {
-  const { onboarded, isInitialized } = useFinance();
+  const { onboarded, isInitialized, profile } = useFinance();
   const { session, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [appMode, setAppMode] = useState('free');
+
+  useEffect(() => {
+    if (profile?.app_mode) {
+      setAppMode(profile.app_mode);
+    }
+  }, [profile]);
 
   if (loading || !isInitialized) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-main)', color: 'var(--navy)', fontWeight: '600' }}>Chargement de vos données...</div>;
@@ -30,6 +38,11 @@ const AppContent = () => {
     return <Onboarding />;
   }
 
+  // Switching between independent apps
+  if (appMode === 'premium') {
+    return <PremiumApp onSwitchMode={setAppMode} />;
+  }
+
   const renderScreen = () => {
     switch (activeTab) {
       case 'dashboard': return <Dashboard setActiveTab={setActiveTab} />;
@@ -37,7 +50,7 @@ const AppContent = () => {
       case 'expenses': return <Expenses />;
       case 'debts': return <Debts />;
       case 'savings': return <Savings />;
-      case 'settings': return <Settings />;
+      case 'settings': return <Settings onSwitchToPremium={() => setAppMode('premium')} />;
       default: return <Dashboard setActiveTab={setActiveTab} />;
     }
   };
