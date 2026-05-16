@@ -11,11 +11,13 @@ const PremiumBottomNav = ({ activeTab, setActiveTab }) => {
 
   return (
     <nav className="bottom-nav" style={{ 
-      background: 'rgba(255, 255, 255, 0.95)', 
-      backdropFilter: 'blur(10px)',
-      borderTop: '1px solid rgba(0,0,0,0.05)',
-      height: '80px',
-      paddingBottom: '20px'
+      background: 'var(--zenith-white)', 
+      height: '90px',
+      paddingBottom: '20px',
+      boxShadow: '0 -4px 20px rgba(0,0,0,0.03)',
+      borderTop: 'none',
+      borderTopLeftRadius: 'var(--radius-xl)',
+      borderTopRightRadius: 'var(--radius-xl)'
     }}>
       {navItems.map((item) => {
         const Icon = item.icon;
@@ -33,22 +35,24 @@ const PremiumBottomNav = ({ activeTab, setActiveTab }) => {
               alignItems: 'center',
               gap: '4px',
               cursor: 'pointer',
-              color: isActive ? 'var(--navy)' : 'var(--text-light)',
+              color: isActive ? 'var(--zenith-primary)' : 'var(--zenith-neutral)',
               transition: 'all 0.3s ease',
               flex: 1,
               padding: '8px 0'
             }}
           >
             <div style={{
-              padding: '6px 16px',
-              borderRadius: '20px',
-              background: isActive ? 'rgba(26, 43, 72, 0.08)' : 'transparent',
-              transition: 'all 0.3s ease'
+              padding: '8px 24px',
+              borderRadius: 'var(--radius-pill)',
+              background: isActive ? 'rgba(26, 79, 139, 0.08)' : 'transparent',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              marginBottom: '4px'
             }}>
-              <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+              <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
             </div>
             <span style={{ 
-              fontSize: '11px', 
+              fontSize: '12px', 
+              fontFamily: 'var(--font-headings)',
               fontWeight: isActive ? '700' : '500',
               opacity: isActive ? 1 : 0.7
             }}>
