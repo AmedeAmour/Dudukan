@@ -323,7 +323,7 @@ export const FinanceProvider = ({ children }) => {
       isInitialized, salary, setSalary, nextMonthSalary, setNextMonthSalary,
       extraIncome: currentMonthIncome, allIncome: extraIncome, addIncome, 
       expenses: currentMonthExpenses, allExpenses: expenses, addExpense,
-      allTransactions: [...expenses.map(e => ({ ...e, type: 'expense' })), ...extraIncome.map(i => ({ ...i, type: 'income' }))].sort((a, b) => new Date(b.date) - new Date(a.date)),
+      allTransactions: [...(expenses || []).map(e => ({ ...e, type: 'expense' })), ...(extraIncome || []).map(i => ({ ...i, type: 'income' }))].sort((a, b) => new Date(b.date) - new Date(a.date)),
       debts, addDebt, updateDebt, categories, setCategories, onboarded, setOnboarded,
       totalIncome: totalIncomeValue, totalExpenses: totalExpensesValue, balance: balanceValue,
       getCategorySpent, getCategoryBudget,
