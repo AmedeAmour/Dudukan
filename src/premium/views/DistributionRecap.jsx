@@ -23,29 +23,29 @@ const DistributionRecap = ({ amount }) => {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'recurring': return '#EF4444';
-      case 'milestone_unlock': return '#D4AF37';
-      case 'proportional': return '#10B981';
-      default: return '#6B7280';
+      case 'recurring': return '#D32F2F'; // Zenith Error/Critical
+      case 'milestone_unlock': return 'var(--zenith-primary)';
+      case 'proportional': return 'var(--zenith-secondary)';
+      default: return 'var(--zenith-neutral)';
     }
   };
 
   return (
-    <div className="premium-card premium-card-glass fade-in">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-        <div style={{ background: 'var(--premium-gradient)', color: 'white', padding: '8px', borderRadius: '50%' }}>
-          <Check size={20} />
+    <div className="premium-card fade-in" style={{ borderTop: `6px solid var(--zenith-primary)` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+        <div style={{ background: 'rgba(26, 79, 139, 0.1)', color: 'var(--zenith-primary)', padding: '10px', borderRadius: '50%' }}>
+          <Check size={20} strokeWidth={3} />
         </div>
         <div>
-          <h3 className="font-outfit">Proposition de l'Assistant</h3>
-          <p style={{ fontSize: '13px', color: 'var(--text-light)' }}>Optimisée selon vos priorités et délais</p>
+          <h3 style={{ fontFamily: 'var(--font-headings)', fontSize: '18px' }}>Proposition Zenith AI</h3>
+          <p style={{ fontSize: '13px', color: 'var(--zenith-neutral)', fontFamily: 'var(--font-body)' }}>Optimisation de votre flux de trésorerie</p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {distribution.length === 0 ? (
-          <p style={{ textAlign: 'center', padding: '20px', color: 'var(--text-light)' }}>
-            Entrez un montant pour voir la répartition.
+          <p style={{ textAlign: 'center', padding: '30px', color: 'var(--zenith-neutral)', fontSize: '14px' }}>
+            En attente d'un montant pour l'analyse...
           </p>
         ) : (
           distribution.map((item, idx) => (
@@ -53,20 +53,20 @@ const DistributionRecap = ({ amount }) => {
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center', 
-              padding: '12px', 
-              background: 'white', 
-              borderRadius: '12px',
-              borderLeft: `4px solid ${getTypeColor(item.type)}`
+              padding: '16px', 
+              background: 'rgba(248, 249, 250, 0.8)', 
+              borderRadius: 'var(--radius-md)',
+              borderLeft: `5px solid ${getTypeColor(item.type)}`
             }}>
               <div>
-                <p style={{ fontWeight: '600', fontSize: '15px' }}>{item.projectName}</p>
-                <span style={{ fontSize: '11px', color: getTypeColor(item.type), fontWeight: '700', textTransform: 'uppercase' }}>
+                <p style={{ fontWeight: '700', fontSize: '15px', fontFamily: 'var(--font-headings)', color: 'var(--zenith-primary)' }}>{item.projectName}</p>
+                <span style={{ fontSize: '10px', color: getTypeColor(item.type), fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {getTypeLabel(item.type)}
                 </span>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ fontWeight: '700', color: 'var(--navy)' }}>
-                  +{item.amount.toLocaleString()} {profile?.currency?.code}
+                <p style={{ fontWeight: '700', color: 'var(--zenith-primary)', fontFamily: 'var(--font-data)', fontSize: '17px' }}>
+                  +{item.amount.toLocaleString()} <span style={{ fontSize: '10px' }}>{profile?.currency?.code}</span>
                 </p>
               </div>
             </div>
@@ -78,20 +78,20 @@ const DistributionRecap = ({ amount }) => {
         <div style={{ 
           marginTop: '24px', 
           padding: '16px', 
-          background: 'rgba(59, 130, 246, 0.05)', 
-          borderRadius: '12px', 
+          background: 'rgba(26, 79, 139, 0.04)', 
+          borderRadius: 'var(--radius-md)', 
           display: 'flex', 
           gap: '12px' 
         }}>
-          <Info size={18} color="#3B82F6" />
-          <p style={{ fontSize: '12px', color: '#1A2B48', lineHeight: '1.4' }}>
-            Cette répartition privilégie vos charges fixes et le déblocage de vos étapes en cours pour garantir la progression de vos projets complexes.
+          <Info size={18} color="var(--zenith-primary)" />
+          <p style={{ fontSize: '13px', color: '#4A5568', lineHeight: '1.5' }}>
+            Cette répartition est calculée pour maximiser votre <strong>sécurité financière</strong> et accélérer le déblocage de vos étapes critiques.
           </p>
         </div>
       )}
 
-      <button className="premium-btn" style={{ width: '100%', marginTop: '20px' }} disabled={distribution.length === 0}>
-        Appliquer cette répartition
+      <button className="premium-btn" style={{ width: '100%', marginTop: '24px' }} disabled={distribution.length === 0}>
+        Appliquer Zenith Allocation
       </button>
     </div>
   );
