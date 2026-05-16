@@ -59,38 +59,80 @@ export const FinanceProvider = ({ children }) => {
 
     const loadProData = async () => {
       try {
-        // 1. Load Profile
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-        if (profile) {
-          setSalary(profile.salary);
-          setNextMonthSalary(profile.next_month_salary);
-          setCurrency(profile.currency);
-          setSavings(profile.savings);
+        // 1. Try to load from the NEW 'profiles' table
+        const { data: profile, error: profError } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        
+        if (profile && profile.onboarded) {
+          // Normal flow for migrated/new pro users
+          setSalary(profile.salary || 0);
+          setNextMonthSalary(profile.next_month_salary || 0);
+          setCurrency(profile.currency || DEFAULT_CURRENCY);
+          setSavings(profile.savings || 0);
           setOnboarded(profile.onboarded);
           setAppMode(profile.app_mode);
           setAllocationMode(profile.allocation_mode || 'manual');
+
+          const { data: projectsData } = await supabase.from('projects').select('*, milestones(*)').eq('user_id', user.id);
+          if (projectsData) setProjects(projectsData);
+
+          const { data: transData } = await supabase.from('transactions').select('*').eq('user_id', user.id);
+          if (transData) {
+            setExtraIncome(transData.filter(t => t.type === 'income'));
+            setExpenses(transData.filter(t => t.type === 'expense'));
+          }
         } else {
-          // Create profile if not exists
-          await supabase.from('profiles').insert({ id: user.id });
-        }
+          // 2. LEGACY FALLBACK & AUTO-MIGRATION
+          const { data: legacyRow } = await supabase.from('user_data').select('data').eq('id', user.id).single();
+          
+          if (legacyRow && legacyRow.data) {
+            const d = legacyRow.data;
+            // Apply legacy data to state
+            setSalary(d.salary || 0);
+            setNextMonthSalary(d.nextMonthSalary || 0);
+            setCurrency(d.currency || DEFAULT_CURRENCY);
+            setSavings(d.savings || 0);
+            setOnboarded(d.onboarded || false);
+            setAppMode(d.appMode || 'free');
+            setExtraIncome(d.extraIncome || []);
+            setExpenses(d.expenses || []);
+            setProjects(d.projects || []);
+            setDebts(d.debts || []);
 
-        // 2. Load Projects with Milestones
-        const { data: projectsData } = await supabase.from('projects').select('*, milestones(*)').eq('user_id', user.id);
-        if (projectsData) setProjects(projectsData);
+            // 3. SILENT MIGRATION to new tables
+            await supabase.from('profiles').upsert({
+              id: user.id, salary: d.salary, next_month_salary: d.nextMonthSalary,
+              currency: d.currency, savings: d.savings, onboarded: d.onboarded, app_mode: d.appMode
+            });
 
-        // 3. Load Transactions
-        const { data: transData } = await supabase.from('transactions').select('*').eq('user_id', user.id);
-        if (transData) {
-          const incomes = transData.filter(t => t.type === 'income');
-          const exp = transData.filter(t => t.type === 'expense');
-          setExtraIncome(incomes);
-          setExpenses(exp);
+            if (d.projects && d.projects.length > 0) {
+              for (const p of d.projects) {
+                const { data: newP } = await supabase.from('projects').insert({
+                  user_id: user.id, name: p.name, target_amount: p.targetAmount, 
+                  current_amount: p.currentAmount, type: p.type, is_complex: !!p.milestones
+                }).select().single();
+                
+                if (newP && p.milestones) {
+                  await supabase.from('milestones').insert(
+                    p.milestones.map((m, i) => ({ project_id: newP.id, name: m.name, amount: m.amount, completed: m.completed, step_order: i }))
+                  );
+                }
+              }
+            }
+
+            if (d.expenses) {
+              await supabase.from('transactions').insert(d.expenses.map(e => ({
+                user_id: user.id, amount: e.amount, type: 'expense', category_id: e.categoryId, note: e.note, date: e.date
+              })));
+            }
+          } else if (!profile) {
+            // New user, just create profile
+            await supabase.from('profiles').insert({ id: user.id });
+          }
         }
 
         setIsInitialized(true);
       } catch (err) {
-        console.error("Error loading pro data:", err);
-        // Fallback to legacy loading if needed or just initialize
+        console.error("Migration/Load error:", err);
         setIsInitialized(true);
       }
     };
