@@ -112,23 +112,28 @@ export const FinanceProvider = ({ children }) => {
     return () => clearTimeout(tid);
   }, [salary, nextMonthSalary, currency, savings, onboarded, appMode, user, isInitialized]);
 
-  const currentMonthExpenses = expenses.filter(e => new Date(e.date) >= new Date(periodStart));
-  const currentMonthIncome = extraIncome.filter(i => i.date ? new Date(i.date) >= new Date(periodStart) : true);
-  const totalIncomeValue = salary + currentMonthIncome.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalExpensesValue = currentMonthExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+  const currentMonthExpenses = (expenses || []).filter(e => e && e.date && new Date(e.date) >= new Date(periodStart));
+  const currentMonthIncome = (extraIncome || []).filter(i => i && (i.date ? new Date(i.date) >= new Date(periodStart) : true));
+  const totalIncomeValue = (parseFloat(salary) || 0) + currentMonthIncome.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const totalExpensesValue = currentMonthExpenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
   const balanceValue = totalIncomeValue - totalExpensesValue;
 
-  const getCategorySpent = (categoryId) => currentMonthExpenses.filter(e => e.categoryId === categoryId).reduce((acc, curr) => acc + curr.amount, 0);
+  const getCategorySpent = (categoryId) => currentMonthExpenses.filter(e => e.categoryId === categoryId).reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
   const getCategoryBudget = (categoryId) => {
-    const cat = categories.find(c => c.id === categoryId);
-    return cat ? Math.round(totalIncomeValue * cat.limit) : 0;
+    const cat = (categories || []).find(c => c.id === categoryId);
+    return cat ? Math.round(totalIncomeValue * (parseFloat(cat.limit) || 0)) : 0;
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat(currency.locale, {
-      style: 'currency', currency: currency.code,
-      minimumFractionDigits: 0, maximumFractionDigits: 0
-    }).format(amount);
+    const val = parseFloat(amount) || 0;
+    try {
+      return new Intl.NumberFormat(currency?.locale || 'fr-FR', {
+        style: 'currency', currency: currency?.code || 'XOF',
+        minimumFractionDigits: 0, maximumFractionDigits: 0
+      }).format(val);
+    } catch (e) {
+      return val + ' ' + (currency?.code || 'XOF');
+    }
   };
 
   const addExpense = async (expense, skipDebtUpdate = false) => {
@@ -323,7 +328,13 @@ export const FinanceProvider = ({ children }) => {
       isInitialized, salary, setSalary, nextMonthSalary, setNextMonthSalary,
       extraIncome: currentMonthIncome, allIncome: extraIncome, addIncome, 
       expenses: currentMonthExpenses, allExpenses: expenses, addExpense,
-      allTransactions: [...(expenses || []).map(e => ({ ...e, type: 'expense' })), ...(extraIncome || []).map(i => ({ ...i, type: 'income' }))].sort((a, b) => new Date(b.date) - new Date(a.date)),
+      allTransactions: [...(expenses || []).map(e => ({ ...e, type: 'expense' })), ...(extraIncome || []).map(i => ({ ...i, type: 'income' }))]
+        .filter(t => t && t.date)
+        .sort((a, b) => {
+          const da = new Date(a.date).getTime();
+          const db = new Date(b.date).getTime();
+          return (db || 0) - (da || 0);
+        }),
       debts, addDebt, updateDebt, categories, setCategories, onboarded, setOnboarded,
       totalIncome: totalIncomeValue, totalExpenses: totalExpensesValue, balance: balanceValue,
       getCategorySpent, getCategoryBudget,
