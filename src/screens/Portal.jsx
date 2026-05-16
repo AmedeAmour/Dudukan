@@ -71,8 +71,8 @@ const Portal = () => {
               cursor: 'pointer', 
               position: 'relative',
               overflow: 'hidden',
-              border: mode.premium ? '2px solid var(--emerald)' : '1px solid #E5E7EB',
-              background: mode.premium ? 'linear-gradient(135deg, #ffffff 0%, #f0fff4 100%)' : 'white'
+              border: mode.premium ? '2px solid var(--emerald)' : '1px solid var(--bg-main)',
+              background: mode.premium ? 'linear-gradient(135deg, var(--white) 0%, var(--emerald-light) 100%)' : 'var(--white)'
             }}
           >
             {mode.premium && (

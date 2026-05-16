@@ -65,7 +65,7 @@ const Projects = () => {
 
       {/* Monthly Allocation Tip */}
       {balance > 0 && (
-        <div className="card" style={{ background: '#F0FFF4', border: '1px solid var(--emerald)', marginBottom: '32px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <div className="card" style={{ background: 'var(--emerald-light)', border: '1px solid var(--emerald)', marginBottom: '32px', display: 'flex', gap: '16px', alignItems: 'center' }}>
           <div style={{ color: 'var(--emerald)' }}><Zap size={24} /></div>
           <div>
             <p style={{ fontSize: '14px', fontWeight: '700', color: 'var(--navy)' }}>Optimisation disponible</p>
