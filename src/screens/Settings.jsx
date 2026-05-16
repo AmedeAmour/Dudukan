@@ -20,7 +20,8 @@ const Settings = () => {
     allTransactions = [], startNewPeriod = () => {},
     setNextMonthSalary = () => {}, resetData = () => {}, setCurrency = () => {},
     notificationSchedule = [], setNotificationSchedule = () => {},
-    categories = [], setAppMode = () => {}
+    categories = [], setAppMode = () => {},
+    allocationMode, setAllocationMode
   } = finance || {};
 
   const { user = null, signOut = () => {}, updateProfile = () => {} } = auth || {};

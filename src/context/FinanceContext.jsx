@@ -46,37 +46,10 @@ export const FinanceProvider = ({ children }) => {
   const [lastActivity, setLastActivity] = useState(new Date().toISOString());
   const [notificationSchedule, setNotificationSchedule] = useState(DEFAULT_SCHEDULE);
   const [lastNotifiedDate, setLastNotifiedDate] = useState(null);
-  const [appMode, setAppMode] = useState(null); // 'free', 'premium'
+  const [appMode, setAppMode] = useState(null); // 'free' or 'premium'
+  const [allocationMode, setAllocationMode] = useState('manual'); // 'manual' or 'automatic'
   const [projects, setProjects] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
-
-  const storageKey = user ? `dudukan_data_${user.id}` : 'dudukan_data_anon';
-
-  const syncWithCloud = async (dataToSync) => {
-    if (!user || !isInitialized) return;
-    try {
-      await supabase.from('user_data').upsert({ id: user.id, data: dataToSync, updated_at: new Date().toISOString() });
-    } catch (err) {}
-  };
-
-  const applyData = (data) => {
-    if (!data) return;
-    if (data.salary !== undefined) setSalary(data.salary);
-    if (data.nextMonthSalary !== undefined) setNextMonthSalary(data.nextMonthSalary);
-    if (data.extraIncome) setExtraIncome(data.extraIncome);
-    if (data.expenses) setExpenses(data.expenses);
-    if (data.debts) setDebts(data.debts);
-    if (data.categories) setCategories(data.categories);
-    if (data.currency) setCurrency(data.currency);
-    if (data.savings !== undefined) setSavings(data.savings);
-    if (data.onboarded !== undefined) setOnboarded(data.onboarded);
-    if (data.periodStart) setPeriodStart(data.periodStart);
-    if (data.lastActivity) setLastActivity(data.lastActivity);
-    if (data.notificationSchedule) setNotificationSchedule(data.notificationSchedule);
-    if (data.lastNotifiedDate) setLastNotifiedDate(data.lastNotifiedDate);
-    if (data.appMode) setAppMode(data.appMode);
-    if (data.projects) setProjects(data.projects);
-  };
 
   useEffect(() => {
     if (!user) { 
@@ -95,6 +68,7 @@ export const FinanceProvider = ({ children }) => {
           setSavings(profile.savings);
           setOnboarded(profile.onboarded);
           setAppMode(profile.app_mode);
+          setAllocationMode(profile.allocation_mode || 'manual');
         } else {
           // Create profile if not exists
           await supabase.from('profiles').insert({ id: user.id });
@@ -130,6 +104,7 @@ export const FinanceProvider = ({ children }) => {
       await supabase.from('profiles').upsert({ 
         id: user.id, salary, next_month_salary: nextMonthSalary, 
         currency, savings, onboarded, app_mode: appMode, 
+        allocation_mode: allocationMode,
         updated_at: new Date().toISOString() 
       });
     };
@@ -189,6 +164,9 @@ export const FinanceProvider = ({ children }) => {
         user_id: user.id, amount, type: 'income',
         note: income.note, date: now
       });
+      if (allocationMode === 'automatic') {
+        allocateToProjects(amount);
+      }
     }
     setLastActivity(now);
   };
@@ -353,7 +331,7 @@ export const FinanceProvider = ({ children }) => {
       resteAVivre: balanceValue > 0 ? Math.round(balanceValue / 30) : 0,
       startNewPeriod, currency, setCurrency, formatCurrency, savings, setSavings, addToSavings, withdrawFromSavings,
       notificationSchedule, setNotificationSchedule, lastNotifiedDate, setLastNotifiedDate,
-      appMode, setAppMode, projects, setProjects, addProject, deleteProject, allocateToProjects,
+      appMode, setAppMode, allocationMode, setAllocationMode, projects, setProjects, addProject, deleteProject, allocateToProjects,
       resetData: async () => { if (user) { try { await supabase.from('user_data').delete().eq('id', user.id); } catch (e) {} } localStorage.clear(); window.location.reload(); },
       getFinancialHealth
     }}>
