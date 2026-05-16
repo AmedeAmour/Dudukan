@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0F172A; /* Deep Navy background for desktop */
+}
+
 :root {
   --bg-main: #F8F9FA;
   --white: #FFFFFF;
