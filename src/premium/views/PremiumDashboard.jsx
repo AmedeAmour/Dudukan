@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePremium } from '../context/PremiumContext';
 import '../PremiumStyles.css';
+import DistributionRecap from './DistributionRecap';
 
 const PremiumDashboard = () => {
   const { projects, profile, availableFunds, loading, calculateMonthlyNeeds } = usePremium();
+  const [distributeAmount, setDistributeAmount] = useState('');
+  const [showRecap, setShowRecap] = useState(false);
 
   if (loading) return <div className="premium-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Chargement de l'assistant...</div>;
 
@@ -49,6 +52,38 @@ const PremiumDashboard = () => {
         </div>
       </div>
 
+      {/* Intelligence & Smart Distribution */}
+      <div style={{ padding: '0 20px' }}>
+        <div className="premium-card" style={{ background: 'white' }}>
+          <h3 className="font-outfit" style={{ marginBottom: '12px' }}>Assistant de Répartition</h3>
+          <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '16px' }}>
+            Combien avez-vous reçu aujourd'hui ? L'IA va optimiser le placement.
+          </p>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input 
+              type="number" 
+              placeholder="Montant (ex: 50 000)" 
+              value={distributeAmount}
+              onChange={(e) => setDistributeAmount(e.target.value)}
+              style={{ flex: 1 }}
+            />
+            <button 
+              className="premium-btn" 
+              style={{ width: 'auto' }}
+              onClick={() => setShowRecap(true)}
+            >
+              Répartir
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {showRecap && distributeAmount > 0 && (
+        <div style={{ padding: '0 20px' }}>
+          <DistributionRecap amount={parseFloat(distributeAmount)} />
+        </div>
+      )}
+
       {/* Action Alerts */}
       <div style={{ padding: '0 20px' }}>
         <h3 className="font-outfit" style={{ marginBottom: '16px' }}>Alertes & Actions</h3>
@@ -57,7 +92,7 @@ const PremiumDashboard = () => {
             💡 Analyse de faisabilité :
           </p>
           <p style={{ fontSize: '13px', color: 'var(--text-main)', marginTop: '4px' }}>
-            Vos revenus actuels permettent de couvrir 85% de vos objectifs mensuels. Une économie supplémentaire de 15,000 {profile?.currency?.code} est recommandée ce mois-ci.
+            Vos revenus actuels permettent de couvrir 85% de vos objectifs mensuels. Une économie supplémentaire est recommandée.
           </p>
         </div>
       </div>
