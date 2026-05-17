@@ -24,6 +24,7 @@ const PremiumFunding = () => {
   const [extraInput, setExtraInput] = useState('');
   const [savingsInput, setSavingsInput] = useState(profile?.savings?.toString() || '');
   const [loading, setLoading] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   // Synchronize input fields when async profile data becomes available
   useEffect(() => {
@@ -126,8 +127,12 @@ const PremiumFunding = () => {
   };
 
   const handleExecuteAllocations = async () => {
-    const confirmExec = window.confirm("Confirmer la répartition de vos fonds selon l'algorithme Zenith ?");
-    if (!confirmExec) return;
+    if (!confirming) {
+      setConfirming(true);
+      setTimeout(() => setConfirming(false), 3000);
+      return;
+    }
+    setConfirming(false);
 
     setLoading(true);
     try {
@@ -210,7 +215,7 @@ const PremiumFunding = () => {
   const currencyCode = currency?.code || 'XOF';
 
   return (
-    <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto' }}>
+    <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>
       
       {/* Header section with toggle */}
       <div style={{ marginBottom: '32px' }}>
@@ -643,7 +648,7 @@ const PremiumFunding = () => {
           style={{
             marginTop: '24px',
             width: '100%',
-            backgroundColor: 'var(--zenith-secondary)',
+            backgroundColor: confirming ? 'var(--zenith-status-alert, #F59E0B)' : 'var(--zenith-secondary)',
             color: 'white',
             border: 'none',
             padding: '16px',
@@ -653,7 +658,7 @@ const PremiumFunding = () => {
             fontWeight: 700,
             cursor: 'pointer',
             boxShadow: 'var(--zenith-shadow-soft)',
-            transition: 'opacity 0.2s',
+            transition: 'all 0.2s',
             opacity: (loading || totalAllocated === 0) ? 0.7 : 1,
             display: 'flex',
             alignItems: 'center',
@@ -662,7 +667,7 @@ const PremiumFunding = () => {
           }}
         >
           <Zap size={20} />
-          {loading ? 'Exécution en cours...' : 'Exécuter la répartition du mois'}
+          {loading ? 'Exécution en cours...' : confirming ? 'Cliquez pour Confirmer !' : 'Exécuter la répartition du mois'}
         </button>
 
       </div>
