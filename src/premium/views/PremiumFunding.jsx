@@ -104,14 +104,14 @@ const PremiumFunding = () => {
         throw new Error("Veuillez renseigner des montants valides.");
       }
 
-      // Update in Supabase profiles
+      // Upsert in Supabase profiles
       const { error } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: user.id,
           salary: updatedSalary,
           savings: updatedSavings + extra // Roll over any extra earnings directly to savings if desired
-        })
-        .eq('id', user.id);
+        });
 
       if (error) throw error;
       

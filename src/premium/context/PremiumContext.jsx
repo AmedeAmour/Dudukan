@@ -18,14 +18,31 @@ export const PremiumProvider = ({ children }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // 1. Fetch Profile
-      const { data: profileData, error: profileError } = await supabase
+      // 1. Fetch Profile (with automatic defensive creation if missing)
+      let { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
       
-      if (profileError) throw profileError;
+      if (profileError && profileError.code === 'PGRST116') {
+        // Automatically insert a default profile row for this user
+        const { data: insertData, error: insertError } = await supabase
+          .from('profiles')
+          .insert({ id: user.id, salary: 0, savings: 0 })
+          .select()
+          .single();
+        
+        if (insertError) {
+          console.error("Auto-profile insertion failed:", insertError);
+          profileData = { id: user.id, salary: 0, savings: 0 };
+        } else {
+          profileData = insertData;
+        }
+      } else if (profileError) {
+        throw profileError;
+      }
+      
       setProfile(profileData);
       setAvailableFunds(profileData?.savings || 0);
 
