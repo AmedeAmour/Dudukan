@@ -6,11 +6,13 @@ import PremiumDashboard from './views/PremiumDashboard';
 import PremiumProjects from './views/PremiumProjects';
 import AddProject from './views/AddProject';
 import PremiumFunding from './views/PremiumFunding';
+import ProjectDetail from './views/ProjectDetail';
 import './PremiumStyles.css';
 
 const PremiumAppContent = ({ onSwitchMode }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isAddingProject, setIsAddingProject] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   // Define screen layout titles dynamically
   const getScreenTitle = () => {
@@ -32,7 +34,10 @@ const PremiumAppContent = ({ onSwitchMode }) => {
       case 'dashboard':
         return <PremiumDashboard />;
       case 'projects':
-        return <PremiumProjects onAddProject={() => setIsAddingProject(true)} />;
+        if (selectedProject) {
+          return <ProjectDetail project={selectedProject} onBack={() => setSelectedProject(null)} />;
+        }
+        return <PremiumProjects onAddProject={() => setIsAddingProject(true)} onSelectProject={setSelectedProject} />;
       case 'funding':
         return <PremiumFunding />;
       case 'profile':
