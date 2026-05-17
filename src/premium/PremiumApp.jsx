@@ -3,6 +3,7 @@ import PremiumTopBar from './components/PremiumTopBar';
 import PremiumBottomNav from './components/PremiumBottomNav';
 import { PremiumProvider } from './context/PremiumContext';
 import PremiumDashboard from './views/PremiumDashboard';
+import PremiumProjects from './views/PremiumProjects';
 import './PremiumStyles.css';
 
 const PremiumAppContent = ({ onSwitchMode }) => {
@@ -52,16 +53,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
       case 'dashboard':
         return <PremiumDashboard />;
       case 'projects':
-        return (
-          <div style={{ padding: '24px', textAlign: 'center' }}>
-            <h2 className="font-heading" style={{ fontSize: '20px', marginBottom: '12px', color: 'var(--zenith-primary)' }}>
-              Vos Projets de Vie
-            </h2>
-            <p style={{ color: 'var(--zenith-on-surface-variant)' }}>
-              La liste de vos projets simples, complexes (milestones) et récurrents.
-            </p>
-          </div>
-        );
+        return <PremiumProjects onAddProject={() => setIsAddingProject(true)} />;
       case 'funding':
         return (
           <div style={{ padding: '24px', textAlign: 'center' }}>
