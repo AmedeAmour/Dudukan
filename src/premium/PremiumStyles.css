@@ -1,0 +1,179 @@
+/* Zenith Financial - Design System & App Shell Premium */
+:root {
+  /* Zenith Theme Colors */
+  --zenith-primary: #00386c;          /* Deep primary */
+  --zenith-primary-container: #1a4f8b;/* Primary container */
+  --zenith-secondary: #006e1c;        /* Success / Active state */
+  --zenith-secondary-container: #98f994;
+  --zenith-tertiary: #582c00;
+  --zenith-tertiary-container: #793f00;
+  --zenith-on-surface: #1a1c20;
+  --zenith-on-surface-variant: #424750;
+  --zenith-outline-variant: #c2c6d1;
+  --zenith-bg: #f9f9ff;
+  --zenith-white: #ffffff;
+  
+  /* Status Colors */
+  --zenith-status-warning: #F57C00;
+  --zenith-status-info: #0288D1;
+  --zenith-status-alert: #D32F2F;
+  --zenith-error-container: #ffdad6;
+  --zenith-on-error-container: #93000a;
+  
+  /* Project Type Colors */
+  --zenith-data-recurring: #7E57C2;
+  --zenith-data-complex: #26A69A;
+
+  /* Typography Fonts */
+  --font-headings: 'Manrope', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-data: 'JetBrains Mono', monospace;
+
+  /* Border Radii */
+  --radius-xl: 24px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 9999px;
+
+  /* Shadows */
+  --zenith-shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04);
+  --zenith-shadow-md: 0 8px 30px rgba(0, 56, 108, 0.08);
+}
+
+/* Base Mobile App Shell */
+.premium-app-shell {
+  background-color: var(--zenith-bg);
+  min-height: 100vh;
+  color: var(--zenith-on-surface);
+  font-family: var(--font-body);
+  max-width: 500px;
+  margin: 0 auto;
+  position: relative;
+  box-shadow: 0 0 40px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* Typography styles */
+.font-heading {
+  font-family: var(--font-headings);
+  font-weight: 700;
+}
+.font-data {
+  font-family: var(--font-data);
+  font-weight: 500;
+}
+
+/* Premium TopAppBar */
+.premium-topbar {
+  background-color: var(--zenith-white);
+  border-bottom: 1px solid var(--zenith-outline-variant);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Premium Bottom Navigation bar with Centered FAB layout */
+.premium-bottomnav-container {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 500px;
+  background-color: var(--zenith-white);
+  border-t: 1px solid var(--zenith-outline-variant);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
+  height: 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 50;
+  padding: 0 10px 10px 10px;
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+}
+
+.premium-nav-group {
+  display: flex;
+  flex: 2;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.premium-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--zenith-on-surface-variant);
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+  min-width: 65px;
+}
+
+.premium-nav-item.active {
+  background-color: rgba(26, 79, 139, 0.08);
+  color: var(--zenith-primary-container);
+}
+
+.premium-nav-item span.label {
+  font-family: var(--font-headings);
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* Middle FAB Button */
+.premium-nav-fab-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -35px;
+}
+
+.premium-nav-fab {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background-color: var(--zenith-primary-container);
+  color: var(--zenith-white);
+  border: 4px solid var(--zenith-bg);
+  box-shadow: var(--zenith-shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  z-index: 60;
+}
+
+.premium-nav-fab:active {
+  transform: scale(0.92);
+  background-color: var(--zenith-primary);
+}
+
+/* Touch and scroll helpers */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+input, textarea {
+  user-select: text;
+}
