@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Financial Assistant - Tableau de Bord</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c2c6d1",
+                        "surface-container-low": "#f3f3f9",
+                        "on-tertiary-container": "#ffae6b",
+                        "on-error": "#ffffff",
+                        "status-warning": "#F57C00",
+                        "status-info": "#0288D1",
+                        "surface-container-highest": "#e2e2e8",
+                        "on-tertiary-fixed-variant": "#6e3900",
+                        "status-alert": "#D32F2F",
+                        "surface-container": "#ededf3",
+                        "inverse-primary": "#a6c8ff",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#2f1500",
+                        "on-surface": "#1a1c20",
+                        "primary-container": "#1a4f8b",
+                        "secondary-fixed": "#98f994",
+                        "on-background": "#1a1c20",
+                        "tertiary": "#582c00",
+                        "surface-tint": "#2f5f9c",
+                        "on-error-container": "#93000a",
+                        "data-recurring": "#7E57C2",
+                        "on-surface-variant": "#424750",
+                        "inverse-on-surface": "#f0f0f6",
+                        "on-primary-fixed-variant": "#0c4783",
+                        "tertiary-container": "#793f00",
+                        "surface-bright": "#f9f9ff",
+                        "secondary": "#006e1c",
+                        "background": "#f9f9ff",
+                        "primary-fixed-dim": "#a6c8ff",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#0c7521",
+                        "primary": "#00386c",
+                        "surface": "#f9f9ff",
+                        "outline": "#737781",
+                        "surface-container-lowest": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#9bc2ff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#002204",
+                        "surface-variant": "#e2e2e8",
+                        "on-secondary-fixed-variant": "#005313",
+                        "secondary-container": "#98f994",
+                        "on-primary-fixed": "#001c3b",
+                        "surface-dim": "#d9d9df",
+                        "on-secondary": "#ffffff",
+                        "surface-muted": "#F8FAFC",
+                        "surface-container-high": "#e8e8ed",
+                        "inverse-surface": "#2e3035",
+                        "tertiary-fixed-dim": "#ffb77e",
+                        "data-complex": "#26A69A",
+                        "primary-fixed": "#d5e3ff",
+                        "secondary-fixed-dim": "#7ddc7a",
+                        "tertiary-fixed": "#ffdcc3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "container-max": "1280px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "20px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["manrope"],
+                        "headline-md": ["manrope"],
+                        "headline-xl-mobile": ["manrope"],
+                        "headline-xl": ["manrope"],
+                        "body-md": ["inter"],
+                        "data-display": ["jetbrainsMono"],
+                        "body-lg": ["inter"],
+                        "label-sm": ["inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-xl-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "data-display": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline sticky top-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-3">
+<img alt="User Profile" class="w-10 h-10 rounded-full bg-surface-container-high" data-alt="A professional, clean-cut studio portrait of a young financial advisor with a friendly smile. The lighting is soft and high-key, creating a bright and trustworthy atmosphere. The background is a blurred modern office space with subtle blue and white tones, matching a corporate premium aesthetic. High resolution, minimalist and corporate style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvm9zvi22wo3CAEwJ6F10detf8MnTpVYbIzKT5KaSkEIrQSFIJXn_4kJHnRgzT4qyRTSFwqvKPzmaW8eT3r7T7bfRTlnVboi8OgFBsWfEF_VIt6XJwOG-sdA6HS1TKxQT3hkkZP7l3YkaG2t_o6K8UEzBL_vKCCkDxkYhskA_vfAiu4zAgcWwfsk4vNvTLl3VIQNbl9OXQp2IJDfP3AyDqqIiMiayceXFJ3sceRb4dHoXNSy4i3QJrR5MJowz791CjvFKnGaBwgFo"/>
+<h1 class="text-headline-md-mobile md:text-headline-md font-headline-md text-primary dark:text-primary-fixed-dim">Financial Assistant</h1>
+</div>
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed-dim hover:bg-surface-container-low dark:hover:bg-surface-container-high p-2 rounded-full transition-colors active:scale-95 duration-200">
+                notifications
+            </button>
+</div>
+</header>
+<main class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8">
+<!-- Dashboard Header & Global Progress -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter mb-12">
+<div class="lg:col-span-7">
+<h2 class="font-headline-xl-mobile md:font-headline-xl text-headline-xl-mobile md:text-headline-xl text-on-surface mb-2">Bonjour, Marc</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-8">Voici l'état actuel de votre trajectoire financière.</p>
+<!-- Bento Grid: Main Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Global Progress Card -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Progression Globale</span>
+<div class="flex items-end gap-2 mt-2">
+<span class="font-data-display text-data-display text-primary">72%</span>
+<span class="text-secondary font-label-sm text-label-sm mb-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> +4.2%
+                                </span>
+</div>
+</div>
+<div class="mt-6">
+<div class="w-full bg-surface-container-high rounded-full h-3 mb-2">
+<div class="bg-secondary h-3 rounded-full" style="width: 72%"></div>
+</div>
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>144 000 €</span>
+<span>Objectif : 200 000 €</span>
+</div>
+</div>
+</div>
+<!-- Monthly Needs Card -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Besoins du mois</span>
+<div class="mt-2">
+<span class="font-data-display text-data-display text-on-surface">3 450 €</span>
+</div>
+</div>
+<div class="mt-6 flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-white bg-primary-container flex items-center justify-center text-[10px] text-white">L</div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-secondary-container flex items-center justify-center text-[10px] text-on-secondary-container">E</div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-tertiary-container flex items-center justify-center text-[10px] text-on-tertiary-container">S</div>
+</div>
+<button class="text-primary font-label-sm text-label-sm hover:underline">Détails flux</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Feasibility Indicator (Circular Gauge) -->
+<div class="lg:col-span-5 bg-surface-muted p-8 rounded-xl border border-outline-variant flex flex-col items-center justify-center text-center">
+<div class="relative w-48 h-48 mb-6">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container-highest" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-secondary" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="553" stroke-dashoffset="110" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-lg text-headline-lg text-on-surface">80%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Viabilité</span>
+</div>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Plan en bonne voie</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Votre stratégie d'épargne actuelle permet d'atteindre vos objectifs avec 6 mois d'avance.</p>
+</div>
+</section>
+<!-- Alerts & Priorities -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Alerts Section -->
+<div class="lg:col-span-4">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-status-alert">warning</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Alertes critiques</h3>
+</div>
+<div class="space-y-4">
+<div class="p-4 bg-error-container rounded-xl border border-error/10 flex gap-4">
+<span class="material-symbols-outlined text-error shrink-0">event_busy</span>
+<div>
+<p class="font-label-sm text-label-sm font-bold text-on-error-container">Retard de financement</p>
+<p class="font-body-md text-body-md text-on-error-container/80">Projet "Immobilier" sous-financé de 1 200 € ce mois-ci.</p>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant flex gap-4">
+<span class="material-symbols-outlined text-status-warning shrink-0">account_balance</span>
+<div>
+<p class="font-label-sm text-label-sm font-bold text-on-surface">Optimisation fiscale</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Action requise avant le 15 du mois pour le PEA.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Priorities Section -->
+<div class="lg:col-span-8">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">priority_high</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Priorités immédiates</h3>
+</div>
+<button class="font-label-sm text-label-sm text-primary hover:underline">Voir tout</button>
+</div>
+<div class="space-y-4">
+<!-- Priority 1 -->
+<div class="group bg-surface-container-lowest p-5 rounded-xl border border-outline-variant hover:border-primary transition-all flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined">trending_flat</span>
+</div>
+<div>
+<h4 class="font-body-lg font-bold text-on-surface">Réallocation Automatique</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Équilibrer le surplus du Livret A vers l'Assurance Vie.</p>
+</div>
+</div>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-full font-label-sm text-label-sm active:scale-95 transition-transform">Exécuter</button>
+</div>
+<!-- Priority 2 -->
+<div class="group bg-surface-container-lowest p-5 rounded-xl border border-outline-variant hover:border-primary transition-all flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">savings</span>
+</div>
+<div>
+<h4 class="font-body-lg font-bold text-on-surface">Financer Projet "Voyage"</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Dernier versement requis pour validation de la réservation.</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-data-display text-body-md font-bold text-on-surface">450 €</span>
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center text-primary hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Priority 3 -->
+<div class="group bg-surface-container-lowest p-5 rounded-xl border border-outline-variant hover:border-primary transition-all flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-tertiary-container flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+<div>
+<h4 class="font-body-lg font-bold text-on-surface">Scanner Facture Énergie</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Mise à jour du budget prévisionnel de charges fixes.</p>
+</div>
+</div>
+<button class="px-4 py-2 border border-primary text-primary rounded-full font-label-sm text-label-sm hover:bg-primary/5 active:scale-95 transition-transform">Scanner</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-surface-container-lowest dark:bg-surface-container-low border-t border-outline-variant dark:border-outline shadow-md rounded-t-xl">
+<!-- Dashboard (Active) -->
+<a class="flex flex-col items-center justify-center bg-primary-container dark:bg-on-primary-fixed-variant text-on-primary-container dark:text-primary-fixed rounded-xl px-4 py-1 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-label-sm font-label-sm">Dashboard</span>
+</a>
+<!-- Projects -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed-dim active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">assignment_turned_in</span>
+<span class="text-label-sm font-label-sm">Projects</span>
+</a>
+<!-- Funding -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed-dim active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-label-sm font-label-sm">Funding</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed-dim active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-sm font-label-sm">Profile</span>
+</a>
+</nav>
+<!-- FAB (Floating Action Button) - Contextual for Dashboard -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-90 transition-all z-40">
+<span class="material-symbols-outlined">add</span>
+</button>
+</body></html>

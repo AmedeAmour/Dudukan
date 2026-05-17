@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&amp;family=Inter:wght@400;600&amp;family=JetBrains+Mono:wght@500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .font-headline-lg { font-family: 'Manrope', sans-serif; }
+        .font-headline-md { font-family: 'Manrope', sans-serif; }
+        .font-headline-xl { font-family: 'Manrope', sans-serif; }
+        .font-data-display { font-family: 'JetBrains Mono', monospace; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline-variant": "#c2c6d1",
+                      "surface-container-low": "#f3f3f9",
+                      "on-tertiary-container": "#ffae6b",
+                      "on-error": "#ffffff",
+                      "status-warning": "#F57C00",
+                      "status-info": "#0288D1",
+                      "surface-container-highest": "#e2e2e8",
+                      "on-tertiary-fixed-variant": "#6e3900",
+                      "status-alert": "#D32F2F",
+                      "surface-container": "#ededf3",
+                      "inverse-primary": "#a6c8ff",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-fixed": "#2f1500",
+                      "on-surface": "#1a1c20",
+                      "primary-container": "#1a4f8b",
+                      "secondary-fixed": "#98f994",
+                      "on-background": "#1a1c20",
+                      "tertiary": "#582c00",
+                      "surface-tint": "#2f5f9c",
+                      "on-error-container": "#93000a",
+                      "data-recurring": "#7E57C2",
+                      "on-surface-variant": "#424750",
+                      "inverse-on-surface": "#f0f0f6",
+                      "on-primary-fixed-variant": "#0c4783",
+                      "tertiary-container": "#793f00",
+                      "surface-bright": "#f9f9ff",
+                      "secondary": "#006e1c",
+                      "background": "#f9f9ff",
+                      "primary-fixed-dim": "#a6c8ff",
+                      "error": "#ba1a1a",
+                      "on-secondary-container": "#0c7521",
+                      "primary": "#00386c",
+                      "surface": "#f9f9ff",
+                      "outline": "#737781",
+                      "surface-container-lowest": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "on-primary-container": "#9bc2ff",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-fixed": "#002204",
+                      "surface-variant": "#e2e2e8",
+                      "on-secondary-fixed-variant": "#005313",
+                      "secondary-container": "#98f994",
+                      "on-primary-fixed": "#001c3b",
+                      "surface-dim": "#d9d9df",
+                      "on-secondary": "#ffffff",
+                      "surface-muted": "#F8FAFC",
+                      "surface-container-high": "#e8e8ed",
+                      "inverse-surface": "#2e3035",
+                      "tertiary-fixed-dim": "#ffb77e",
+                      "data-complex": "#26A69A",
+                      "primary-fixed": "#d5e3ff",
+                      "secondary-fixed-dim": "#7ddc7a",
+                      "tertiary-fixed": "#ffdcc3"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "container-max": "1280px",
+                      "margin-desktop": "64px",
+                      "margin-mobile": "20px",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Manrope"],
+                      "headline-md": ["Manrope"],
+                      "headline-xl-mobile": ["Manrope"],
+                      "headline-xl": ["Manrope"],
+                      "body-md": ["Inter"],
+                      "data-display": ["JetBrains Mono"],
+                      "body-lg": ["Inter"],
+                      "label-sm": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "headline-xl-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "data-display": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed-dim hover:bg-surface-container-low transition-colors p-2 rounded-full active:scale-95 transition-transform duration-200">arrow_back</button>
+<h1 class="text-headline-md font-headline-md text-primary dark:text-primary-fixed-dim">Financial Assistant</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low transition-colors p-2 rounded-full cursor-pointer">notifications</span>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQ4SDb1NrtE6ypeh91R8oOjZX7kkvDTGC9laEoiNOgjGuVW5Ik8Rc5EIk0s3HJ-IhpUMrQS2tV2NhHAguJTBipXF2H8Dan9HCTc5R7ZDOc9wWd_WpbaqudLsMIwea-gByb0XD5lRszQPuz2Jn7fJ4DWfzPn2IWZ99O4UE_lCoriMVrKQy6PwLfZrSqPXIFpQTUXqkTnPa_huj8dN9xmrEZzcN3odZWBeKneaA0OdKmlhfSvKqlDmrIrS5G43jZKmQeqQldD0aRXlo"/>
+</div>
+</div>
+</header>
+<main class="pt-24 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<!-- Hero Section / Project Summary -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter mb-12">
+<div class="lg:col-span-8 flex flex-col gap-6">
+<div>
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-primary py-1 px-3 bg-primary-fixed rounded-full">Construction Maison</span>
+<h2 class="mt-4 text-headline-xl font-headline-xl text-on-surface">Résidence Les Pins</h2>
+<p class="text-body-lg font-body-lg text-on-surface-variant mt-2">Suivi architectural et financier du projet de construction individuelle à Haute Performance Environnementale.</p>
+</div>
+<!-- Financial Progress Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-md shadow-primary/5">
+<div class="flex justify-between items-center mb-6">
+<div class="flex flex-col">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Financement Global</span>
+<span class="text-data-display font-data-display text-primary">245 000,00 €</span>
+</div>
+<div class="text-right">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Collecté</span>
+<span class="block text-headline-md font-headline-md text-secondary">164 150 €</span>
+</div>
+</div>
+<!-- Dual-Track Progress Bar -->
+<div class="relative w-full h-4 bg-surface-container rounded-full overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-secondary rounded-full" style="width: 67%;"></div>
+<div class="absolute top-0 left-[67%] h-full bg-secondary/30 rounded-full" style="width: 15%;"></div>
+</div>
+<div class="flex justify-between mt-2">
+<span class="text-label-sm font-label-sm text-secondary">67% Sécurisé</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant">82% Projeté (Allocation Auto)</span>
+</div>
+</div>
+</div>
+<!-- Feasibility Indicator -->
+<div class="lg:col-span-4 bg-surface-muted border border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center text-center gap-4">
+<span class="text-label-sm font-headline-md text-on-surface-variant">Score de Faisabilité</span>
+<div class="relative w-32 h-32 flex items-center justify-center">
+<svg class="w-full h-full" viewbox="0 0 36 36">
+<path class="stroke-current text-surface-container-highest" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
+<path class="stroke-current text-data-complex" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="92, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<span class="absolute text-headline-lg font-headline-lg text-data-complex">92%</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    Projet viable
+                </div>
+<p class="text-label-sm font-body-md text-on-surface-variant">L'algorithme confirme que vos flux de trésorerie actuels couvrent les prochaines échéances.</p>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Steps Tracking -->
+<section class="lg:col-span-7 flex flex-col gap-6">
+<h3 class="text-headline-md font-headline-md text-on-surface px-1">Étapes du Projet</h3>
+<!-- Timeline Container -->
+<div class="space-y-4">
+<!-- Step: Completed -->
+<div class="flex gap-4 items-start relative group">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-on-secondary">
+<span class="material-symbols-outlined text-[20px]">done</span>
+</div>
+<div class="w-0.5 h-full bg-secondary/30 mt-2 absolute top-8 left-4 -z-10"></div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 flex-1 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<h4 class="text-body-lg font-headline-md text-on-surface">Fondations &amp; Terrassement</h4>
+<span class="text-label-sm font-label-sm text-secondary">Terminé</span>
+</div>
+<div class="flex justify-between text-label-sm text-on-surface-variant">
+<span>Budget : 35 000 €</span>
+<span>Payé : 35 000 €</span>
+</div>
+</div>
+</div>
+<!-- Step: Current/Active -->
+<div class="flex gap-4 items-start relative">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container ring-4 ring-primary-container/20">
+<span class="material-symbols-outlined text-[20px]">construction</span>
+</div>
+<div class="w-0.5 h-full bg-surface-container-highest mt-2 absolute top-8 left-4 -z-10"></div>
+</div>
+<div class="bg-surface-container-lowest border-2 border-primary-container rounded-xl p-5 flex-1 shadow-md">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="text-body-lg font-headline-md text-on-surface">Murs &amp; Élévation</h4>
+<p class="text-label-sm font-body-md text-on-surface-variant">En cours de financement</p>
+</div>
+<span class="text-label-sm font-label-sm px-2 py-1 bg-status-info/10 text-status-info rounded">Actif</span>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-muted p-3 rounded-lg flex justify-between items-center border border-outline-variant/30">
+<div class="flex flex-col">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Montant Restant</span>
+<span class="text-body-lg font-headline-md text-primary">12 450,00 €</span>
+</div>
+<button class="bg-primary text-on-primary text-label-sm font-label-sm py-2 px-4 rounded-xl flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+                                        Exécuter Partiellement
+                                    </button>
+</div>
+<div class="w-full bg-surface-container rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 78%;"></div>
+</div>
+<div class="flex justify-between text-label-sm text-on-surface-variant">
+<span>Progress: 42 550€ / 55 000€</span>
+<span>78%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Step: Pending -->
+<div class="flex gap-4 items-start opacity-60">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">roofing</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 flex-1">
+<div class="flex justify-between items-start">
+<h4 class="text-body-lg font-headline-md text-on-surface">Toit &amp; Charpente</h4>
+<span class="material-symbols-outlined text-outline">lock</span>
+</div>
+<div class="flex justify-between mt-2 text-label-sm text-on-surface-variant">
+<span>Budget estimé : 45 000 €</span>
+<span>Début : Nov 2024</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- History & Details -->
+<section class="lg:col-span-5 flex flex-col gap-6">
+<h3 class="text-headline-md font-headline-md text-on-surface px-1">Historique des Contributions</h3>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl divide-y divide-outline-variant/30 shadow-sm overflow-hidden">
+<!-- History Item 1 -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div>
+<p class="text-body-md font-headline-md text-on-surface">Virement Mensuel Auto</p>
+<p class="text-label-sm font-body-md text-on-surface-variant">05 Oct 2023</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-body-md font-headline-md text-secondary">+ 2 500,00 €</p>
+<p class="text-label-sm font-label-sm text-status-info">Approuvé</p>
+</div>
+</div>
+<!-- History Item 2 -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined">savings</span>
+</div>
+<div>
+<p class="text-body-md font-headline-md text-on-surface">Apport Personnel Exceptionnel</p>
+<p class="text-label-sm font-body-md text-on-surface-variant">22 Sep 2023</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-body-md font-headline-md text-secondary">+ 15 000,00 €</p>
+<p class="text-label-sm font-label-sm text-status-info">Approuvé</p>
+</div>
+</div>
+<!-- History Item 3 -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div>
+<p class="text-body-md font-headline-md text-on-surface">Paiement Partiel - Étape Murs</p>
+<p class="text-label-sm font-body-md text-on-surface-variant">15 Sep 2023</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-body-md font-headline-md text-error">- 8 200,00 €</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Exécuté</p>
+</div>
+</div>
+</div>
+<!-- Technical Details Bento Card -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container p-4 rounded-xl">
+<span class="material-symbols-outlined text-primary mb-2">calendar_today</span>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Livraison Prévue</p>
+<p class="text-body-md font-headline-md">Mai 2025</p>
+</div>
+<div class="bg-surface-container p-4 rounded-xl">
+<span class="material-symbols-outlined text-primary mb-2">monitoring</span>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Variation Coût</p>
+<p class="text-body-md font-headline-md text-status-warning">+ 1.2%</p>
+</div>
+</div>
+<div class="bg-tertiary-container text-on-tertiary-container p-6 rounded-xl relative overflow-hidden group">
+<div class="relative z-10">
+<h4 class="text-headline-md font-headline-md">Action de l'Assistant</h4>
+<p class="text-body-md font-body-md mt-2 opacity-90">L'algorithme suggère d'allouer 15% de vos économies mensuelles supplémentaires pour compenser la hausse des prix des matériaux prévue en Q4.</p>
+<button class="mt-4 bg-white text-tertiary font-label-sm py-2 px-4 rounded-lg hover:bg-on-tertiary transition-colors">Optimiser l'Allocation</button>
+</div>
+<span class="material-symbols-outlined absolute -bottom-6 -right-6 text-[120px] opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-500">auto_awesome</span>
+</div>
+</section>
+</div>
+<!-- Visual Context Section -->
+<section class="mt-12 rounded-2xl overflow-hidden relative h-[300px] border border-outline-variant shadow-lg">
+<img class="w-full h-full object-cover" data-alt="A hyper-realistic architectural 3D visualization of a modern, eco-friendly house under construction in a serene pine forest setting. The design features large glass panes, natural wood accents, and clean white lines, reflecting a sophisticated corporate yet personal residential project. Soft morning sunlight filters through the trees, casting gentle shadows and creating a professional, light-mode aesthetic with a palette of deep blues, forest greens, and crisp whites." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-VRBYcrA2eoy3GNk9M-5u2z_GDXy-3jTGC1bPUbpCMhDe2hXzSL2ViEG5PtOSjz-S7njLTE6cAkqOq4J8BKvjkpvE2HRCH9XdTy47CJaKghX_0srxHWNQQBruzYl3jsGSxCUfXNLr1OJNqwXihdpkVgWABIUwxobW7gmKF6BfBsIsVlv0Qm9I4LCQcWCiAuqXVaDZNWZXnRa4S-od3tjkZ5QSKUTVqpYh1w0Bu22ZJEWpYP7-kKnLMsbhN-xGTJSh3j86GrHah6o"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-8">
+<h4 class="text-white text-headline-lg font-headline-lg">Visualisation du Projet</h4>
+<p class="text-white/80 text-body-md">Mise à jour hebdomadaire par l'architecte - 12 Oct 2023</p>
+</div>
+</section>
+</main>
+<!-- Contextual FAB - Only for specific major action -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-105 active:scale-90 transition-all duration-200 z-40">
+<span class="material-symbols-outlined text-[28px]">add</span>
+</button>
+</body></html>

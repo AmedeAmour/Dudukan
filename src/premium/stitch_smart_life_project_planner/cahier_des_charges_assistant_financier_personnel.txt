@@ -1,0 +1,18 @@
+# Application de Planification Financière et Gestion de Projets de Vie
+
+## Objectif
+Aider l'utilisateur à enregistrer ses projets, estimer leurs coûts, définir des délais et organiser automatiquement ses ressources financières.
+
+## Fonctionnalités Clés
+- **Gestion de projets** : 
+    - Simples (moto, téléphone, formation)
+    - Complexes (construction avec étapes intermédiaires)
+    - Récurrents (loyer, abonnements)
+- **Gestion des ressources** : Enregistrement des revenus, bénéfices et économies.
+- **Algorithme de répartition** : Calcul automatique basé sur le coût, le délai, l'urgence et la priorité.
+- **Indicateurs de faisabilité** : Alertes de retard ou sous-financement.
+- **Tableau de bord** : Projets en cours, montants financés/restants, besoins du mois, progression globale.
+- **Historique et exécution** : Suivi des contributions, financement manuel/auto, gestion des sous-tâches.
+
+## Expérience Utilisateur (UX)
+Simple, moderne, claire et rassurante. Un assistant personnel qui aide à prioriser et organiser.

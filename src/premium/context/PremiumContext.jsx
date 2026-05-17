@@ -5,7 +5,7 @@ import { useFinance } from '../../context/FinanceContext';
 const PremiumContext = createContext();
 
 export const PremiumProvider = ({ children }) => {
-  const { currency } = useFinance();
+  const { currency, savings: financeSavings, setSavings: setFinanceSavings, balance } = useFinance();
   const [profile, setProfile] = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -232,6 +232,9 @@ export const PremiumProvider = ({ children }) => {
       alerts,
       priorities,
       currency,
+      financeSavings,
+      setFinanceSavings,
+      balance,
       fetchData,
       calculateMonthlyNeed,
       executePriorityAction

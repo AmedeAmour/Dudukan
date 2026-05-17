@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#c2c6d1",
+                    "surface-container-low": "#f3f3f9",
+                    "on-tertiary-container": "#ffae6b",
+                    "on-error": "#ffffff",
+                    "status-warning": "#F57C00",
+                    "status-info": "#0288D1",
+                    "surface-container-highest": "#e2e2e8",
+                    "on-tertiary-fixed-variant": "#6e3900",
+                    "status-alert": "#D32F2F",
+                    "surface-container": "#ededf3",
+                    "inverse-primary": "#a6c8ff",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed": "#2f1500",
+                    "on-surface": "#1a1c20",
+                    "primary-container": "#1a4f8b",
+                    "secondary-fixed": "#98f994",
+                    "on-background": "#1a1c20",
+                    "tertiary": "#582c00",
+                    "surface-tint": "#2f5f9c",
+                    "on-error-container": "#93000a",
+                    "data-recurring": "#7E57C2",
+                    "on-surface-variant": "#424750",
+                    "inverse-on-surface": "#f0f0f6",
+                    "on-primary-fixed-variant": "#0c4783",
+                    "tertiary-fixed-dim": "#ffb77e",
+                    "data-complex": "#26A69A",
+                    "primary-fixed": "#d5e3ff",
+                    "secondary-fixed-dim": "#7ddc7a",
+                    "tertiary-fixed": "#ffdcc3",
+                    "primary": "#00386c",
+                    "surface": "#f9f9ff",
+                    "outline": "#737781",
+                    "surface-container-lowest": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-primary-container": "#9bc2ff",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#002204",
+                    "surface-variant": "#e2e2e8",
+                    "on-secondary-fixed-variant": "#005313",
+                    "secondary-container": "#98f994",
+                    "on-primary-fixed": "#001c3b",
+                    "surface-dim": "#d9d9df",
+                    "on-secondary": "#ffffff",
+                    "surface-muted": "#F8FAFC",
+                    "surface-container-high": "#e8e8ed",
+                    "inverse-surface": "#2e3035"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "container-max": "1280px",
+                    "margin-desktop": "64px",
+                    "margin-mobile": "20px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["manrope"],
+                    "headline-md": ["manrope"],
+                    "headline-xl-mobile": ["manrope"],
+                    "headline-xl": ["manrope"],
+                    "body-md": ["inter"],
+                    "data-display": ["jetbrainsMono"],
+                    "body-lg": ["inter"],
+                    "label-sm": ["inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-xl-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "data-display": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f9f9ff;
+            color: #1a1c20;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface border-b border-outline-variant flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTcVPybS3wVeT9KlgkI2HI_lFSBtV3EwmQ2DATNosypSIMSyWe8yy4ojks_Afud_2kFeg3Gi52mpwZD7kuM2imcIYgDX41kzB0ODIceAVerqnYS3cvYTk3OEZsCCvbM5CUj-Bjq4GbpqFGNlSU23Gzm4aowKTklnEmKnaCDf9Ubq75f8GyhtVSRxf1OCKLQf_-7Lp6vvG8KGaOTS6ISWXj9Q78su3iSbBW97ETMKA-M8vhV7dHZqiNfXdaYU0NucdGM_i2pccFpuI"/>
+</div>
+<h1 class="text-headline-md font-headline-md text-primary">Gestion des Ressources</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+</header>
+<main class="pt-24 pb-32 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<!-- Header Section with Strategy Toggle -->
+<section class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="max-w-2xl">
+<h2 class="text-headline-lg font-headline-lg mb-2">Configuration des flux</h2>
+<p class="text-body-lg font-body-lg text-on-surface-variant">Saisissez vos nouvelles ressources pour que l'algorithme optimise leur répartition.</p>
+</div>
+<div class="bg-surface-container-low p-1.5 rounded-xl flex items-center gap-1 self-start md:self-auto border border-outline-variant">
+<button class="px-6 py-2 rounded-lg bg-primary-container text-on-primary-container font-label-sm text-label-sm flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                 Automatique
+                </button>
+<button class="px-6 py-2 rounded-lg text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container-high transition-all">
+                    Manuel
+                </button>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column: Inputs -->
+<div class="lg:col-span-5 space-y-gutter">
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
+<h3 class="text-headline-md font-headline-md mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">add_circle</span>
+                        Nouveaux Entrants
+                    </h3>
+<form class="space-y-6">
+<div class="relative">
+<label class="absolute -top-2 left-3 bg-surface-container-lowest px-1 text-label-sm font-label-sm text-primary">Revenus Mensuels</label>
+<div class="flex items-center border border-outline rounded-lg px-4 py-3 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+<span class="text-body-md font-body-md text-on-surface-variant mr-2">€</span>
+<input class="w-full bg-transparent border-none focus:ring-0 p-0 text-data-display font-data-display" placeholder="0,00" type="number"/>
+<span class="material-symbols-outlined text-outline-variant">payments</span>
+</div>
+</div>
+<div class="relative">
+<label class="absolute -top-2 left-3 bg-surface-container-lowest px-1 text-label-sm font-label-sm text-primary">Bénéfices Exceptionnels</label>
+<div class="flex items-center border border-outline rounded-lg px-4 py-3 focus-within:border-primary transition-all">
+<span class="text-body-md font-body-md text-on-surface-variant mr-2">€</span>
+<input class="w-full bg-transparent border-none focus:ring-0 p-0 text-data-display font-data-display" placeholder="0,00" type="number"/>
+<span class="material-symbols-outlined text-outline-variant">trending_up</span>
+</div>
+</div>
+<div class="relative">
+<label class="absolute -top-2 left-3 bg-surface-container-lowest px-1 text-label-sm font-label-sm text-primary">Économies Disponibles</label>
+<div class="flex items-center border border-outline rounded-lg px-4 py-3 focus-within:border-primary transition-all">
+<span class="text-body-md font-body-md text-on-surface-variant mr-2">€</span>
+<input class="w-full bg-transparent border-none focus:ring-0 p-0 text-data-display font-data-display" placeholder="0,00" type="number"/>
+<span class="material-symbols-outlined text-outline-variant">account_balance_wallet</span>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary py-4 rounded-xl font-headline-md text-headline-md active:scale-95 transition-all shadow-md" type="submit">
+                            Mettre à jour l'algorithme
+                        </button>
+</form>
+</div>
+<div class="bg-surface-muted p-6 rounded-xl border border-outline-variant border-dashed">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-secondary-container">psychology</span>
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md mb-1">Analyse de l'Assistant</h4>
+<p class="text-body-md font-body-md text-on-surface-variant leading-relaxed">
+                                L'algorithme privilégie actuellement votre projet "Résidence Secondaire" car les taux d'épargne actuels sont optimaux pour cette catégorie.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Visualization -->
+<div class="lg:col-span-7 space-y-gutter">
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant shadow-sm h-full">
+<div class="flex justify-between items-center mb-8">
+<h3 class="text-headline-md font-headline-md">Répartition Prévisionnelle</h3>
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-label-sm font-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Plan viable
+                        </span>
+</div>
+<div class="space-y-8">
+<!-- Project 1 -->
+<div>
+<div class="flex justify-between items-end mb-3">
+<div>
+<span class="text-label-sm font-label-sm text-primary uppercase tracking-wider mb-1 block">Projet Prioritaire</span>
+<h4 class="text-headline-md font-headline-md">Résidence Secondaire</h4>
+</div>
+<div class="text-right">
+<span class="text-data-display font-data-display text-primary">1 250 €</span>
+<span class="text-body-md font-body-md text-on-surface-variant block">/ mois</span>
+</div>
+</div>
+<div class="h-4 w-full bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-secondary" style="width: 65%;"></div>
+<div class="h-full bg-secondary opacity-40 animate-pulse" style="width: 20%;"></div>
+</div>
+<div class="flex justify-between mt-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Financement actuel: 65%</span>
+<span class="text-label-sm font-label-sm text-secondary font-bold">+20% via algo</span>
+</div>
+</div>
+<!-- Project 2 -->
+<div>
+<div class="flex justify-between items-end mb-3">
+<div>
+<span class="text-label-sm font-label-sm text-data-recurring uppercase tracking-wider mb-1 block">Récurrence</span>
+<h4 class="text-headline-md font-headline-md">Retraite Anticipée</h4>
+</div>
+<div class="text-right">
+<span class="text-data-display font-data-display text-on-surface">450 €</span>
+<span class="text-body-md font-body-md text-on-surface-variant block">/ mois</span>
+</div>
+</div>
+<div class="h-4 w-full bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-data-recurring" style="width: 30%;"></div>
+<div class="h-full bg-data-recurring opacity-30" style="width: 15%;"></div>
+</div>
+<div class="flex justify-between mt-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Financement actuel: 30%</span>
+<span class="text-label-sm font-label-sm text-data-recurring font-bold">+15% via algo</span>
+</div>
+</div>
+<!-- Project 3 -->
+<div>
+<div class="flex justify-between items-end mb-3">
+<div>
+<span class="text-label-sm font-label-sm text-data-complex uppercase tracking-wider mb-1 block">Simple</span>
+<h4 class="text-headline-md font-headline-md">Voyage Japon 2025</h4>
+</div>
+<div class="text-right">
+<span class="text-data-display font-data-display text-on-surface">200 €</span>
+<span class="text-body-md font-body-md text-on-surface-variant block">/ mois</span>
+</div>
+</div>
+<div class="h-4 w-full bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-data-complex" style="width: 85%;"></div>
+<div class="h-full bg-data-complex opacity-30" style="width: 5%;"></div>
+</div>
+<div class="flex justify-between mt-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Financement actuel: 85%</span>
+<span class="text-label-sm font-label-sm text-data-complex font-bold">+5% via algo</span>
+</div>
+</div>
+</div>
+<div class="mt-12 pt-8 border-t border-outline-variant flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-label-sm font-label-sm text-on-surface-variant uppercase">Reste à Allouer</span>
+<span class="text-headline-lg font-headline-lg text-primary">300,00 €</span>
+</div>
+<div class="bg-surface-container p-4 rounded-xl flex items-center gap-4">
+<div class="text-right">
+<p class="text-label-sm font-label-sm text-on-surface-variant">Score de Faisabilité</p>
+<p class="text-headline-md font-headline-md text-secondary">92%</p>
+</div>
+<div class="w-12 h-12 rounded-full border-4 border-secondary border-t-outline-variant rotate-45"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-surface-container-lowest border-t border-outline-variant shadow-md rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-label-sm font-label-sm">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">assignment_turned_in</span>
+<span class="text-label-sm font-label-sm">Projects</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="text-label-sm font-label-sm">Funding</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-sm font-label-sm">Profile</span>
+</a>
+</nav>
+</body></html>

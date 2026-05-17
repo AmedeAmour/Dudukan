@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePremium } from '../context/PremiumContext';
+import { useFinance } from '../../context/FinanceContext';
 import { supabase } from '../../supabaseClient';
 import { 
   Zap, 
@@ -14,7 +15,8 @@ import {
 } from 'lucide-react';
 
 const PremiumFunding = () => {
-  const { profile, projects, calculateMonthlyNeed, fetchData, currency } = usePremium();
+  const { profile, projects, calculateMonthlyNeed, fetchData, currency, financeSavings, setFinanceSavings } = usePremium();
+  const { salary: freeSalary } = useFinance(); // get free tier salary directly
   
   // Strategy toggle
   const [strategy, setStrategy] = useState('auto'); // auto, manual
@@ -26,13 +28,15 @@ const PremiumFunding = () => {
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
-  // Synchronize input fields when async profile data becomes available
+  // Synchronize input fields with free account
   useEffect(() => {
-    if (profile) {
-      if (salaryInput === '') setSalaryInput(profile.salary?.toString() || '0');
-      if (savingsInput === '') setSavingsInput(profile.savings?.toString() || '0');
+    if (freeSalary !== undefined) {
+      if (salaryInput === '') setSalaryInput(freeSalary.toString() || '0');
     }
-  }, [profile]);
+    if (financeSavings !== undefined) {
+      if (savingsInput === '') setSavingsInput(financeSavings.toString() || '0');
+    }
+  }, [freeSalary, financeSavings]);
 
   // 1. Compute financial needs
   const salary = salaryInput === '' ? 0 : parseFloat(salaryInput || 0);
@@ -105,16 +109,8 @@ const PremiumFunding = () => {
         throw new Error("Veuillez renseigner des montants valides.");
       }
 
-      // Upsert in Supabase profiles
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          salary: updatedSalary,
-          savings: updatedSavings + extra // Roll over any extra earnings directly to savings if desired
-        });
-
-      if (error) throw error;
+      // Sync to free account if we want to, but basically we just use the inputs
+      setFinanceSavings(updatedSavings + extra);
       
       setExtraInput('');
       await fetchData();
@@ -193,15 +189,11 @@ const PremiumFunding = () => {
         }
       }
 
-      // 3. Deduct from Profile Savings (or update balance)
-      const { data: { user } } = await supabase.auth.getUser();
-      const currentSavings = parseFloat(profile.savings || 0);
+      // 3. Deduct from Free Account Savings
+      const currentSavings = parseFloat(financeSavings || 0);
       const newSavings = Math.max(0, currentSavings - totalAllocatedToDeduct);
       
-      await supabase
-        .from('profiles')
-        .update({ savings: newSavings })
-        .eq('id', user.id);
+      setFinanceSavings(newSavings);
 
       await fetchData();
       alert("Répartition exécutée avec succès ! Les projets ont été approvisionnés.");

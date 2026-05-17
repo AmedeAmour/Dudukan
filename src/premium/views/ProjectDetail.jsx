@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const ProjectDetail = ({ project, onBack }) => {
-  const { profile, fetchData, currency } = usePremium();
+  const { profile, fetchData, currency, financeSavings, setFinanceSavings } = usePremium();
   const [allocationAmount, setAllocationAmount] = useState('');
   const [fundingLoading, setFundingLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -173,9 +173,9 @@ const ProjectDetail = ({ project, onBack }) => {
       return;
     }
 
-    const availableSavings = parseFloat(profile?.savings || 0);
+    const availableSavings = parseFloat(financeSavings || 0);
     if (amountToAllocate > availableSavings) {
-      alert("Fonds insuffisants dans votre épargne disponible. Veuillez d'abord approvisionner vos ressources.");
+      alert("Fonds insuffisants dans votre épargne. Veuillez d'abord épargner dans l'onglet Épargne gratuit.");
       return;
     }
 
@@ -209,15 +209,8 @@ const ProjectDetail = ({ project, onBack }) => {
 
       if (pError) throw pError;
 
-      // 4. Deduct allocated funds from profile savings
-      const { error: uError } = await supabase
-        .from('profiles')
-        .update({
-          savings: availableSavings - amountToAllocate
-        })
-        .eq('id', profile.id);
-
-      if (uError) throw uError;
+      // 4. Deduct allocated funds from Free account savings
+      setFinanceSavings(availableSavings - amountToAllocate);
 
       setAllocationAmount('');
       await fetchData();
