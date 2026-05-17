@@ -26,9 +26,10 @@ const PremiumDashboard = () => {
   } = usePremium();
 
   // 1. Calculations for global progress card (Real data only)
-  const totalTarget = projects.reduce((acc, p) => acc + parseFloat(p.target_amount || 0), 0);
-  const totalSaved = projects.reduce((acc, p) => acc + parseFloat(p.current_amount || 0), 0);
-  const globalProgress = totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 0;
+  const targetProjects = projects.filter(p => !p.is_recurring);
+  const totalTarget = targetProjects.reduce((acc, p) => acc + parseFloat(p.target_amount || 0), 0);
+  const totalSaved = targetProjects.reduce((acc, p) => acc + parseFloat(p.current_amount || 0), 0);
+  const globalProgress = totalTarget > 0 ? Math.min(100, Math.round((totalSaved / totalTarget) * 100)) : 0;
 
   // 2. Calculations for monthly needs card
   const monthlyNeed = projects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0);
@@ -126,16 +127,6 @@ const PremiumDashboard = () => {
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '8px' }}>
               <span className="font-data" style={{ fontSize: '28px', color: 'var(--zenith-primary)', fontWeight: '800' }}>
                 {globalProgress}%
-              </span>
-              <span style={{ 
-                color: 'var(--zenith-secondary)', 
-                fontSize: '12px', 
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '2px'
-              }}>
-                <TrendingUp size={14} /> +4.2%
               </span>
             </div>
           </div>
