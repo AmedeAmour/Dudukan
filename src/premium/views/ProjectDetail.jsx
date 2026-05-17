@@ -11,13 +11,135 @@ import {
   Check, 
   Hammer,
   TrendingUp,
-  Brain
+  Brain,
+  Edit2,
+  Trash2,
+  Plus
 } from 'lucide-react';
 
 const ProjectDetail = ({ project, onBack }) => {
   const { profile, fetchData } = usePremium();
   const [allocationAmount, setAllocationAmount] = useState('');
   const [fundingLoading, setFundingLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(project.name);
+  const [editTarget, setEditTarget] = useState(project.target_amount || 0);
+  const [editPriority, setEditPriority] = useState(project.priority || 3);
+  const [editDeadline, setEditDeadline] = useState(project.deadline ? project.deadline.substring(0, 10) : '');
+  const [editFrequency, setEditFrequency] = useState(project.frequency || 'monthly');
+  const [editSteps, setEditSteps] = useState(project.milestones ? [...project.milestones].sort((a, b) => a.step_order - b.step_order).map(m => ({ id: m.id, name: m.name, amount: m.amount, current_allocated: m.current_allocated || 0, completed: m.completed || false })) : []);
+
+  const handleAddEditStep = () => setEditSteps([...editSteps, { name: '', amount: '', current_allocated: 0, completed: false }]);
+  const handleRemoveEditStep = (index) => setEditSteps(editSteps.filter((_, i) => i !== index));
+  const handleEditStepChange = (index, field, value) => {
+    const newSteps = [...editSteps];
+    newSteps[index][field] = value;
+    setEditSteps(newSteps);
+  };
+
+  const handleDeleteProject = async () => {
+    const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce projet ainsi que toutes ses étapes ? Cette action est irréversible.");
+    if (!confirmDelete) return;
+
+    setFundingLoading(true);
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', project.id);
+
+      if (error) throw error;
+
+      alert("Projet supprimé avec succès !");
+      await fetchData();
+      onBack();
+    } catch (err) {
+      alert("Erreur lors de la suppression : " + err.message);
+    } finally {
+      setFundingLoading(false);
+    }
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    setFundingLoading(true);
+
+    try {
+      const targetAmount = project.is_complex
+        ? editSteps.reduce((acc, s) => acc + parseFloat(s.amount || 0), 0)
+        : parseFloat(editTarget);
+
+      if (isNaN(targetAmount) || targetAmount <= 0) {
+        throw new Error("Veuillez renseigner un montant valide supérieur à 0.");
+      }
+
+      // Update the project details
+      const { error: pError } = await supabase
+        .from('projects')
+        .update({
+          name: editName,
+          target_amount: targetAmount,
+          priority: parseInt(editPriority),
+          deadline: project.is_recurring ? null : editDeadline,
+          frequency: project.is_recurring ? editFrequency : null
+        })
+        .eq('id', project.id);
+
+      if (pError) throw pError;
+
+      // Update/Insert/Delete milestones if complex
+      if (project.is_complex) {
+        const originalMilestones = project.milestones || [];
+        const originalIds = originalMilestones.map(m => m.id);
+        const keptIds = editSteps.filter(s => s.id).map(s => s.id);
+        const idsToDelete = originalIds.filter(id => !keptIds.includes(id));
+
+        // Delete removed milestones
+        if (idsToDelete.length > 0) {
+          const { error: dError } = await supabase
+            .from('milestones')
+            .delete()
+            .in('id', idsToDelete);
+          if (dError) throw dError;
+        }
+
+        // Upsert milestones
+        for (let i = 0; i < editSteps.length; i++) {
+          const s = editSteps[i];
+          const mData = {
+            project_id: project.id,
+            name: s.name,
+            amount: parseFloat(s.amount),
+            step_order: i + 1,
+            current_allocated: parseFloat(s.current_allocated || 0),
+            completed: parseFloat(s.current_allocated || 0) >= parseFloat(s.amount)
+          };
+
+          if (s.id) {
+            const { error: uError } = await supabase
+              .from('milestones')
+              .update(mData)
+              .eq('id', s.id);
+            if (uError) throw uError;
+          } else {
+            const { error: iError } = await supabase
+              .from('milestones')
+              .insert(mData);
+            if (iError) throw iError;
+          }
+        }
+      }
+
+      alert("Projet mis à jour avec succès !");
+      setIsEditing(false);
+      await fetchData();
+      onBack();
+    } catch (err) {
+      alert("Erreur lors de la mise à jour : " + err.message);
+    } finally {
+      setFundingLoading(false);
+    }
+  };
 
   const target = parseFloat(project.target_amount || 0);
   const current = parseFloat(project.current_amount || 0);
@@ -110,6 +232,294 @@ const ProjectDetail = ({ project, onBack }) => {
 
   const currencyCode = profile?.currency?.code || 'XOF';
 
+  if (isEditing) {
+    return (
+      <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto' }}>
+        
+        {/* Cancel Button */}
+        <button 
+          onClick={() => setIsEditing(false)} 
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px', 
+            color: 'var(--zenith-primary)', 
+            marginBottom: '28px', 
+            cursor: 'pointer', 
+            fontWeight: '700', 
+            fontFamily: 'var(--font-headings)' 
+          }}
+        >
+          <ArrowLeft size={18} strokeWidth={2.5} /> Annuler la modification
+        </button>
+
+        <h2 className="font-heading" style={{ fontSize: '28px', color: 'var(--zenith-on-surface)', margin: '0 0 6px 0' }}>
+          Modifier le Projet
+        </h2>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--zenith-on-surface-variant)', marginBottom: '32px' }}>
+          Mettez à jour les paramètres de votre projet et de ses étapes.
+        </p>
+
+        <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* Name input */}
+          <div>
+            <label className="font-heading" style={{ fontSize: '14px', color: 'var(--zenith-primary)', display: 'block', marginBottom: '8px' }}>
+              Nom du projet
+            </label>
+            <input 
+              required
+              type="text" 
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="Ex: Achat Moto"
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                border: '1px solid var(--zenith-outline-variant)',
+                borderRadius: 'var(--radius-md)',
+                fontFamily: 'var(--font-body)',
+                fontSize: '14px',
+                outline: 'none',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+
+          {/* Target Amount (only if simple) */}
+          {!project.is_complex && (
+            <div>
+              <label className="font-heading" style={{ fontSize: '14px', color: 'var(--zenith-primary)', display: 'block', marginBottom: '8px' }}>
+                Montant total cible ({currencyCode})
+              </label>
+              <input 
+                required
+                type="number" 
+                value={editTarget}
+                onChange={(e) => setEditTarget(e.target.value)}
+                placeholder="Ex: 500000"
+                style={{
+                  width: '100%',
+                  padding: '14px 16px',
+                  border: '1px solid var(--zenith-outline-variant)',
+                  borderRadius: 'var(--radius-md)',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '14px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+          )}
+
+          {/* Priority */}
+          <div>
+            <label className="font-heading" style={{ fontSize: '14px', color: 'var(--zenith-primary)', display: 'block', marginBottom: '8px' }}>
+              Niveau de priorité
+            </label>
+            <select 
+              value={editPriority}
+              onChange={(e) => setEditPriority(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                border: '1px solid var(--zenith-outline-variant)',
+                borderRadius: 'var(--radius-md)',
+                fontFamily: 'var(--font-body)',
+                fontSize: '14px',
+                outline: 'none',
+                backgroundColor: 'white',
+                boxSizing: 'border-box'
+              }}
+            >
+              <option value={5}>Faible (5)</option>
+              <option value={3}>Moyenne (3)</option>
+              <option value={1}>Haute priorité (1)</option>
+            </select>
+          </div>
+
+          {/* Conditional deadline / frequency */}
+          {project.is_recurring ? (
+            <div>
+              <label className="font-heading" style={{ fontSize: '14px', color: 'var(--zenith-primary)', display: 'block', marginBottom: '8px' }}>
+                Fréquence de prélèvement
+              </label>
+              <select 
+                value={editFrequency}
+                onChange={(e) => setEditFrequency(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px 16px',
+                  border: '1px solid var(--zenith-outline-variant)',
+                  borderRadius: 'var(--radius-md)',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '14px',
+                  outline: 'none',
+                  backgroundColor: 'white',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="weekly">Hebdomadaire</option>
+                <option value="monthly">Mensuel</option>
+                <option value="yearly">Annuel</option>
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label className="font-heading" style={{ fontSize: '14px', color: 'var(--zenith-primary)', display: 'block', marginBottom: '8px' }}>
+                Date limite souhaitée
+              </label>
+              <input 
+                required 
+                type="date" 
+                value={editDeadline}
+                onChange={(e) => setEditDeadline(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px 16px',
+                  border: '1px solid var(--zenith-outline-variant)',
+                  borderRadius: 'var(--radius-md)',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '14px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+          )}
+
+          {/* Complex Project Steps / Milestones Builder */}
+          {project.is_complex && (
+            <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label className="font-heading" style={{ fontSize: '14px', color: 'var(--zenith-primary)' }}>
+                  Étapes de réalisation
+                </label>
+                <button 
+                  type="button" 
+                  onClick={handleAddEditStep}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--zenith-secondary)',
+                    fontFamily: 'var(--font-headings)',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <Plus size={16} /> Ajouter une étape
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {editSteps.map((step, idx) => (
+                  <div 
+                    key={idx}
+                    style={{
+                      backgroundColor: '#F8FAFC',
+                      border: '1px solid var(--zenith-outline-variant)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      position: 'relative'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className="font-heading" style={{ fontSize: '12px', color: 'var(--zenith-secondary)' }}>
+                        Étape #{idx + 1} {step.current_allocated > 0 && `(${step.current_allocated} ${currencyCode} sécurisés)`}
+                      </span>
+                      {editSteps.length > 1 && (
+                        <button 
+                          type="button" 
+                          onClick={() => handleRemoveEditStep(idx)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--zenith-status-error, #EF4444)',
+                            cursor: 'pointer',
+                            padding: '4px'
+                          }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <input 
+                        required
+                        type="text" 
+                        placeholder="Nom de l'étape" 
+                        value={step.name}
+                        onChange={(e) => handleEditStepChange(idx, 'name', e.target.value)}
+                        style={{
+                          flex: 2,
+                          padding: '10px 12px',
+                          border: '1px solid var(--zenith-outline-variant)',
+                          borderRadius: 'var(--radius-sm)',
+                          fontFamily: 'var(--font-body)',
+                          fontSize: '13px',
+                          outline: 'none',
+                          backgroundColor: 'white'
+                        }}
+                      />
+                      <input 
+                        required
+                        type="number" 
+                        placeholder="Montant" 
+                        value={step.amount}
+                        onChange={(e) => handleEditStepChange(idx, 'amount', e.target.value)}
+                        style={{
+                          flex: 1.2,
+                          padding: '10px 12px',
+                          border: '1px solid var(--zenith-outline-variant)',
+                          borderRadius: 'var(--radius-sm)',
+                          fontFamily: 'var(--font-body)',
+                          fontSize: '13px',
+                          outline: 'none',
+                          backgroundColor: 'white'
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button 
+            type="submit" 
+            disabled={fundingLoading}
+            style={{
+              marginTop: '12px',
+              backgroundColor: 'var(--zenith-primary)',
+              color: 'var(--zenith-white)',
+              border: 'none',
+              padding: '16px',
+              borderRadius: 'var(--radius-md)',
+              fontFamily: 'var(--font-headings)',
+              fontWeight: 700,
+              fontSize: '15px',
+              cursor: 'pointer',
+              opacity: fundingLoading ? 0.7 : 1,
+              transition: 'opacity 0.2s'
+            }}
+          >
+            {fundingLoading ? 'Enregistrement...' : 'Enregistrer les modifications'}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto' }}>
       
@@ -131,6 +541,46 @@ const ProjectDetail = ({ project, onBack }) => {
       >
         <ArrowLeft size={18} strokeWidth={2.5} /> Retour
       </button>
+
+      {/* Action Buttons Row */}
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginBottom: '24px' }}>
+        <button
+          onClick={() => setIsEditing(true)}
+          style={{
+            background: 'none',
+            border: '1px solid var(--zenith-outline-variant)',
+            borderRadius: 'var(--radius-md)',
+            padding: '8px 16px',
+            color: 'var(--zenith-primary)',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          <Edit2 size={14} /> Modifier
+        </button>
+        <button
+          onClick={handleDeleteProject}
+          style={{
+            background: 'none',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            borderRadius: 'var(--radius-md)',
+            padding: '8px 16px',
+            color: '#EF4444',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          <Trash2 size={14} /> Supprimer
+        </button>
+      </div>
 
       {/* Hero Category Badge */}
       <span style={{ 
