@@ -125,6 +125,88 @@ const PremiumFunding = () => {
     }
   };
 
+  const handleExecuteAllocations = async () => {
+    const confirmExec = window.confirm("Confirmer la répartition de vos fonds selon l'algorithme Zenith ?");
+    if (!confirmExec) return;
+
+    setLoading(true);
+    try {
+      let totalAllocatedToDeduct = 0;
+
+      // 1. Process recurring projects
+      for (const project of recurringProjects) {
+        const need = calculateMonthlyNeed(project);
+        if (need > 0) {
+          const { error } = await supabase
+            .from('projects')
+            .update({ current_amount: parseFloat(project.current_amount || 0) + need })
+            .eq('id', project.id);
+          if (error) throw error;
+          totalAllocatedToDeduct += need;
+        }
+      }
+
+      // 2. Process target projects
+      for (const project of projectAllocations) {
+        if (project.allocation > 0) {
+          // Update project current_amount
+          const { error } = await supabase
+            .from('projects')
+            .update({ current_amount: parseFloat(project.current_amount || 0) + project.allocation })
+            .eq('id', project.id);
+          if (error) throw error;
+
+          // If complex, distribute allocation among milestones
+          if (project.is_complex && project.milestones) {
+            let remainingAllocation = project.allocation;
+            const sortedMilestones = [...project.milestones].sort((a, b) => a.step_order - b.step_order);
+            
+            for (const milestone of sortedMilestones) {
+              if (remainingAllocation <= 0) break;
+              if (milestone.completed) continue;
+
+              const milestoneTarget = parseFloat(milestone.amount || 0);
+              const milestoneCurrent = parseFloat(milestone.current_allocated || 0);
+              const milestoneNeed = milestoneTarget - milestoneCurrent;
+              
+              if (milestoneNeed > 0) {
+                const toAllocate = Math.min(remainingAllocation, milestoneNeed);
+                const newAllocated = milestoneCurrent + toAllocate;
+                const isCompleted = newAllocated >= milestoneTarget;
+                
+                await supabase
+                  .from('milestones')
+                  .update({ current_allocated: newAllocated, completed: isCompleted })
+                  .eq('id', milestone.id);
+                
+                remainingAllocation -= toAllocate;
+              }
+            }
+          }
+          
+          totalAllocatedToDeduct += project.allocation;
+        }
+      }
+
+      // 3. Deduct from Profile Savings (or update balance)
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentSavings = parseFloat(profile.savings || 0);
+      const newSavings = Math.max(0, currentSavings - totalAllocatedToDeduct);
+      
+      await supabase
+        .from('profiles')
+        .update({ savings: newSavings })
+        .eq('id', user.id);
+
+      await fetchData();
+      alert("Répartition exécutée avec succès ! Les projets ont été approvisionnés.");
+    } catch (err) {
+      alert("Erreur lors de l'allocation : " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const currencyCode = currency?.code || 'XOF';
 
   return (
@@ -553,6 +635,35 @@ const PremiumFunding = () => {
             }}></div>
           </div>
         </div>
+
+        {/* Action Button to execute allocations */}
+        <button 
+          onClick={handleExecuteAllocations}
+          disabled={loading || totalAllocated === 0}
+          style={{
+            marginTop: '24px',
+            width: '100%',
+            backgroundColor: 'var(--zenith-secondary)',
+            color: 'white',
+            border: 'none',
+            padding: '16px',
+            borderRadius: 'var(--radius-md)',
+            fontFamily: 'var(--font-headings)',
+            fontSize: '16px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: 'var(--zenith-shadow-soft)',
+            transition: 'opacity 0.2s',
+            opacity: (loading || totalAllocated === 0) ? 0.7 : 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+        >
+          <Zap size={20} />
+          {loading ? 'Exécution en cours...' : 'Exécuter la répartition du mois'}
+        </button>
 
       </div>
 
