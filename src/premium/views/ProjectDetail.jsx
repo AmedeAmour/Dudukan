@@ -454,7 +454,7 @@ const ProjectDetail = ({ project, onBack }) => {
           overflow: 'hidden'
         }}>
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <h4 className="font-heading" style={{ fontSize: '16px', margin: '0 0 8px 0' }}>Action de l'Assistant</h4>
+            <h4 className="font-heading" style={{ fontSize: '16px', margin: '0 0 8px 0', color: 'var(--zenith-white)' }}>Action de l'Assistant</h4>
             <p style={{ fontSize: '13px', margin: 0, opacity: 0.9, lineHeight: '1.5' }}>
               Zenith AI conseille d'approvisionner l'étape active dès que possible pour consolider la planification des suivantes.
             </p>
