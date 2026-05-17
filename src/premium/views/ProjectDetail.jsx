@@ -446,16 +446,39 @@ const ProjectDetail = ({ project, onBack }) => {
 
         {/* Assistant Tip Banner */}
         <div style={{
-          backgroundColor: 'var(--zenith-tertiary-container)',
+          background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
           color: 'var(--zenith-white)',
           padding: '24px',
           borderRadius: 'var(--radius-lg)',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          boxShadow: '0 8px 24px rgba(16, 185, 129, 0.12)'
         }}>
+          {/* Translucent bubble patterns to form a beautiful design motif */}
+          <div style={{
+            position: 'absolute',
+            top: '-20px',
+            right: '-20px',
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            background: 'rgba(255, 255, 255, 0.08)',
+            pointerEvents: 'none'
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '-40px',
+            right: '20px',
+            width: '160px',
+            height: '160px',
+            borderRadius: '50%',
+            background: 'rgba(255, 255, 255, 0.06)',
+            pointerEvents: 'none'
+          }} />
+
           <div style={{ position: 'relative', zIndex: 2 }}>
             <h4 className="font-heading" style={{ fontSize: '16px', margin: '0 0 8px 0', color: 'var(--zenith-white)' }}>Action de l'Assistant</h4>
-            <p style={{ fontSize: '13px', margin: 0, opacity: 0.9, lineHeight: '1.5' }}>
+            <p style={{ fontSize: '13px', margin: 0, opacity: 0.95, lineHeight: '1.5' }}>
               Zenith AI conseille d'approvisionner l'étape active dès que possible pour consolider la planification des suivantes.
             </p>
           </div>
@@ -467,8 +490,9 @@ const ProjectDetail = ({ project, onBack }) => {
               position: 'absolute', 
               bottom: '-20px', 
               right: '-20px', 
-              opacity: 0.05, 
-              transform: 'rotate(12deg)' 
+              opacity: 0.1, 
+              transform: 'rotate(12deg)',
+              zIndex: 1
             }} 
           />
         </div>
