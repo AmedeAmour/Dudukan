@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 const PremiumProjects = ({ onAddProject, onSelectProject }) => {
-  const { projects, profile, alerts, executePriorityAction, calculateMonthlyNeed } = usePremium();
+  const { projects, profile, alerts, executePriorityAction, calculateMonthlyNeed, currency } = usePremium();
   const [activeFilter, setActiveFilter] = useState('all'); // all, simple, complex, recurring
 
   // 1. Calculate overall feasibility (viability score)
@@ -306,7 +306,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
                       {project.is_recurring ? 'Montant' : 'Cible'}
                     </span>
                     <span className="font-data" style={{ fontSize: '16px', color: 'var(--zenith-primary)', fontWeight: 700 }}>
-                      {target.toLocaleString()} {profile?.currency?.code || 'XOF'}
+                      {target.toLocaleString()} {currency?.code || 'XOF'}
                     </span>
                   </div>
                   <div style={{ textAlign: 'right' }}>

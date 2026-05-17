@@ -21,7 +21,8 @@ const PremiumDashboard = () => {
     calculateMonthlyNeed,
     executePriorityAction,
     alerts,
-    priorities
+    priorities,
+    currency
   } = usePremium();
 
   // 1. Calculations for global progress card (Real data only)
@@ -82,7 +83,7 @@ const PremiumDashboard = () => {
 
   const gaugeConfig = getGaugeConfig();
   const userName = profile?.full_name?.split(' ')[0] || 'Marc';
-  const currencyCode = profile?.currency?.code || '€';
+  const currencyCode = currency?.code || 'XOF';
 
   return (
     <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>

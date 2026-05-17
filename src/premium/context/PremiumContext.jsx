@@ -5,23 +5,13 @@ import { useFinance } from '../../context/FinanceContext';
 const PremiumContext = createContext();
 
 export const PremiumProvider = ({ children }) => {
-  const { salary, savings, currency, setSalary, setSavings } = useFinance();
-  const [profile, setProfile] = useState({ salary: 0, savings: 0, currency: { code: 'XOF' } });
+  const { currency } = useFinance();
+  const [profile, setProfile] = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [availableFunds, setAvailableFunds] = useState(0);
   const [alerts, setAlerts] = useState([]);
   const [priorities, setPriorities] = useState([]);
-
-  // Keep profile and availableFunds state synchronized with the unified FinanceContext
-  useEffect(() => {
-    setProfile({
-      salary: salary || 0,
-      savings: savings || 0,
-      currency: currency || { code: 'XOF' }
-    });
-    setAvailableFunds(savings || 0);
-  }, [salary, savings, currency]);
 
   // Fetch all premium data from Supabase
   const fetchData = useCallback(async () => {
@@ -30,7 +20,35 @@ export const PremiumProvider = ({ children }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // 1. Fetch Projects with their Milestones
+      // 1. Fetch Profile (with automatic defensive creation if missing)
+      let { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileError && profileError.code === 'PGRST116') {
+        // Automatically insert a default profile row for this user
+        const { data: insertData, error: insertError } = await supabase
+          .from('profiles')
+          .insert({ id: user.id, salary: 0, savings: 0 })
+          .select()
+          .single();
+        
+        if (insertError) {
+          console.error("Auto-profile insertion failed:", insertError);
+          profileData = { id: user.id, salary: 0, savings: 0 };
+        } else {
+          profileData = insertData;
+        }
+      } else if (profileError) {
+        throw profileError;
+      }
+      
+      setProfile(profileData);
+      setAvailableFunds(profileData?.savings || 0);
+
+      // 2. Fetch Projects with their Milestones
       const { data: projectsData, error: projectsError } = await supabase
         .from('projects')
         .select(`
@@ -45,15 +63,15 @@ export const PremiumProvider = ({ children }) => {
       const loadedProjects = projectsData || [];
       setProjects(loadedProjects);
 
-      // 2. Process Smart Alerts & Priorities
-      generateAlertsAndPriorities(loadedProjects, { salary, savings, currency });
+      // 3. Process Smart Alerts & Priorities
+      generateAlertsAndPriorities(loadedProjects, profileData);
 
     } catch (error) {
       console.error('Error loading Premium Zenith data:', error);
     } finally {
       setLoading(false);
     }
-  }, [salary, savings, currency]);
+  }, []);
 
   // Calculate monthly need for a single project
   const calculateMonthlyNeed = useCallback((project) => {
@@ -93,7 +111,7 @@ export const PremiumProvider = ({ children }) => {
           id: `realize-project-${project.id}`,
           type: 'ready_to_realize',
           title: 'Projet prêt à réaliser !',
-          description: `Félicitations ! Votre projet "${project.name}" est entièrement financé (${current.toLocaleString()} ${userProfile?.currency?.code || 'XOF'}).`,
+          description: `Félicitations ! Votre projet "${project.name}" est entièrement financé (${current.toLocaleString()} ${currency?.code || 'XOF'}).`,
           projectId: project.id,
           project: project
         });
@@ -150,7 +168,7 @@ export const PremiumProvider = ({ children }) => {
             id: `delay-${project.id}`,
             type: 'funding_delay',
             title: 'Retard de financement',
-            description: `Le projet "${project.name}" demande ${Math.round(monthlyNeed).toLocaleString()} ${userProfile?.currency?.code || 'XOF'} ce mois-ci, ce qui dépasse le seuil conseillé.`,
+            description: `Le projet "${project.name}" demande ${Math.round(monthlyNeed).toLocaleString()} ${currency?.code || 'XOF'} ce mois-ci, ce qui dépasse le seuil conseillé.`,
             projectId: project.id
           });
         }
@@ -213,6 +231,7 @@ export const PremiumProvider = ({ children }) => {
       availableFunds,
       alerts,
       priorities,
+      currency,
       fetchData,
       calculateMonthlyNeed,
       executePriorityAction

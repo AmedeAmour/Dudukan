@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const ProjectDetail = ({ project, onBack }) => {
-  const { profile, fetchData } = usePremium();
+  const { profile, fetchData, currency } = usePremium();
   const [allocationAmount, setAllocationAmount] = useState('');
   const [fundingLoading, setFundingLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -230,7 +230,7 @@ const ProjectDetail = ({ project, onBack }) => {
     }
   };
 
-  const currencyCode = profile?.currency?.code || 'XOF';
+  const currencyCode = currency?.code || 'XOF';
 
   if (isEditing) {
     return (

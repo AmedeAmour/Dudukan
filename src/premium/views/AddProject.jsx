@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 const AddProject = ({ onBack }) => {
-  const { fetchData, profile } = usePremium();
+  const { fetchData, profile, currency } = usePremium();
   const [type, setType] = useState('simple'); // simple, complex, recurring
   const [name, setName] = useState('');
   const [target, setTarget] = useState('');
@@ -229,7 +229,7 @@ const AddProject = ({ onBack }) => {
                 fontSize: '12px',
                 color: 'var(--zenith-on-surface-variant)' 
               }}>
-                {profile?.currency?.code || 'XOF'}
+                {currency?.code || 'XOF'}
               </span>
             </div>
           </div>
@@ -417,7 +417,7 @@ const AddProject = ({ onBack }) => {
             }}>
               <span className="font-heading" style={{ color: 'var(--zenith-primary)' }}>Montant total estimé</span>
               <span className="font-data" style={{ fontWeight: 700, color: 'var(--zenith-primary)' }}>
-                {steps.reduce((acc, s) => acc + parseFloat(s.amount || 0), 0).toLocaleString()} {profile?.currency?.code || 'XOF'}
+                {steps.reduce((acc, s) => acc + parseFloat(s.amount || 0), 0).toLocaleString()} {currency?.code || 'XOF'}
               </span>
             </div>
           </div>

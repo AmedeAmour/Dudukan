@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePremium } from '../context/PremiumContext';
 import { supabase } from '../../supabaseClient';
-import { useFinance } from '../../context/FinanceContext';
 import { 
   Zap, 
   CheckCircle, 
@@ -15,8 +14,7 @@ import {
 } from 'lucide-react';
 
 const PremiumFunding = () => {
-  const { profile, projects, calculateMonthlyNeed, fetchData } = usePremium();
-  const { setSalary, setSavings } = useFinance();
+  const { profile, projects, calculateMonthlyNeed, fetchData, currency } = usePremium();
   
   // Strategy toggle
   const [strategy, setStrategy] = useState('auto'); // auto, manual
@@ -106,25 +104,16 @@ const PremiumFunding = () => {
         throw new Error("Veuillez renseigner des montants valides.");
       }
 
-      // 1. Instantly update and sync via FinanceContext (to user_data JSONB table with 100% success rate)
-      setSalary(updatedSalary);
-      setSavings(updatedSavings + extra);
+      // Upsert in Supabase profiles
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          salary: updatedSalary,
+          savings: updatedSavings + extra // Roll over any extra earnings directly to savings if desired
+        });
 
-      // 2. Also try to write to profiles table for legacy compatibility, but gracefully catch if it fails
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .upsert({
-            id: user.id,
-            salary: updatedSalary,
-            savings: updatedSavings + extra // Roll over any extra earnings directly to savings if desired
-          });
-        if (error) {
-          console.warn("Attempt to write to 'profiles' table failed, falling back safely to user_data storage:", error.message);
-        }
-      } catch (dbErr) {
-        console.warn("Attempt to write to 'profiles' table failed, falling back safely to user_data storage:", dbErr);
-      }
+      if (error) throw error;
       
       setExtraInput('');
       await fetchData();
@@ -136,7 +125,7 @@ const PremiumFunding = () => {
     }
   };
 
-  const currencyCode = profile?.currency?.code || 'XOF';
+  const currencyCode = currency?.code || 'XOF';
 
   return (
     <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto' }}>
