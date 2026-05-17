@@ -13,7 +13,7 @@ import {
   Play
 } from 'lucide-react';
 
-const PremiumProjects = ({ onAddProject }) => {
+const PremiumProjects = ({ onAddProject, onSelectProject }) => {
   const { projects, profile, alerts, executePriorityAction, calculateMonthlyNeed } = usePremium();
   const [activeFilter, setActiveFilter] = useState('all'); // all, simple, complex, recurring
 
@@ -207,13 +207,15 @@ const PremiumProjects = ({ onAddProject }) => {
             return (
               <div 
                 key={project.id}
+                onClick={() => onSelectProject && onSelectProject(project)}
                 style={{
                   backgroundColor: 'var(--zenith-white)',
                   border: '1px solid var(--zenith-outline-variant)',
                   borderRadius: 'var(--radius-lg)',
                   padding: '24px',
                   boxShadow: 'var(--zenith-shadow-soft)',
-                  position: 'relative'
+                  position: 'relative',
+                  cursor: 'pointer'
                 }}
               >
                 {/* Header of Project Card */}
@@ -320,7 +322,10 @@ const PremiumProjects = ({ onAddProject }) => {
                 {/* Direct Action when "Ready to Realize" */}
                 {isReady && (
                   <button
-                    onClick={() => executePriorityAction({ type: 'realize', projectId: project.id })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      executePriorityAction({ type: 'realize', projectId: project.id });
+                    }}
                     style={{
                       position: 'absolute',
                       bottom: '24px',
