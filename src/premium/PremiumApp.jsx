@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import PremiumTopBar from './components/PremiumTopBar';
 import PremiumBottomNav from './components/PremiumBottomNav';
+import { PremiumProvider } from './context/PremiumContext';
+import PremiumDashboard from './views/PremiumDashboard';
 import './PremiumStyles.css';
 
 const PremiumAppContent = ({ onSwitchMode }) => {
@@ -48,16 +50,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 
     switch (activeTab) {
       case 'dashboard':
-        return (
-          <div style={{ padding: '24px', textAlign: 'center' }}>
-            <h2 className="font-heading" style={{ fontSize: '20px', marginBottom: '12px', color: 'var(--zenith-primary)' }}>
-              Bienvenue sur votre Espace Premium
-            </h2>
-            <p style={{ color: 'var(--zenith-on-surface-variant)', lineHeight: '1.6' }}>
-              Ici commencera le développement du nouveau tableau de bord bento avec sa jauge de viabilité et d'alertes intelligentes.
-            </p>
-          </div>
-        );
+        return <PremiumDashboard />;
       case 'projects':
         return (
           <div style={{ padding: '24px', textAlign: 'center' }}>
@@ -139,7 +132,11 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 };
 
 const PremiumApp = ({ onSwitchMode }) => {
-  return <PremiumAppContent onSwitchMode={onSwitchMode} />;
+  return (
+    <PremiumProvider>
+      <PremiumAppContent onSwitchMode={onSwitchMode} />
+    </PremiumProvider>
+  );
 };
 
 export default PremiumApp;
