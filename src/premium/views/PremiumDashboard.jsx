@@ -19,33 +19,26 @@ const PremiumDashboard = () => {
     projects, 
     availableFunds, 
     calculateMonthlyNeed,
-    executePriorityAction 
+    executePriorityAction,
+    alerts,
+    priorities
   } = usePremium();
 
-  // 1. Calculations for global progress card
-  const totalTarget = projects.length > 0 
-    ? projects.reduce((acc, p) => acc + parseFloat(p.target_amount || 0), 0)
-    : 200000; // Mockup default target
-
-  const totalSaved = projects.length > 0
-    ? projects.reduce((acc, p) => acc + parseFloat(p.current_amount || 0), 0)
-    : 144000; // Mockup default saved
-
-  const globalProgress = totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 72;
+  // 1. Calculations for global progress card (Real data only)
+  const totalTarget = projects.reduce((acc, p) => acc + parseFloat(p.target_amount || 0), 0);
+  const totalSaved = projects.reduce((acc, p) => acc + parseFloat(p.current_amount || 0), 0);
+  const globalProgress = totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 0;
 
   // 2. Calculations for monthly needs card
-  const monthlyNeed = projects.length > 0
-    ? projects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0)
-    : 3450; // Mockup default monthly need
+  const monthlyNeed = projects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0);
 
   // 3. Viability Score calculation
   // Let's compute a realistic viability score based on their projects, but if projects are empty, default to 80% (mockup)
-  let viability = 80;
+  let viability = 100;
   if (projects.length > 0) {
     const salary = parseFloat(profile?.salary || 0);
-    const need = projects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0);
-    if (salary > 0 && need > 0) {
-      const ratio = need / salary;
+    if (salary > 0 && monthlyNeed > 0) {
+      const ratio = monthlyNeed / salary;
       if (ratio <= 0.4) {
         viability = 95;
       } else if (ratio <= 0.7) {
@@ -53,7 +46,7 @@ const PremiumDashboard = () => {
       } else {
         viability = Math.max(30, Math.round(100 - (ratio * 50)));
       }
-    } else {
+    } else if (monthlyNeed > 0) {
       viability = 45; // If no income or high need, default to warning "Ajustement requis"
     }
   }
@@ -303,282 +296,164 @@ const PremiumDashboard = () => {
       </div>
 
       {/* Alerts & Critical Notifications */}
-      <div style={{ marginBottom: '32px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-          <AlertTriangle size={20} color="var(--zenith-status-alert)" />
-          <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
-            Alertes critiques
-          </h3>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          
-          {/* Card 1: Underfunded project (Retard de financement) */}
-          <div style={{
-            padding: '16px',
-            backgroundColor: '#FFEBEE',
-            border: '1px solid rgba(211, 47, 47, 0.15)',
-            borderRadius: 'var(--radius-lg)',
-            display: 'flex',
-            gap: '12px',
-            alignItems: 'flex-start'
-          }}>
-            <div style={{
-              color: '#D32F2F',
-              marginTop: '2px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Calendar size={20} />
-            </div>
-            <div>
-              <p className="font-heading" style={{ 
-                fontSize: '13px', 
-                margin: '0 0 4px 0', 
-                color: '#D32F2F',
-                fontWeight: 800
-              }}>
-                Retard de financement
-              </p>
-              <p style={{ 
-                fontSize: '13px', 
-                margin: 0, 
-                color: 'var(--zenith-on-surface)'
-              }}>
-                Projet "Immobilier" sous-financé de 1 200 {currencyCode} ce mois-ci.
-              </p>
-            </div>
-          </div>
-
-          {/* Card 2: PEA critical deadline (Optimisation fiscale) */}
-          <div style={{
-            padding: '16px',
-            backgroundColor: '#F3F3F9',
-            border: '1px solid var(--zenith-outline-variant)',
-            borderRadius: 'var(--radius-lg)',
-            display: 'flex',
-            gap: '12px',
-            alignItems: 'flex-start'
-          }}>
-            <div style={{
-              color: '#F57C00',
-              marginTop: '2px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Building size={20} />
-            </div>
-            <div>
-              <p className="font-heading" style={{ 
-                fontSize: '13px', 
-                margin: '0 0 4px 0', 
-                color: '#582C00',
-                fontWeight: 800
-              }}>
-                Optimisation fiscale
-              </p>
-              <p style={{ 
-                fontSize: '13px', 
-                margin: 0, 
-                color: 'var(--zenith-on-surface)' 
-              }}>
-                Action requise avant le 15 du mois pour le PEA.
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Priorities and Executables */}
-      <div style={{ marginBottom: '32px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--zenith-primary)' }}>!</span>
+      {alerts && alerts.length > 0 && (
+        <div style={{ marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <AlertTriangle size={20} color="var(--zenith-status-alert)" />
             <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
-              Priorités immédiates
+              Alertes critiques
             </h3>
           </div>
-          <span style={{ fontSize: '12px', color: 'var(--zenith-primary)', fontWeight: 700, cursor: 'pointer' }}>
-            Voir tout
-          </span>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {alerts.map(alert => (
+              <div key={alert.id} style={{
+                padding: '16px',
+                backgroundColor: alert.type === 'funding_delay' ? '#FFEBEE' : '#E8F5E9',
+                border: `1px solid ${alert.type === 'funding_delay' ? 'rgba(211, 47, 47, 0.15)' : 'rgba(46, 125, 50, 0.15)'}`,
+                borderRadius: 'var(--radius-lg)',
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'flex-start'
+              }}>
+                <div style={{
+                  color: alert.type === 'funding_delay' ? '#D32F2F' : '#2E7D32',
+                  marginTop: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {alert.type === 'funding_delay' ? <Calendar size={20} /> : <CheckCircle size={20} />}
+                </div>
+                <div>
+                  <p className="font-heading" style={{ 
+                    fontSize: '13px', 
+                    margin: '0 0 4px 0', 
+                    color: alert.type === 'funding_delay' ? '#D32F2F' : '#2E7D32',
+                    fontWeight: 800
+                  }}>
+                    {alert.title}
+                  </p>
+                  <p style={{ 
+                    fontSize: '13px', 
+                    margin: 0, 
+                    color: 'var(--zenith-on-surface)'
+                  }}>
+                    {alert.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+      )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          {/* Priority Card 1: Automatic Reallocation */}
-          <div style={{
-            backgroundColor: 'var(--zenith-white)',
-            padding: '20px',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--zenith-outline-variant)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            boxShadow: 'var(--zenith-shadow-soft)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: '#1A4F8B',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <TrendingUp size={20} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <h4 className="font-heading" style={{ fontSize: '14px', margin: '0 0 4px 0', color: 'var(--zenith-on-surface)' }}>
-                  Réallocation Automatique
-                </h4>
-                <p style={{ fontSize: '13px', margin: 0, color: 'var(--zenith-on-surface-variant)', lineHeight: '1.4' }}>
-                  Équilibrer le surplus du Livret A vers l'Assurance Vie.
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => alert("Réallocation automatique exécutée par l'algorithme Zenith !")}
-              style={{
-                marginLeft: '12px',
-                padding: '10px 18px',
-                backgroundColor: 'var(--zenith-primary)',
-                color: 'white',
-                border: 'none',
-                borderRadius: 'var(--radius-md)',
-                fontFamily: 'var(--font-headings)',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-              }}
-            >
-              Exécuter
-            </button>
-          </div>
-
-          {/* Priority Card 2: Travel project funding */}
-          <div style={{
-            backgroundColor: 'var(--zenith-white)',
-            padding: '20px',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--zenith-outline-variant)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            boxShadow: 'var(--zenith-shadow-soft)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: '#E8F5E9',
-                color: 'var(--zenith-secondary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <CheckCircle size={20} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <h4 className="font-heading" style={{ fontSize: '14px', margin: '0 0 4px 0', color: 'var(--zenith-on-surface)' }}>
-                  Financer Projet "Voyage"
-                </h4>
-                <p style={{ fontSize: '13px', margin: 0, color: 'var(--zenith-on-surface-variant)', lineHeight: '1.4' }}>
-                  Dernier versement requis pour validation de la réservation.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '12px' }}>
-              <div style={{ textAlign: 'right' }}>
-                <span className="font-data" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', fontWeight: 800, display: 'block' }}>
-                  450
-                </span>
-                <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
-                  {currencyCode}
-                </span>
-              </div>
-              <button style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                backgroundColor: '#ECEFF1',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer'
-              }}>
-                <ChevronRight size={16} color="var(--zenith-on-surface-variant)" />
-              </button>
+      {/* Priorities and Executables */}
+      {priorities && priorities.length > 0 && (
+        <div style={{ marginBottom: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--zenith-primary)' }}>!</span>
+              <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
+                Priorités immédiates
+              </h3>
             </div>
           </div>
 
-          {/* Priority Card 3: Scan electricity bill */}
-          <div style={{
-            backgroundColor: 'var(--zenith-white)',
-            padding: '20px',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--zenith-outline-variant)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            boxShadow: 'var(--zenith-shadow-soft)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: '#FFE7D3',
-                color: '#E65100',
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {priorities.map(priority => (
+              <div key={priority.id} style={{
+                backgroundColor: 'var(--zenith-white)',
+                padding: '20px',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--zenith-outline-variant)',
                 display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
+                boxShadow: 'var(--zenith-shadow-soft)'
               }}>
-                <Receipt size={20} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <h4 className="font-heading" style={{ fontSize: '14px', margin: '0 0 4px 0', color: 'var(--zenith-on-surface)' }}>
-                  Scanner Facture Énergie
-                </h4>
-                <p style={{ fontSize: '13px', margin: 0, color: 'var(--zenith-on-surface-variant)', lineHeight: '1.4' }}>
-                  Mise à jour du budget prévisionnel de charges fixes.
-                </p>
-              </div>
-            </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: priority.type === 'realize' ? '#E8F5E9' : '#1A4F8B',
+                    color: priority.type === 'realize' ? 'var(--zenith-secondary)' : 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    {priority.type === 'realize' ? <CheckCircle size={20} /> : <TrendingUp size={20} />}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h4 className="font-heading" style={{ fontSize: '14px', margin: '0 0 4px 0', color: 'var(--zenith-on-surface)' }}>
+                      {priority.title}
+                    </h4>
+                    <p style={{ fontSize: '13px', margin: 0, color: 'var(--zenith-on-surface-variant)', lineHeight: '1.4' }}>
+                      {priority.description}
+                    </p>
+                  </div>
+                </div>
 
-            <button
-              onClick={() => alert("Scanner photo de facture activé !")}
-              style={{
-                marginLeft: '12px',
-                padding: '8px 16px',
-                backgroundColor: 'white',
-                color: 'var(--zenith-primary)',
-                border: '1px solid var(--zenith-primary)',
-                borderRadius: 'var(--radius-pill)',
-                fontFamily: 'var(--font-headings)',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              Scanner
-            </button>
+                {priority.amount ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '12px' }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <span className="font-data" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', fontWeight: 800, display: 'block' }}>
+                        {priority.amount.toLocaleString()}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
+                        {currencyCode}
+                      </span>
+                    </div>
+                    <button 
+                      onClick={() => executePriorityAction(priority)}
+                      style={{
+                        padding: '8px 12px',
+                        backgroundColor: 'var(--zenith-primary)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 'var(--radius-md)',
+                        fontFamily: 'var(--font-headings)',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {priority.actionLabel || 'Valider'}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      if (priority.type === 'general') {
+                        alert("Optimisation de surplus exécutée (Mockup) !");
+                      } else {
+                        executePriorityAction(priority);
+                      }
+                    }}
+                    style={{
+                      marginLeft: '12px',
+                      padding: '10px 18px',
+                      backgroundColor: 'var(--zenith-primary)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 'var(--radius-md)',
+                      fontFamily: 'var(--font-headings)',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                    }}
+                  >
+                    {priority.actionLabel || 'Exécuter'}
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
-
         </div>
-      </div>
+      )}
 
     </div>
   );
