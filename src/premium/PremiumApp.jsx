@@ -5,6 +5,7 @@ import { PremiumProvider } from './context/PremiumContext';
 import PremiumDashboard from './views/PremiumDashboard';
 import PremiumProjects from './views/PremiumProjects';
 import AddProject from './views/AddProject';
+import PremiumFunding from './views/PremiumFunding';
 import './PremiumStyles.css';
 
 const PremiumAppContent = ({ onSwitchMode }) => {
@@ -33,16 +34,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
       case 'projects':
         return <PremiumProjects onAddProject={() => setIsAddingProject(true)} />;
       case 'funding':
-        return (
-          <div style={{ padding: '24px', textAlign: 'center' }}>
-            <h2 className="font-heading" style={{ fontSize: '20px', marginBottom: '12px', color: 'var(--zenith-primary)' }}>
-              Gestion des Ressources
-            </h2>
-            <p style={{ color: 'var(--zenith-on-surface-variant)' }}>
-              Optimisez l'allocation de vos revenus et économies.
-            </p>
-          </div>
-        );
+        return <PremiumFunding />;
       case 'profile':
         return (
           <div style={{ padding: '24px' }}>
