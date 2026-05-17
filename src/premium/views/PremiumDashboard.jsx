@@ -58,8 +58,8 @@ const PremiumDashboard = () => {
     }
   }
 
-  // Circular gauge track settings (radius=88, circumference ~553)
-  const radius = 88;
+  // Circular gauge track settings (radius=80 to prevent SVG clipping, circumference ~502)
+  const radius = 80;
   const stroke = 12;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (viability / 100) * circumference;
@@ -252,7 +252,7 @@ const PremiumDashboard = () => {
           boxShadow: 'var(--zenith-shadow-soft)'
         }}>
           <div style={{ position: 'relative', width: '176px', height: '176px', marginBottom: '20px' }}>
-            <svg style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+            <svg viewBox="0 0 176 176" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
               {/* Visible track circle matching image style */}
               <circle 
                 cx="88" 
