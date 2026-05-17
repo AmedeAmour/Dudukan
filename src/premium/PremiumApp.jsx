@@ -4,6 +4,7 @@ import PremiumBottomNav from './components/PremiumBottomNav';
 import { PremiumProvider } from './context/PremiumContext';
 import PremiumDashboard from './views/PremiumDashboard';
 import PremiumProjects from './views/PremiumProjects';
+import AddProject from './views/AddProject';
 import './PremiumStyles.css';
 
 const PremiumAppContent = ({ onSwitchMode }) => {
@@ -23,30 +24,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 
   const renderScreen = () => {
     if (isAddingProject) {
-      return (
-        <div style={{ padding: '24px' }}>
-          <h2 className="font-heading" style={{ fontSize: '24px', color: 'var(--zenith-primary)', marginBottom: '8px' }}>
-            Nouveau Projet Zenith
-          </h2>
-          <p style={{ color: 'var(--zenith-on-surface-variant)', marginBottom: '24px' }}>
-            Formulaire de planification en cours de développement...
-          </p>
-          <button 
-            onClick={() => setIsAddingProject(false)}
-            style={{
-              padding: '12px 24px',
-              background: 'var(--zenith-primary)',
-              color: 'white',
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
-              cursor: 'pointer',
-              fontWeight: '700'
-            }}
-          >
-            Retour
-          </button>
-        </div>
-      );
+      return <AddProject onBack={() => setIsAddingProject(false)} />;
     }
 
     switch (activeTab) {
