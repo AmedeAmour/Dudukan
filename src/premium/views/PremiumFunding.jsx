@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePremium } from '../context/PremiumContext';
 import { supabase } from '../../supabaseClient';
 import { 
@@ -25,10 +25,18 @@ const PremiumFunding = () => {
   const [savingsInput, setSavingsInput] = useState(profile?.savings?.toString() || '');
   const [loading, setLoading] = useState(false);
 
+  // Synchronize input fields when async profile data becomes available
+  useEffect(() => {
+    if (profile) {
+      if (salaryInput === '') setSalaryInput(profile.salary?.toString() || '0');
+      if (savingsInput === '') setSavingsInput(profile.savings?.toString() || '0');
+    }
+  }, [profile]);
+
   // 1. Compute financial needs
-  const salary = parseFloat(salaryInput || profile?.salary || 0);
-  const savings = parseFloat(savingsInput || profile?.savings || 0);
-  const extra = parseFloat(extraInput || 0);
+  const salary = salaryInput === '' ? 0 : parseFloat(salaryInput || 0);
+  const savings = savingsInput === '' ? 0 : parseFloat(savingsInput || 0);
+  const extra = extraInput === '' ? 0 : parseFloat(extraInput || 0);
   
   // Total available money for the month = salary + extra + savings
   const totalAvailableThisMonth = salary + extra;
@@ -89,8 +97,8 @@ const PremiumFunding = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Utilisateur non connecté.");
 
-      const updatedSalary = parseFloat(salaryInput);
-      const updatedSavings = parseFloat(savingsInput);
+      const updatedSalary = salaryInput === '' ? 0 : parseFloat(salaryInput);
+      const updatedSavings = savingsInput === '' ? 0 : parseFloat(savingsInput);
 
       if (isNaN(updatedSalary) || isNaN(updatedSavings)) {
         throw new Error("Veuillez renseigner des montants valides.");
