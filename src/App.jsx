@@ -26,6 +26,11 @@ const AppContent = () => {
     }
   }, [profile]);
 
+  // Scroll to top when the active view changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeTab]);
+
   if (loading || !isInitialized) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-main)', color: 'var(--navy)', fontWeight: '600' }}>Chargement de vos données...</div>;
   }
