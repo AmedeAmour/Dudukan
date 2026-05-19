@@ -1,28 +1,32 @@
-/* Zenith Financial - Design System & App Shell Premium */
+/* Dudukan Premium - Elegant Design System & High-End UI */
 :root {
-  /* Zenith Theme Colors */
-  --zenith-primary: #00386c;          /* Deep primary */
-  --zenith-primary-container: #1a4f8b;/* Primary container */
-  --zenith-secondary: #006e1c;        /* Success / Active state */
-  --zenith-secondary-container: #98f994;
-  --zenith-tertiary: #582c00;
-  --zenith-tertiary-container: #793f00;
-  --zenith-on-surface: #1a1c20;
-  --zenith-on-surface-variant: #424750;
-  --zenith-outline-variant: #c2c6d1;
-  --zenith-bg: #f9f9ff;
-  --zenith-white: #ffffff;
+  /* Premium Dark Blue & Soft Gold Theme */
+  --zenith-primary: #0B192C;          /* Slate Dark Blue */
+  --zenith-primary-container: #1E3E62;/* Royal Deep Blue */
+  --zenith-accent-gold: #D4AF37;       /* Soft Champagne Gold */
+  --zenith-accent-gold-light: #F3E5AB; /* Light Gold Accent */
+  --zenith-secondary: #10B981;        /* Rich Emerald Success */
+  --zenith-secondary-container: #D1FAE5;
+  
+  --zenith-bg: #F4F6F9;                /* Smooth Light Neutral */
+  --zenith-white: #FFFFFF;
+  --zenith-surface: #FFFFFF;
+  
+  /* Text & Border Contrasts */
+  --zenith-on-surface: #1E293B;       /* Charcoal Blue */
+  --zenith-on-surface-variant: #64748B;/* Cool Gray */
+  --zenith-outline-variant: #E2E8F0;  /* Slate Border Light */
   
   /* Status Colors */
-  --zenith-status-warning: #F57C00;
-  --zenith-status-info: #0288D1;
-  --zenith-status-alert: #D32F2F;
-  --zenith-error-container: #ffdad6;
-  --zenith-on-error-container: #93000a;
+  --zenith-status-warning: #F59E0B;
+  --zenith-status-info: #3B82F6;
+  --zenith-status-alert: #EF4444;
+  --zenith-error-container: #FEE2E2;
+  --zenith-on-error-container: #991B1B;
   
   /* Project Type Colors */
-  --zenith-data-recurring: #7E57C2;
-  --zenith-data-complex: #26A69A;
+  --zenith-data-recurring: #8B5CF6;
+  --zenith-data-complex: #06B6D4;
 
   /* Typography Fonts */
   --font-headings: 'Manrope', sans-serif;
@@ -30,15 +34,17 @@
   --font-data: 'JetBrains Mono', monospace;
 
   /* Border Radii */
-  --radius-xl: 24px;
+  --radius-2xl: 24px;
+  --radius-xl: 20px;
   --radius-lg: 16px;
   --radius-md: 12px;
   --radius-sm: 8px;
   --radius-pill: 9999px;
 
   /* Shadows */
-  --zenith-shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04);
-  --zenith-shadow-md: 0 8px 30px rgba(0, 56, 108, 0.08);
+  --zenith-shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.04);
+  --zenith-shadow-md: 0 15px 35px rgba(15, 30, 54, 0.08);
+  --zenith-shadow-lg: 0 20px 40px rgba(11, 25, 44, 0.12);
 }
 
 /* Base Mobile App Shell */
@@ -50,7 +56,7 @@
   max-width: 500px;
   margin: 0 auto;
   position: relative;
-  box-shadow: 0 0 40px rgba(0,0,0,0.08);
+  box-shadow: 0 0 50px rgba(11, 25, 44, 0.1);
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -59,11 +65,12 @@
 /* Typography styles */
 .font-heading {
   font-family: var(--font-headings);
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 .font-data {
   font-family: var(--font-data);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* Premium TopAppBar */
@@ -73,7 +80,7 @@
   position: sticky;
   top: 0;
   z-index: 40;
-  padding: 16px 20px;
+  padding: 18px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -87,17 +94,18 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: 500px;
-  background-color: var(--zenith-white);
-  border-t: 1px solid var(--zenith-outline-variant);
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
-  height: 80px;
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--zenith-outline-variant);
+  box-shadow: 0 -10px 30px rgba(15, 30, 54, 0.04);
+  height: 84px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 50;
-  padding: 0 10px 10px 10px;
-  border-top-left-radius: var(--radius-xl);
-  border-top-right-radius: var(--radius-xl);
+  padding: 0 16px 14px 16px;
+  border-top-left-radius: var(--radius-2xl);
+  border-top-right-radius: var(--radius-2xl);
 }
 
 .premium-nav-group {
@@ -116,22 +124,23 @@
   border: none;
   color: var(--zenith-on-surface-variant);
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 10px;
   border-radius: var(--radius-lg);
-  transition: all 0.2s ease;
-  min-width: 65px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 70px;
 }
 
 .premium-nav-item.active {
-  background-color: rgba(26, 79, 139, 0.08);
+  background-color: rgba(30, 62, 98, 0.06);
   color: var(--zenith-primary-container);
 }
 
 .premium-nav-item span.label {
   font-family: var(--font-headings);
   font-size: 10px;
-  font-weight: 700;
-  margin-top: 4px;
+  font-weight: 800;
+  margin-top: 6px;
+  letter-spacing: 0.01em;
 }
 
 /* Middle FAB Button */
@@ -140,28 +149,118 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: -35px;
+  margin-top: -42px;
 }
 
 .premium-nav-fab {
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   border-radius: var(--radius-pill);
-  background-color: var(--zenith-primary-container);
-  color: var(--zenith-white);
+  background: linear-gradient(135deg, var(--zenith-primary-container) 0%, var(--zenith-primary) 100%);
+  color: var(--zenith-accent-gold);
   border: 4px solid var(--zenith-bg);
-  box-shadow: var(--zenith-shadow-md);
+  box-shadow: 0 8px 24px rgba(30, 62, 98, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
   z-index: 60;
 }
 
+.premium-nav-fab:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 12px 28px rgba(30, 62, 98, 0.45);
+}
+
 .premium-nav-fab:active {
-  transform: scale(0.92);
-  background-color: var(--zenith-primary);
+  transform: translateY(1px) scale(0.95);
+}
+
+/* Elegant Cards */
+.premium-card {
+  background-color: var(--zenith-white);
+  border: 1px solid var(--zenith-outline-variant);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--zenith-shadow-soft);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.premium-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--zenith-shadow-md);
+}
+
+/* Dark Accent Cards for Core Features */
+.premium-card-dark {
+  background: linear-gradient(135deg, var(--zenith-primary) 0%, #1e293b 100%);
+  color: var(--zenith-white);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--zenith-shadow-md);
+}
+
+/* Glassmorphism effects */
+.premium-card-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-xl);
+}
+
+/* Badge Layouts */
+.premium-badge {
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.premium-badge-gold {
+  background-color: rgba(212, 175, 55, 0.12);
+  color: #B59410;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.premium-badge-success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--zenith-secondary);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Action Sheets and Overlays */
+.action-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(11, 25, 44, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  animation: fadeIn 0.3s ease;
+}
+
+.action-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--zenith-white);
+  border-top-left-radius: var(--radius-2xl);
+  border-top-right-radius: var(--radius-2xl);
+  padding: 24px;
+  box-shadow: 0 -15px 40px rgba(0,0,0,0.15);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 /* Touch and scroll helpers */

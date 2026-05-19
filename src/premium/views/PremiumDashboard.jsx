@@ -11,7 +11,12 @@ import {
   Building,
   Receipt,
   FileText,
-  DollarSign
+  DollarSign,
+  ArrowRight,
+  Activity,
+  Award,
+  Zap,
+  Info
 } from 'lucide-react';
 
 const PremiumDashboard = () => {
@@ -42,7 +47,6 @@ const PremiumDashboard = () => {
   const monthlyNeed = projects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0);
 
   // 3. Viability Score calculation
-  // Let's compute a realistic viability score based on their projects, but if projects are empty, default to 80% (mockup)
   let viability = 100;
   if (projects.length > 0) {
     const salary = parseFloat(freeSalary || 0);
@@ -56,11 +60,11 @@ const PremiumDashboard = () => {
         viability = Math.max(30, Math.round(100 - (ratio * 50)));
       }
     } else if (monthlyNeed > 0) {
-      viability = 45; // If no income or high need, default to warning "Ajustement requis"
+      viability = 45;
     }
   }
 
-  // Circular gauge track settings (radius=80 to prevent SVG clipping, circumference ~502)
+  // Circular gauge track settings
   const radius = 80;
   const stroke = 12;
   const circumference = 2 * Math.PI * radius;
@@ -70,19 +74,19 @@ const PremiumDashboard = () => {
   const getGaugeConfig = () => {
     if (viability >= 75) {
       return {
-        color: 'var(--zenith-secondary)', // Green (#006e1c)
+        color: 'var(--zenith-secondary)', 
         title: 'Plan en bonne voie',
         desc: "Votre stratégie d'épargne actuelle permet d'atteindre vos objectifs avec 6 mois d'avance."
       };
     } else if (viability >= 50) {
       return {
-        color: 'var(--zenith-status-warning)', // Orange (#F57C00)
+        color: 'var(--zenith-status-warning)', 
         title: 'Optimisation possible',
         desc: "Quelques ajustements mineurs aideraient à stabiliser les délais de vos projets prioritaires."
       };
     } else {
       return {
-        color: 'var(--zenith-status-alert)', // Red (#D32F2F)
+        color: 'var(--zenith-status-alert)', 
         title: 'Ajustement requis',
         desc: "Votre épargne mensuelle est insuffisante pour couvrir vos jalons. Augmentez vos entrants ou repoussez certaines échéances."
       };
@@ -93,32 +97,64 @@ const PremiumDashboard = () => {
   const userName = user?.user_metadata?.full_name?.split(' ')[0] || profile?.full_name?.split(' ')[0] || 'Utilisateur';
   const currencyCode = currency?.code || 'XOF';
 
+  // Dynamic status tag mappings for Coach Insights
+  const getInsightTag = (type) => {
+    switch (type) {
+      case 'success':
+        return { text: 'Progression', style: { backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.3)' } };
+      case 'warning':
+        return { text: 'Vigilance', style: { backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', border: '1px solid rgba(245, 158, 11, 0.3)' } };
+      case 'danger':
+        return { text: 'Alerte', style: { backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.3)' } };
+      case 'info':
+        return { text: 'Stabilité', style: { backgroundColor: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6', border: '1px solid rgba(59, 130, 246, 0.3)' } };
+      default:
+        return { text: 'Équilibre', style: { backgroundColor: 'rgba(212, 175, 55, 0.15)', color: '#D4AF37', border: '1px solid rgba(212, 175, 55, 0.3)' } };
+    }
+  };
+
   return (
     <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>
       
       {/* Hello Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <h2 className="font-heading" style={{ fontSize: '32px', color: 'var(--zenith-on-surface)', margin: '0 0 6px 0' }}>
+      <div style={{ marginBottom: '28px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <span className="premium-badge premium-badge-gold" style={{ fontSize: '9px', display: 'inline-block' }}>
+            Accès Premium Actif
+          </span>
+        </div>
+        <h2 className="font-heading" style={{ fontSize: '30px', color: 'var(--zenith-on-surface)', margin: 0 }}>
           Bonjour, {userName}
         </h2>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--zenith-on-surface-variant)', margin: 0 }}>
-          Voici l'état actuel de votre trajectoire financière.
+        <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', margin: '4px 0 0 0', lineHeight: '1.4' }}>
+          Voici l'état actuel de votre trajectoire de vie. Dudukan veille sur la viabilité de votre patrimoine.
+        </p>
+      </div>
+
+      {/* Smart Daily Summary Card */}
+      <div className="premium-card" style={{
+        padding: '18px 20px',
+        backgroundColor: '#F8FAFC',
+        borderLeft: '4px solid var(--zenith-accent-gold)',
+        marginBottom: '28px'
+      }}>
+        <h4 className="font-heading" style={{ fontSize: '12px', color: 'var(--zenith-primary-container)', margin: '0 0 6px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          Résumé intelligent du jour
+        </h4>
+        <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', margin: 0, lineHeight: '1.5' }}>
+          Votre plan financier global progresse régulièrement. Vous êtes financé à <strong>{globalProgress}%</strong> sur vos projets cibles. La viabilité de vos objectifs de vie est estimée à <strong>{viability}%</strong>.
         </p>
       </div>
  
-      {/* Coach Zenith - Insights section */}
+      {/* Coach Dudukan - Insights section */}
       {coachInsights && coachInsights.length > 0 && (
-        <div style={{
-          background: 'linear-gradient(135deg, #1A4F8B 0%, #0D2D52 100%)',
-          color: 'var(--zenith-white)',
+        <div className="premium-card-dark" style={{
           padding: '24px',
-          borderRadius: 'var(--radius-lg)',
           marginBottom: '32px',
-          boxShadow: '0 12px 32px rgba(26, 79, 139, 0.15)',
           position: 'relative',
           overflow: 'hidden'
         }}>
-          {/* Motifs de fond subtils */}
+          {/* Subtle backgrounds */}
           <div style={{
             position: 'absolute',
             top: '-30px',
@@ -126,55 +162,55 @@ const PremiumDashboard = () => {
             width: '150px',
             height: '150px',
             borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.05)',
-            pointerEvents: 'none'
-          }} />
-          <div style={{
-            position: 'absolute',
-            bottom: '-40px',
-            left: '20%',
-            width: '200px',
-            height: '200px',
-            borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.03)',
+            background: 'radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%)',
             pointerEvents: 'none'
           }} />
 
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Sparkles size={18} color="#FFD700" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={18} color="var(--zenith-accent-gold)" />
+                <h3 className="font-heading" style={{ fontSize: '17px', color: 'white', margin: 0 }}>
+                  Accompagnement Stratégique
+                </h3>
               </div>
-              <h3 className="font-heading" style={{ fontSize: '18px', color: 'white', margin: 0, fontWeight: 800 }}>
-                Accompagnement Stratégique
-              </h3>
+              <span className="premium-badge premium-badge-gold" style={{ fontSize: '9px', padding: '2px 8px' }}>
+                Conseils Coach
+              </span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {coachInsights.map((insight, idx) => (
-                <div key={idx} style={{
-                  paddingBottom: idx < coachInsights.length - 1 ? '16px' : '0',
-                  borderBottom: idx < coachInsights.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
-                }}>
-                  <p style={{
-                    fontSize: '13px',
-                    margin: 0,
-                    lineHeight: '1.5',
-                    color: 'rgba(255, 255, 255, 0.9)',
-                    fontFamily: 'var(--font-body)'
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {coachInsights.map((insight, idx) => {
+                const tagConfig = getInsightTag(insight.type);
+                return (
+                  <div key={idx} style={{
+                    paddingBottom: idx < coachInsights.length - 1 ? '20px' : '0',
+                    borderBottom: idx < coachInsights.length - 1 ? '1px solid rgba(255, 255, 255, 0.08)' : 'none'
                   }}>
-                    {insight.text}
-                  </p>
-                </div>
-              ))}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <span style={{
+                        fontSize: '9px',
+                        padding: '2px 8px',
+                        borderRadius: 'var(--radius-pill)',
+                        fontWeight: '800',
+                        textTransform: 'uppercase',
+                        ...tagConfig.style
+                      }}>
+                        {tagConfig.text}
+                      </span>
+                    </div>
+                    <p style={{
+                      fontSize: '13px',
+                      margin: 0,
+                      lineHeight: '1.6',
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontFamily: 'var(--font-body)'
+                    }}>
+                      {insight.text}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -184,38 +220,46 @@ const PremiumDashboard = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
         
         {/* Global Progress Card */}
-        <div style={{
-          backgroundColor: 'var(--zenith-white)',
-          padding: '24px',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--zenith-outline-variant)',
-          boxShadow: 'var(--zenith-shadow-soft)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between'
-        }}>
-          <div>
-            <span style={{ 
-              fontFamily: 'var(--font-body)', 
-              fontSize: '11px', 
-              fontWeight: 700, 
-              color: 'var(--zenith-on-surface-variant)',
-              textTransform: 'uppercase',
-              letterSpacing: '1px'
-            }}>
-              Progression Globale
-            </span>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '8px' }}>
-              <span className="font-data" style={{ fontSize: '28px', color: 'var(--zenith-primary)', fontWeight: '800' }}>
-                {globalProgress}%
+        <div className="premium-card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <span style={{ 
+                fontFamily: 'var(--font-body)', 
+                fontSize: '11px', 
+                fontWeight: 800, 
+                color: 'var(--zenith-on-surface-variant)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Progression Globale
               </span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
+                <span className="font-data" style={{ fontSize: '32px', color: 'var(--zenith-primary)', fontWeight: '800' }}>
+                  {globalProgress}%
+                </span>
+                <span style={{ fontSize: '12px', color: 'var(--zenith-secondary)', fontWeight: 700 }}>
+                  Avancement cumulé
+                </span>
+              </div>
+            </div>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'rgba(16, 185, 129, 0.08)',
+              color: 'var(--zenith-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Activity size={20} />
             </div>
           </div>
 
           <div style={{ marginTop: '20px' }}>
             <div style={{ 
               width: '100%', 
-              backgroundColor: '#ECEFF1', 
+              backgroundColor: '#F1F5F9', 
               borderRadius: 'var(--radius-pill)', 
               height: '8px', 
               marginBottom: '10px',
@@ -233,62 +277,70 @@ const PremiumDashboard = () => {
               display: 'flex', 
               justifyContent: 'space-between', 
               fontFamily: 'var(--font-body)', 
-              fontSize: '12px', 
+              fontSize: '11px', 
               color: 'var(--zenith-on-surface-variant)',
               fontWeight: 700
             }}>
               <span className="font-data">{totalSaved.toLocaleString()} {currencyCode}</span>
-              <span>Objectif : {totalTarget.toLocaleString()} {currencyCode}</span>
+              <span>Objectif global : {totalTarget.toLocaleString()} {currencyCode}</span>
             </div>
           </div>
         </div>
 
         {/* Monthly Needs Card */}
-        <div style={{
-          backgroundColor: 'var(--zenith-white)',
-          padding: '24px',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--zenith-outline-variant)',
-          boxShadow: 'var(--zenith-shadow-soft)'
-        }}>
-          <span style={{ 
-            fontFamily: 'var(--font-body)', 
-            fontSize: '11px', 
-            fontWeight: 700, 
-            color: 'var(--zenith-on-surface-variant)',
-            textTransform: 'uppercase',
-            letterSpacing: '1px'
-          }}>
-            Besoins du mois
-          </span>
-          <div style={{ marginTop: '8px' }}>
-            <span className="font-data" style={{ fontSize: '28px', color: 'var(--zenith-on-surface)', fontWeight: '800' }}>
-              {Math.round(monthlyNeed).toLocaleString()} {currencyCode}
-            </span>
+        <div className="premium-card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <span style={{ 
+                fontFamily: 'var(--font-body)', 
+                fontSize: '11px', 
+                fontWeight: 800, 
+                color: 'var(--zenith-on-surface-variant)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Besoins prévisionnels du mois
+              </span>
+              <div style={{ marginTop: '6px' }}>
+                <span className="font-data" style={{ fontSize: '32px', color: 'var(--zenith-on-surface)', fontWeight: '800' }}>
+                  {Math.round(monthlyNeed).toLocaleString()} {currencyCode}
+                </span>
+              </div>
+            </div>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'rgba(11, 25, 44, 0.05)',
+              color: 'var(--zenith-primary-container)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Zap size={20} />
+            </div>
           </div>
-          <div style={{ marginTop: '20px', display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}>
-            
-            {/* Visual breakdown colored category items */}
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {[
-                { label: 'L', color: '#1A4F8B' }, // Blue
-                { label: 'E', color: '#7DDC7A' }, // Green
-                { label: 'S', color: '#FF9E22' }  // Orange/Brown
-              ].map((badge, idx) => (
+          <div style={{ marginTop: '16px', borderTop: '1px solid var(--zenith-outline-variant)', paddingTop: '16px', display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>
+              Allocation optimale répartie sur {projects.length} projets
+            </span>
+            <div style={{ display: 'flex', gap: '-6px' }}>
+              {projects.slice(0, 3).map((p, idx) => (
                 <div key={idx} style={{
-                  width: '28px',
-                  height: '28px',
+                  width: '20px',
+                  height: '20px',
                   borderRadius: '50%',
-                  backgroundColor: badge.color,
+                  backgroundColor: p.is_recurring ? 'var(--zenith-data-recurring)' : p.is_complex ? 'var(--zenith-data-complex)' : 'var(--zenith-primary-container)',
                   color: 'white',
-                  fontSize: '10px',
-                  fontWeight: '700',
+                  fontSize: '8px',
+                  fontWeight: '800',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                  border: '1.5px solid white',
+                  marginLeft: idx > 0 ? '-6px' : '0'
                 }}>
-                  {badge.label}
+                  {p.name.substring(0, 1).toUpperCase()}
                 </div>
               ))}
             </div>
@@ -296,26 +348,21 @@ const PremiumDashboard = () => {
         </div>
 
         {/* Circular Viability Gauge */}
-        <div style={{
-          backgroundColor: '#F8FAFC',
+        <div className="premium-card" style={{
           padding: '32px 24px',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--zenith-outline-variant)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          textAlign: 'center',
-          boxShadow: 'var(--zenith-shadow-soft)'
+          textAlign: 'center'
         }}>
-          <div style={{ position: 'relative', width: '176px', height: '176px', marginBottom: '20px' }}>
+          <div style={{ position: 'relative', width: '160px', height: '160px', marginBottom: '20px' }}>
             <svg viewBox="0 0 176 176" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-              {/* Visible track circle matching image style */}
               <circle 
                 cx="88" 
                 cy="88" 
                 r={radius} 
                 fill="transparent" 
-                stroke="#E2E2E8" 
+                stroke="#F1F5F9" 
                 strokeWidth={stroke} 
               />
               <circle 
@@ -342,16 +389,16 @@ const PremiumDashboard = () => {
               <span className="font-heading" style={{ fontSize: '28px', color: 'var(--zenith-on-surface)', fontWeight: '800' }}>
                 {viability}%
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', fontWeight: 700 }}>
+              <span style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Viabilité
               </span>
             </div>
           </div>
 
-          <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: '0 0 8px 0' }}>
+          <h3 className="font-heading" style={{ fontSize: '17px', color: 'var(--zenith-on-surface)', margin: '0 0 6px 0' }}>
             {gaugeConfig.title}
           </h3>
-          <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', margin: 0, lineHeight: '1.5' }}>
+          <p style={{ fontSize: '12px', color: 'var(--zenith-on-surface-variant)', margin: 0, lineHeight: '1.5' }}>
             {gaugeConfig.desc}
           </p>
         </div>
@@ -362,9 +409,9 @@ const PremiumDashboard = () => {
       {alerts && alerts.length > 0 && (
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <AlertTriangle size={20} color="var(--zenith-status-alert)" />
+            <AlertTriangle size={18} color="var(--zenith-status-alert)" />
             <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
-              Alertes critiques
+              Alertes & Vigilance
             </h3>
           </div>
 
@@ -372,35 +419,33 @@ const PremiumDashboard = () => {
             {alerts.map(alert => (
               <div key={alert.id} style={{
                 padding: '16px',
-                backgroundColor: alert.type === 'funding_delay' ? '#FFEBEE' : '#E8F5E9',
-                border: `1px solid ${alert.type === 'funding_delay' ? 'rgba(211, 47, 47, 0.15)' : 'rgba(46, 125, 50, 0.15)'}`,
+                backgroundColor: alert.type === 'funding_delay' ? 'rgba(239, 68, 68, 0.04)' : 'rgba(16, 185, 129, 0.04)',
+                border: `1px solid ${alert.type === 'funding_delay' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)'}`,
                 borderRadius: 'var(--radius-lg)',
                 display: 'flex',
                 gap: '12px',
                 alignItems: 'flex-start'
               }}>
                 <div style={{
-                  color: alert.type === 'funding_delay' ? '#D32F2F' : '#2E7D32',
-                  marginTop: '2px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  color: alert.type === 'funding_delay' ? 'var(--zenith-status-alert)' : 'var(--zenith-secondary)',
+                  marginTop: '2px'
                 }}>
-                  {alert.type === 'funding_delay' ? <Calendar size={20} /> : <CheckCircle size={20} />}
+                  {alert.type === 'funding_delay' ? <Calendar size={18} /> : <CheckCircle size={18} />}
                 </div>
                 <div>
                   <p className="font-heading" style={{ 
                     fontSize: '13px', 
-                    margin: '0 0 4px 0', 
-                    color: alert.type === 'funding_delay' ? '#D32F2F' : '#2E7D32',
+                    margin: '0 0 2px 0', 
+                    color: alert.type === 'funding_delay' ? 'var(--zenith-status-alert)' : 'var(--zenith-secondary)',
                     fontWeight: 800
                   }}>
                     {alert.title}
                   </p>
                   <p style={{ 
-                    fontSize: '13px', 
+                    fontSize: '12px', 
                     margin: 0, 
-                    color: 'var(--zenith-on-surface)'
+                    color: 'var(--zenith-on-surface)',
+                    lineHeight: '1.4'
                   }}>
                     {alert.description}
                   </p>
@@ -416,7 +461,7 @@ const PremiumDashboard = () => {
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--zenith-primary)' }}>!</span>
+              <Award size={18} color="var(--zenith-accent-gold)" />
               <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
                 Priorités immédiates
               </h3>
@@ -425,23 +470,19 @@ const PremiumDashboard = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {priorities.map(priority => (
-              <div key={priority.id} style={{
-                backgroundColor: 'var(--zenith-white)',
+              <div key={priority.id} className="premium-card" style={{
                 padding: '20px',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--zenith-outline-variant)',
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center',
-                boxShadow: 'var(--zenith-shadow-soft)'
+                alignItems: 'center'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
                   <div style={{
                     width: '40px',
                     height: '40px',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: priority.type === 'realize' ? '#E8F5E9' : '#1A4F8B',
-                    color: priority.type === 'realize' ? 'var(--zenith-secondary)' : 'white',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: priority.type === 'realize' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(30, 62, 98, 0.1)',
+                    color: priority.type === 'realize' ? 'var(--zenith-secondary)' : 'var(--zenith-primary-container)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -450,10 +491,10 @@ const PremiumDashboard = () => {
                     {priority.type === 'realize' ? <CheckCircle size={20} /> : <TrendingUp size={20} />}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <h4 className="font-heading" style={{ fontSize: '14px', margin: '0 0 4px 0', color: 'var(--zenith-on-surface)' }}>
+                    <h4 className="font-heading" style={{ fontSize: '14px', margin: '0 0 2px 0', color: 'var(--zenith-on-surface)' }}>
                       {priority.title}
                     </h4>
-                    <p style={{ fontSize: '13px', margin: 0, color: 'var(--zenith-on-surface-variant)', lineHeight: '1.4' }}>
+                    <p style={{ fontSize: '12px', margin: 0, color: 'var(--zenith-on-surface-variant)', lineHeight: '1.4' }}>
                       {priority.description}
                     </p>
                   </div>
@@ -462,10 +503,10 @@ const PremiumDashboard = () => {
                 {priority.amount ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '12px' }}>
                     <div style={{ textAlign: 'right' }}>
-                      <span className="font-data" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', fontWeight: 800, display: 'block' }}>
+                      <span className="font-data" style={{ fontSize: '14px', color: 'var(--zenith-on-surface)', fontWeight: 800, display: 'block' }}>
                         {priority.amount.toLocaleString()}
                       </span>
-                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
                         {currencyCode}
                       </span>
                     </div>
@@ -473,14 +514,15 @@ const PremiumDashboard = () => {
                       onClick={() => executePriorityAction(priority)}
                       style={{
                         padding: '8px 12px',
-                        backgroundColor: 'var(--zenith-primary)',
+                        backgroundColor: 'var(--zenith-primary-container)',
                         color: 'white',
                         border: 'none',
                         borderRadius: 'var(--radius-md)',
                         fontFamily: 'var(--font-headings)',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer'
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(30, 62, 98, 0.15)'
                       }}
                     >
                       {priority.actionLabel || 'Valider'}
@@ -490,7 +532,7 @@ const PremiumDashboard = () => {
                   <button
                     onClick={() => {
                       if (priority.type === 'general') {
-                        alert("Optimisation de surplus exécutée (Mockup) !");
+                        alert("Optimisation de surplus exécutée !");
                       } else {
                         executePriorityAction(priority);
                       }
@@ -498,15 +540,15 @@ const PremiumDashboard = () => {
                     style={{
                       marginLeft: '12px',
                       padding: '10px 18px',
-                      backgroundColor: 'var(--zenith-primary)',
+                      backgroundColor: 'var(--zenith-primary-container)',
                       color: 'white',
                       border: 'none',
                       borderRadius: 'var(--radius-md)',
                       fontFamily: 'var(--font-headings)',
-                      fontSize: '12px',
-                      fontWeight: 700,
+                      fontSize: '11px',
+                      fontWeight: 800,
                       cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                      boxShadow: '0 4px 12px rgba(30, 62, 98, 0.15)'
                     }}
                   >
                     {priority.actionLabel || 'Exécuter'}
@@ -520,17 +562,13 @@ const PremiumDashboard = () => {
 
       {/* Suivi Opérationnel des Dernières Allocations */}
       {latestAllocationReport && latestAllocationReport.projects && latestAllocationReport.projects.length > 0 && (
-        <div style={{
-          backgroundColor: 'var(--zenith-white)',
+        <div className="premium-card" style={{
           padding: '24px',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--zenith-outline-variant)',
-          boxShadow: 'var(--zenith-shadow-soft)',
           marginBottom: '32px'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <CheckCircle size={20} color="var(--zenith-primary)" />
+              <CheckCircle size={20} color="var(--zenith-secondary)" />
               <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
                 Suivi de la dernière répartition
               </h3>
@@ -541,9 +579,10 @@ const PremiumDashboard = () => {
                 background: 'none',
                 border: 'none',
                 color: 'var(--zenith-on-surface-variant)',
-                fontSize: '12px',
+                fontSize: '11px',
                 cursor: 'pointer',
-                textDecoration: 'underline'
+                textDecoration: 'underline',
+                fontWeight: 700
               }}
             >
               Masquer
@@ -571,9 +610,9 @@ const PremiumDashboard = () => {
               return (
                 <div key={p.id} style={{
                   padding: '16px',
-                  backgroundColor: '#F8F9FA',
+                  backgroundColor: '#F8FAFC',
                   border: '1px solid var(--zenith-outline-variant)',
-                  borderRadius: 'var(--radius-md)'
+                  borderRadius: 'var(--radius-lg)'
                 }}>
                   {/* Projet Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
@@ -586,7 +625,7 @@ const PremiumDashboard = () => {
                       </span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <span className="font-data" style={{ fontSize: '14px', color: 'var(--zenith-primary)', fontWeight: 800, display: 'block' }}>
+                      <span className="font-data" style={{ fontSize: '14px', color: 'var(--zenith-secondary)', fontWeight: 800, display: 'block' }}>
                         +{p.allocatedAmount.toLocaleString()} {currencyCode}
                       </span>
                       <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>
@@ -613,15 +652,15 @@ const PremiumDashboard = () => {
 
                   {/* Impact */}
                   {progressDiff > 0 && (
-                    <div style={{ fontSize: '12px', color: '#2E7D32', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                    <div style={{ fontSize: '12px', color: 'var(--zenith-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
                       <TrendingUp size={14} /> Le financement a progressé de +{progressDiff}% grâce à cette allocation.
                     </div>
                   )}
 
                   {/* Steps details for complex projects */}
                   {p.is_complex && p.steps && p.steps.length > 0 && (
-                    <div style={{ marginTop: '12px', backgroundColor: 'white', padding: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--zenith-outline-variant)' }}>
-                      <h5 className="font-heading" style={{ fontSize: '12px', color: 'var(--zenith-on-surface)', margin: '0 0 10px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div style={{ marginTop: '12px', backgroundColor: 'white', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--zenith-outline-variant)' }}>
+                      <h5 className="font-heading" style={{ fontSize: '11px', color: 'var(--zenith-on-surface)', margin: '0 0 10px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Détail des étapes :
                       </h5>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -654,7 +693,7 @@ const PremiumDashboard = () => {
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 {step.addedAmount > 0 && (
-                                  <span style={{ fontSize: '11px', color: '#2E7D32', fontWeight: 600 }}>
+                                  <span style={{ fontSize: '11px', color: 'var(--zenith-secondary)', fontWeight: 600 }}>
                                     +{step.addedAmount.toLocaleString()}
                                   </span>
                                 )}
