@@ -24,7 +24,8 @@ const PremiumDashboard = () => {
     alerts,
     priorities,
     currency,
-    freeSalary
+    freeSalary,
+    coachInsights
   } = usePremium();
 
   const { user } = useAuth();
@@ -102,6 +103,90 @@ const PremiumDashboard = () => {
           Voici l'état actuel de votre trajectoire financière.
         </p>
       </div>
+ 
+      {/* Coach Zenith - Insights section */}
+      {coachInsights && coachInsights.length > 0 && (
+        <div style={{
+          background: 'linear-gradient(135deg, #1A4F8B 0%, #0D2D52 100%)',
+          color: 'var(--zenith-white)',
+          padding: '24px',
+          borderRadius: 'var(--radius-lg)',
+          marginBottom: '32px',
+          boxShadow: '0 12px 32px rgba(26, 79, 139, 0.15)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Motifs de fond subtils */}
+          <div style={{
+            position: 'absolute',
+            top: '-30px',
+            right: '-30px',
+            width: '150px',
+            height: '150px',
+            borderRadius: '50%',
+            background: 'rgba(255, 255, 255, 0.05)',
+            pointerEvents: 'none'
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '-40px',
+            left: '20%',
+            width: '200px',
+            height: '200px',
+            borderRadius: '50%',
+            background: 'rgba(255, 255, 255, 0.03)',
+            pointerEvents: 'none'
+          }} />
+
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Sparkles size={18} color="#FFD700" />
+              </div>
+              <h3 className="font-heading" style={{ fontSize: '18px', color: 'white', margin: 0, fontWeight: 800 }}>
+                Accompagnement Stratégique
+              </h3>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {coachInsights.map((insight, idx) => (
+                <div key={idx} style={{
+                  display: 'flex',
+                  gap: '12px',
+                  alignItems: 'flex-start',
+                  paddingBottom: idx < coachInsights.length - 1 ? '16px' : '0',
+                  borderBottom: idx < coachInsights.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
+                }}>
+                  <div style={{
+                    fontSize: '16px',
+                    lineHeight: 1,
+                    marginTop: '2px'
+                  }}>
+                    {insight.type === 'success' ? '🎯' : insight.type === 'warning' ? '🛡️' : insight.type === 'danger' ? '⚠️' : '💡'}
+                  </div>
+                  <p style={{
+                    fontSize: '13px',
+                    margin: 0,
+                    lineHeight: '1.5',
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    fontFamily: 'var(--font-body)'
+                  }}>
+                    {insight.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bento Grid: Metrics */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>

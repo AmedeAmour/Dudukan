@@ -12,6 +12,7 @@ export const PremiumProvider = ({ children }) => {
   const [availableFunds, setAvailableFunds] = useState(0);
   const [alerts, setAlerts] = useState([]);
   const [priorities, setPriorities] = useState([]);
+  const [coachInsights, setCoachInsights] = useState([]);
 
   // Fetch all premium data from Supabase
   const fetchData = useCallback(async () => {
@@ -284,6 +285,125 @@ export const PremiumProvider = ({ children }) => {
 
     setAlerts(newAlerts);
     setPriorities(newPriorities);
+
+    // Generate Dynamic Coach Insights (strategic, natural, human tone)
+    const insights = [];
+    const totalSavings = parseFloat(financeSavings || 0);
+    const totalAllocated = loadedProjects.reduce((acc, p) => acc + parseFloat(p.current_amount || 0), 0);
+    const unallocated = Math.max(0, totalSavings - totalAllocated);
+
+    const targetProjects = loadedProjects.filter(p => !p.is_recurring);
+
+    // 1. Check if no projects
+    if (loadedProjects.length === 0) {
+      insights.push({
+        type: 'info',
+        text: "Votre espace de planification premium est opérationnel. Définissons ensemble vos premiers projets de vie afin de donner un cap clair à vos efforts d'épargne."
+      });
+    } else {
+      // 2. Safety Buffer / Unallocated Savings
+      if (totalSavings > 0) {
+        const unallocatedRatio = unallocated / totalSavings;
+        if (unallocatedRatio >= 0.3) {
+          insights.push({
+            type: 'success',
+            text: "Votre réserve d'épargne non allouée reste confortable. Cette marge de sécurité est idéale pour absorber les imprévus à court terme sans impacter la trajectoire de vos projets."
+          });
+        } else if (unallocatedRatio < 0.1 && unallocatedRatio > 0) {
+          insights.push({
+            type: 'warning',
+            text: "La quasi-totalité de vos économies est affectée à vos projets. C'est une planification rigoureuse, mais veillez à garder un petit coussin de sécurité pour vos dépenses courantes imprévues."
+          });
+        } else if (unallocated === 0) {
+          insights.push({
+            type: 'warning',
+            text: "Toute votre épargne est actuellement engagée. Conserver une part d'épargne non allouée permet de parer aux aléas du quotidien sans avoir à piocher dans vos objectifs déjà financés."
+          });
+        }
+      }
+
+      // 3. Project Concentration & Balance
+      if (totalAllocated > 0 && targetProjects.length > 1) {
+        let maxProject = null;
+        let maxAllocated = 0;
+        targetProjects.forEach(p => {
+          const amt = parseFloat(p.current_amount || 0);
+          if (amt > maxAllocated) {
+            maxAllocated = amt;
+            maxProject = p;
+          }
+        });
+
+        if (maxProject) {
+          const ratio = maxAllocated / totalAllocated;
+          if (ratio >= 0.65) {
+            insights.push({
+              type: 'info',
+              text: `Une part majeure de vos fonds (${Math.round(ratio * 100)}%) est concentrée sur votre projet "${maxProject.name}". Cette orientation favorise la progression rapide de cet objectif de long terme, bien que cela ralentisse temporairement vos autres projets.`
+            });
+          } else if (ratio <= 0.4) {
+            insights.push({
+              type: 'success',
+              text: "Votre stratégie actuelle permet d'avancer progressivement sur plusieurs projets de front sans déséquilibrer totalement votre réserve restante."
+            });
+          }
+        }
+      }
+
+      // 4. Delayed Projects / Deadline Risk
+      const today = new Date();
+      targetProjects.forEach(project => {
+        const target = parseFloat(project.target_amount || 0);
+        const current = parseFloat(project.current_amount || 0);
+        if (project.deadline && target > 0 && current < target) {
+          const deadline = new Date(project.deadline);
+          const monthsLeft = (deadline.getFullYear() - today.getFullYear()) * 12 + (deadline.getMonth() - today.getMonth());
+          const progressPercent = (current / target) * 100;
+          
+          if (monthsLeft > 0 && monthsLeft <= 6 && progressPercent < 45) {
+            insights.push({
+              type: 'danger',
+              text: `L'échéance du projet "${project.name}" se rapproche (moins de 6 mois), mais le financement n'est sécurisé qu'à ${Math.round(progressPercent)}%. Envisager de repousser la date cible permettrait d'alléger la pression financière mensuelle.`
+            });
+          }
+        }
+      });
+
+      // 5. Neglected Target Projects
+      if (targetProjects.length > 1) {
+        const neglected = targetProjects.filter(p => {
+          const target = parseFloat(p.target_amount || 0);
+          const current = parseFloat(p.current_amount || 0);
+          return target > 0 && (current / target) < 0.05;
+        });
+
+        if (neglected.length > 0) {
+          const names = neglected.map(p => `"${p.name}"`).join(', ');
+          insights.push({
+            type: 'info',
+            text: `Le projet ${names} reçoit actuellement une allocation plus faible. À ce rythme, son délai de réalisation sera probablement plus long. Pensez à rééquilibrer vos priorités si cet objectif devient plus urgent.`
+          });
+        }
+      }
+
+      // 6. Milestone progress encouragement
+      const complexProjects = targetProjects.filter(p => p.is_complex && p.milestones);
+      let completedMilestones = 0;
+      complexProjects.forEach(p => {
+        p.milestones.forEach(m => {
+          if (m.is_completed) completedMilestones++;
+        });
+      });
+
+      if (completedMilestones > 0) {
+        insights.push({
+          type: 'success',
+          text: `Vous avez validé ${completedMilestones} étape(s) clé(s) sur vos projets complexes. Chaque jalon franchi est une avancée positive qui consolide la viabilité de votre plan de vie.`
+        });
+      }
+    }
+
+    setCoachInsights(insights);
   };
 
   // Perform priority action
@@ -350,7 +470,8 @@ export const PremiumProvider = ({ children }) => {
       fetchData,
       calculateMonthlyNeed,
       executePriorityAction,
-      freeSalary
+      freeSalary,
+      coachInsights
     }}>
       {children}
     </PremiumContext.Provider>
