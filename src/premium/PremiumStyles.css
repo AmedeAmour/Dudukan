@@ -243,14 +243,16 @@
 .action-sheet {
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 500px;
   background-color: var(--zenith-white);
   border-top-left-radius: var(--radius-2xl);
   border-top-right-radius: var(--radius-2xl);
   padding: 24px;
   box-shadow: 0 -15px 40px rgba(0,0,0,0.15);
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideUpCenter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fadeIn {
@@ -261,6 +263,11 @@
 @keyframes slideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
+}
+
+@keyframes slideUpCenter {
+  from { transform: translate(-50%, 100%); }
+  to { transform: translate(-50%, 0); }
 }
 
 /* Touch and scroll helpers */
