@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { NotificationService } from '../NotificationService';
+import NotificationObserver from '../components/NotificationObserver';
 import PremiumTopBar from './components/PremiumTopBar';
 import PremiumBottomNav from './components/PremiumBottomNav';
 import { PremiumProvider } from './context/PremiumContext';
@@ -13,6 +15,22 @@ const PremiumAppContent = ({ onSwitchMode }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isAddingProject, setIsAddingProject] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    NotificationService.requestPermission();
+  }, []);
+
+  // Handler for bell click – send a test notification
+  const handleBellClick = () => {
+    NotificationService.sendNotification('Rappel', "Ceci est une notification de test depuis Zenith IA.");
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setIsAddingProject(false);
+    setSelectedProject(null);
+  };
 
   // Define screen layout titles dynamically
   const getScreenTitle = () => {
@@ -81,7 +99,8 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 
   return (
     <div className="premium-app-shell">
-      <PremiumTopBar title={getScreenTitle()} />
+      <PremiumTopBar title={getScreenTitle()} onBellClick={handleBellClick} />
+      <NotificationObserver />
       
       <main style={{ flex: 1, paddingBottom: '96px', overflowY: 'auto' }}>
         {renderScreen()}
@@ -90,7 +109,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
       {!isAddingProject && (
         <PremiumBottomNav 
           activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
+          setActiveTab={handleTabChange} 
           onAddClick={() => setIsAddingProject(true)}
         />
       )}

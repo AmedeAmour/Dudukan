@@ -44,8 +44,8 @@ const AddProject = ({ onBack }) => {
 
       // 1. Calculate final target amount
       const targetAmount = isComplex 
-        ? steps.reduce((acc, s) => acc + parseFloat(s.amount || 0), 0) 
-        : parseFloat(target);
+        ? steps.reduce((acc, s) => acc + (parseFloat(s.amount.toString().replace(/[\s,]/g, '') || 0) || 0), 0) 
+        : parseFloat(target.toString().replace(/[\s,]/g, '') || 0) || 0;
 
       if (isNaN(targetAmount) || targetAmount <= 0) {
         throw new Error("Veuillez renseigner un montant cible valide supérieur à 0.");
@@ -77,11 +77,10 @@ const AddProject = ({ onBack }) => {
       if (isComplex && steps.length > 0) {
         const milestonesData = steps.map((s, i) => ({
           project_id: project.id,
-          name: s.name,
-          amount: parseFloat(s.amount),
-          step_order: i + 1,
-          current_allocated: 0,
-          completed: false
+          user_id: user.id,
+          name: s.name || `Étape ${i + 1}`,
+          target_amount: parseFloat(s.amount.toString().replace(/[\s,]/g, '') || 0) || 0,
+          is_completed: false
         }));
 
         const { error: mError } = await supabase

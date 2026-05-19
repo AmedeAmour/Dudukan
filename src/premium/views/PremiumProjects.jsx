@@ -17,17 +17,18 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
   const { projects, profile, alerts, executePriorityAction, calculateMonthlyNeed, currency } = usePremium();
   const [activeFilter, setActiveFilter] = useState('all'); // all, simple, complex, recurring
 
-  // 1. Calculate overall feasibility (viability score)
+  // 1. Calculate overall feasibility (percentage of total target amount already funded)
+  const totalTarget = projects.reduce((sum, p) => sum + parseFloat(p.target_amount || 0), 0);
+  const totalCurrent = projects.reduce((sum, p) => sum + parseFloat(p.current_amount || 0), 0);
+  const feasibilityIndex = totalTarget > 0 ? Math.round((totalCurrent / totalTarget) * 100) : 100;
   const totalProjects = projects.length;
-  const readyProjects = projects.filter(p => parseFloat(p.current_amount || 0) >= parseFloat(p.target_amount || 0)).length;
-  const feasibilityIndex = totalProjects > 0 ? Math.round(((totalProjects - (totalProjects - readyProjects - alerts.filter(a => a.type === 'funding_delay').length)) / totalProjects) * 100) : 100;
+  const delayCount = alerts.filter(a => a.type === 'funding_delay').length;
   
   // Dynamic feasibility details based on the index
   const getFeasibilityText = () => {
     if (totalProjects === 0) return "Aucun projet planifié. Commencez par créer votre premier projet de vie !";
-    const delayCount = alerts.filter(a => a.type === 'funding_delay').length;
     if (delayCount === 0) {
-      return `Votre stratégie actuelle permet de financer 100% de vos projets dans les délais impartis. Tout est au vert !`;
+      return `Votre stratégie actuelle permet de financer tous vos projets dans les délais impartis. Tout est au vert !`;
     }
     return `Votre stratégie actuelle permet de financer ${totalProjects - delayCount} sur ${totalProjects} projets dans les délais. L'algorithme Zenith suggère des réajustements de versements.`;
   };

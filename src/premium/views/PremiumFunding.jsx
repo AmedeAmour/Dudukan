@@ -1,126 +1,91 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { usePremium } from '../context/PremiumContext';
-import { useFinance } from '../../context/FinanceContext';
 import { supabase } from '../../supabaseClient';
 import { 
   Zap, 
   CheckCircle, 
-  PlusCircle, 
   Brain, 
-  TrendingUp, 
-  Briefcase, 
-  Wallet,
-  Calendar,
-  Layers
+  AlertCircle,
+  PiggyBank
 } from 'lucide-react';
 
 const PremiumFunding = () => {
-  const { profile, projects, calculateMonthlyNeed, fetchData, currency, financeSavings, setFinanceSavings } = usePremium();
-  const { salary: freeSalary } = useFinance(); // get free tier salary directly
+  const { 
+    projects, 
+    calculateMonthlyNeed, 
+    fetchData, 
+    currency, 
+    financeSavings,
+    freeSalary 
+  } = usePremium();
   
-  // Strategy toggle
-  const [strategy, setStrategy] = useState('auto'); // auto, manual
-
-  // Form states
-  const [salaryInput, setSalaryInput] = useState(profile?.salary?.toString() || '');
-  const [extraInput, setExtraInput] = useState('');
-  const [savingsInput, setSavingsInput] = useState(profile?.savings?.toString() || '');
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
-  // Synchronize input fields with free account
-  useEffect(() => {
-    if (freeSalary !== undefined) {
-      if (salaryInput === '') setSalaryInput(freeSalary.toString() || '0');
-    }
-    if (financeSavings !== undefined) {
-      if (savingsInput === '') setSavingsInput(financeSavings.toString() || '0');
-    }
-  }, [freeSalary, financeSavings]);
+  const currencyCode = currency?.code || 'XOF';
 
-  // 1. Compute financial needs
-  const salary = salaryInput === '' ? 0 : parseFloat(salaryInput || 0);
-  const savings = savingsInput === '' ? 0 : parseFloat(savingsInput || 0);
-  const extra = extraInput === '' ? 0 : parseFloat(extraInput || 0);
-  
-  // Total available money for the month = salary + extra + savings
-  const totalAvailableThisMonth = salary + extra;
+  // 1. Calculations for Savings Breakdown
+  const totalSavings = parseFloat(financeSavings || 0);
+  const totalAllocatedToProjects = projects.reduce((acc, p) => acc + parseFloat(p.current_amount || 0), 0);
+  const unallocatedSavings = Math.max(0, totalSavings - totalAllocatedToProjects);
 
-  // Recurring costs
+  // 2. Compute allocations using unallocated savings
   const recurringProjects = projects.filter(p => p.is_recurring);
-  const totalRecurringNeed = recurringProjects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0);
-
-  // Goal/Project needs
   const targetProjects = projects.filter(p => !p.is_recurring);
-  const totalTargetNeed = targetProjects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0);
 
-  const totalMonthlyNeed = totalRecurringNeed + totalTargetNeed;
+  // We distribute unallocated savings:
+  // First, to recurring projects' monthly needs
+  let remainingFunds = unallocatedSavings;
 
-  // 2. Allocation Algorithm (Zenith AI)
-  // Auto-allocate available monthly budget (Salary - Recurring costs)
-  const remainingMonthlyBudget = Math.max(0, totalAvailableThisMonth - totalRecurringNeed);
+  const recurringAllocations = recurringProjects.map(project => {
+    const need = calculateMonthlyNeed(project);
+    const allocation = Math.min(remainingFunds, need);
+    remainingFunds -= allocation;
+    return {
+      ...project,
+      allocation
+    };
+  });
 
-  // Distribute remaining monthly budget to target projects based on priority
-  // Higher priority (1) gets more weight than default priority (3) or low priority (5)
+  // Then, distribute to target projects based on priority weights
   const priorityWeights = { 1: 3, 3: 1.5, 5: 1 };
   
-  const totalPriorityWeight = targetProjects.reduce((acc, p) => {
+  // Only target projects that are not yet fully funded
+  const unfinishedTargets = targetProjects.filter(p => {
+    const remaining = parseFloat(p.target_amount || 0) - parseFloat(p.current_amount || 0);
+    return remaining > 0;
+  });
+
+  const totalPriorityWeight = unfinishedTargets.reduce((acc, p) => {
     const w = priorityWeights[p.priority] || 1;
     return acc + w;
   }, 0);
 
-  // Compute allocations
-  const projectAllocations = targetProjects.map(project => {
+  const targetAllocations = targetProjects.map(project => {
+    const remainingTarget = Math.max(0, parseFloat(project.target_amount || 0) - parseFloat(project.current_amount || 0));
+    
+    // If project is completed, allocation is 0
+    if (remainingTarget <= 0) {
+      return { ...project, allocation: 0, idealMonthlyNeed: calculateMonthlyNeed(project) };
+    }
+
     const weight = priorityWeights[project.priority] || 1;
     const share = totalPriorityWeight > 0 ? weight / totalPriorityWeight : 0;
     
-    // Target monthly need for this project
-    const idealMonthlyNeed = calculateMonthlyNeed(project);
-    
-    // Allocation from Zenith Algorithm
-    let allocation = remainingMonthlyBudget * share;
-
-    // Can't allocate more than remaining needed target
-    const remainingTarget = parseFloat(project.target_amount || 0) - parseFloat(project.current_amount || 0);
-    allocation = Math.min(allocation, Math.max(0, remainingTarget));
+    // Distribute from the remaining funds after recurring allocations
+    let allocation = remainingFunds * share;
+    allocation = Math.min(allocation, remainingTarget);
 
     return {
       ...project,
       allocation,
-      idealMonthlyNeed
+      idealMonthlyNeed: calculateMonthlyNeed(project)
     };
   });
 
-  const totalAllocated = projectAllocations.reduce((acc, p) => acc + p.allocation, 0) + totalRecurringNeed;
-  const leftToAllocate = Math.max(0, totalAvailableThisMonth - totalAllocated);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Utilisateur non connecté.");
-
-      const updatedSalary = salaryInput === '' ? 0 : parseFloat(salaryInput);
-      const updatedSavings = savingsInput === '' ? 0 : parseFloat(savingsInput);
-
-      if (isNaN(updatedSalary) || isNaN(updatedSavings)) {
-        throw new Error("Veuillez renseigner des montants valides.");
-      }
-
-      // Sync to free account if we want to, but basically we just use the inputs
-      setFinanceSavings(updatedSavings + extra);
-      
-      setExtraInput('');
-      await fetchData();
-      alert('Flux de ressources synchronisés avec succès !');
-    } catch (err) {
-      alert("Erreur d'optimisation : " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Calculate actual total allocated in preview
+  const previewTotalAllocated = recurringAllocations.reduce((acc, p) => acc + p.allocation, 0) + 
+                               targetAllocations.reduce((acc, p) => acc + p.allocation, 0);
 
   const handleExecuteAllocations = async () => {
     if (!confirming) {
@@ -129,74 +94,78 @@ const PremiumFunding = () => {
       return;
     }
     setConfirming(false);
-
     setLoading(true);
+
     try {
-      let totalAllocatedToDeduct = 0;
-
-      // 1. Process recurring projects
-      for (const project of recurringProjects) {
-        const need = calculateMonthlyNeed(project);
-        if (need > 0) {
-          const { error } = await supabase
-            .from('projects')
-            .update({ current_amount: parseFloat(project.current_amount || 0) + need })
-            .eq('id', project.id);
-          if (error) throw error;
-          totalAllocatedToDeduct += need;
-        }
-      }
-
-      // 2. Process target projects
-      for (const project of projectAllocations) {
+      // 1. Process recurring projects updates
+      for (const project of recurringAllocations) {
         if (project.allocation > 0) {
-          // Update project current_amount
           const { error } = await supabase
             .from('projects')
             .update({ current_amount: parseFloat(project.current_amount || 0) + project.allocation })
             .eq('id', project.id);
           if (error) throw error;
+        }
+      }
 
-          // If complex, distribute allocation among milestones
+      // 2. Process target projects updates
+      for (const project of targetAllocations) {
+        if (project.allocation > 0) {
+          const newAmount = parseFloat(project.current_amount || 0) + project.allocation;
+          
+          // Update project current_amount
+          const { error } = await supabase
+            .from('projects')
+            .update({ current_amount: newAmount })
+            .eq('id', project.id);
+          if (error) throw error;
+
+          // If complex, distribute allocation among milestones sequentially
           if (project.is_complex && project.milestones) {
             let remainingAllocation = project.allocation;
-            const sortedMilestones = [...project.milestones].sort((a, b) => a.step_order - b.step_order);
+            const sortedMilestones = [...project.milestones].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
             
             for (const milestone of sortedMilestones) {
               if (remainingAllocation <= 0) break;
-              if (milestone.completed) continue;
+              if (milestone.is_completed) continue;
 
-              const milestoneTarget = parseFloat(milestone.amount || 0);
-              const milestoneCurrent = parseFloat(milestone.current_allocated || 0);
+              const milestoneTarget = parseFloat(milestone.target_amount || 0);
+              // Calculate dynamic allocated amount for this milestone before this new allocation
+              let previousTargetsSum = 0;
+              const idx = sortedMilestones.findIndex(m => m.id === milestone.id);
+              for (let i = 0; i < idx; i++) {
+                previousTargetsSum += parseFloat(sortedMilestones[i].target_amount || 0);
+              }
+              const milestoneCurrent = Math.max(0, Math.min(milestoneTarget, parseFloat(project.current_amount || 0) - previousTargetsSum));
               const milestoneNeed = milestoneTarget - milestoneCurrent;
               
               if (milestoneNeed > 0) {
                 const toAllocate = Math.min(remainingAllocation, milestoneNeed);
-                const newAllocated = milestoneCurrent + toAllocate;
-                const isCompleted = newAllocated >= milestoneTarget;
+                const isCompleted = (milestoneCurrent + toAllocate) >= milestoneTarget;
                 
                 await supabase
                   .from('milestones')
-                  .update({ current_allocated: newAllocated, completed: isCompleted })
+                  .update({ is_completed: isCompleted })
                   .eq('id', milestone.id);
                 
                 remainingAllocation -= toAllocate;
               }
             }
           }
-          
-          totalAllocatedToDeduct += project.allocation;
         }
       }
 
-      // 3. Deduct from Free Account Savings
-      const currentSavings = parseFloat(financeSavings || 0);
-      const newSavings = Math.max(0, currentSavings - totalAllocatedToDeduct);
-      
-      setFinanceSavings(newSavings);
+      // Update profile savings in Supabase to sync total savings state
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ savings: totalSavings })
+          .eq('id', user.id);
+      }
 
       await fetchData();
-      alert("Répartition exécutée avec succès ! Les projets ont été approvisionnés.");
+      alert("Répartition automatique exécutée avec succès !");
     } catch (err) {
       alert("Erreur lors de l'allocation : " + err.message);
     } finally {
@@ -204,231 +173,123 @@ const PremiumFunding = () => {
     }
   };
 
-  const currencyCode = currency?.code || 'XOF';
+  // 3. Viability Score
+  let viability = 100;
+  const monthlyNeed = projects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0);
+  if (projects.length > 0) {
+    const salary = parseFloat(freeSalary || 0);
+    if (salary > 0 && monthlyNeed > 0) {
+      const ratio = monthlyNeed / salary;
+      if (ratio <= 0.4) {
+        viability = 95;
+      } else if (ratio <= 0.7) {
+        viability = 80;
+      } else {
+        viability = Math.max(30, Math.round(100 - (ratio * 50)));
+      }
+    } else if (monthlyNeed > 0) {
+      viability = 45;
+    }
+  }
 
   return (
     <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>
       
-      {/* Header section with toggle */}
+      {/* Header section */}
       <div style={{ marginBottom: '32px' }}>
         <h2 className="font-heading" style={{ fontSize: '28px', color: 'var(--zenith-on-surface)', margin: '0 0 6px 0' }}>
-          Configuration des flux
+          Plan de Financement
         </h2>
         <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--zenith-on-surface-variant)', marginBottom: '20px' }}>
-          Saisissez vos nouvelles ressources pour que l'algorithme optimise leur répartition.
+          Visualisez et répartissez votre épargne réelle disponible sur vos différents projets de vie.
         </p>
-
-        {/* Strategy Toggle */}
-        <div style={{
-          display: 'flex',
-          backgroundColor: 'rgba(26, 79, 139, 0.05)',
-          padding: '4px',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--zenith-outline-variant)',
-          width: 'fit-content'
-        }}>
-          <button 
-            onClick={() => setStrategy('auto')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontFamily: 'var(--font-headings)',
-              fontSize: '12px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              backgroundColor: strategy === 'auto' ? 'var(--zenith-primary-container)' : 'transparent',
-              color: strategy === 'auto' ? 'white' : 'var(--zenith-on-surface-variant)',
-              transition: 'all 0.2s'
-            }}
-          >
-            <Zap size={12} /> Automatique
-          </button>
-          <button 
-            onClick={() => setStrategy('manual')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontFamily: 'var(--font-headings)',
-              fontSize: '12px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              backgroundColor: strategy === 'manual' ? 'var(--zenith-primary-container)' : 'transparent',
-              color: strategy === 'manual' ? 'white' : 'var(--zenith-on-surface-variant)',
-              transition: 'all 0.2s'
-            }}
-          >
-            Manuel
-          </button>
-        </div>
       </div>
 
-      {/* Form and analysis panel */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '32px' }}>
+      {/* Savings Breakdown Cards (Bento style) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
         
-        {/* Resource Input Card */}
+        {/* Total savings card */}
         <div style={{
           backgroundColor: 'var(--zenith-white)',
           padding: '24px',
           borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--zenith-outline-variant)',
-          boxShadow: 'var(--zenith-shadow-soft)'
+          boxShadow: 'var(--zenith-shadow-soft)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <h3 className="font-heading" style={{ 
-            fontSize: '16px', 
-            color: 'var(--zenith-primary)', 
-            margin: '0 0 20px 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', fontWeight: 700, textTransform: 'uppercase' }}>
+              Épargne Réelle Totale (Gratuit)
+            </span>
+            <span className="font-data" style={{ display: 'block', fontSize: '32px', color: 'var(--zenith-primary)', fontWeight: 800, marginTop: '8px' }}>
+              {totalSavings.toLocaleString()} {currencyCode}
+            </span>
+            <p style={{ fontSize: '12px', color: 'var(--zenith-on-surface-variant)', marginTop: '8px' }}>
+              Synchronisée automatiquement avec votre onglet Épargne.
+            </p>
+          </div>
+          <PiggyBank 
+            size={90} 
+            color="var(--zenith-primary)" 
+            style={{ 
+              position: 'absolute', 
+              right: '-10px', 
+              bottom: '-10px', 
+              opacity: 0.05,
+              transform: 'rotate(-15deg)'
+            }} 
+          />
+        </div>
+
+        {/* Allocated vs Unallocated cards */}
+        <div style={{ display: 'flex', gap: '16px' }}>
+          {/* Allocated */}
+          <div style={{
+            flex: 1,
+            backgroundColor: 'var(--zenith-white)',
+            padding: '20px',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--zenith-outline-variant)',
+            boxShadow: 'var(--zenith-shadow-soft)'
           }}>
-            <PlusCircle size={18} /> Nouveaux Entrants
-          </h3>
+            <span style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)', fontWeight: 700, textTransform: 'uppercase' }}>
+              Épargne Allouée
+            </span>
+            <span className="font-data" style={{ display: 'block', fontSize: '20px', color: 'var(--zenith-secondary)', fontWeight: 800, marginTop: '4px' }}>
+              {totalAllocatedToProjects.toLocaleString()} {currencyCode}
+            </span>
+          </div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* Monthly salary */}
-            <div style={{ position: 'relative' }}>
-              <label style={{ 
-                position: 'absolute', 
-                top: '-8px', 
-                left: '12px', 
-                backgroundColor: 'white', 
-                padding: '0 4px',
-                fontSize: '10px',
-                fontWeight: 700,
-                color: 'var(--zenith-primary)' 
-              }}>
-                Revenus Mensuels
-              </label>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                border: '1px solid var(--zenith-outline-variant)', 
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 16px'
-              }}>
-                <span className="font-data" style={{ marginRight: '8px', color: 'var(--zenith-on-surface-variant)' }}>{currencyCode}</span>
-                <input 
-                  type="number" 
-                  value={salaryInput}
-                  onChange={(e) => setSalaryInput(e.target.value)}
-                  placeholder="0.00" 
-                  style={{
-                    width: '100%',
-                    border: 'none',
-                    outline: 'none',
-                    fontFamily: 'var(--font-data)',
-                    fontSize: '16px',
-                    backgroundColor: 'transparent'
-                  }}
-                />
-              </div>
-            </div>
+          {/* Unallocated */}
+          <div style={{
+            flex: 1,
+            backgroundColor: 'var(--zenith-white)',
+            padding: '20px',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--zenith-outline-variant)',
+            boxShadow: 'var(--zenith-shadow-soft)'
+          }}>
+            <span style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)', fontWeight: 700, textTransform: 'uppercase' }}>
+              Épargne Non Allouée
+            </span>
+            <span className="font-data" style={{ display: 'block', fontSize: '20px', color: 'var(--zenith-primary)', fontWeight: 800, marginTop: '4px' }}>
+              {unallocatedSavings.toLocaleString()} {currencyCode}
+            </span>
+          </div>
+        </div>
 
-            {/* Extra exceptional income */}
-            <div style={{ position: 'relative' }}>
-              <label style={{ 
-                position: 'absolute', 
-                top: '-8px', 
-                left: '12px', 
-                backgroundColor: 'white', 
-                padding: '0 4px',
-                fontSize: '10px',
-                fontWeight: 700,
-                color: 'var(--zenith-primary)' 
-              }}>
-                Bénéfices Exceptionnels
-              </label>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                border: '1px solid var(--zenith-outline-variant)', 
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 16px'
-              }}>
-                <span className="font-data" style={{ marginRight: '8px', color: 'var(--zenith-on-surface-variant)' }}>{currencyCode}</span>
-                <input 
-                  type="number" 
-                  value={extraInput}
-                  onChange={(e) => setExtraInput(e.target.value)}
-                  placeholder="0.00" 
-                  style={{
-                    width: '100%',
-                    border: 'none',
-                    outline: 'none',
-                    fontFamily: 'var(--font-data)',
-                    fontSize: '16px',
-                    backgroundColor: 'transparent'
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Savings available */}
-            <div style={{ position: 'relative' }}>
-              <label style={{ 
-                position: 'absolute', 
-                top: '-8px', 
-                left: '12px', 
-                backgroundColor: 'white', 
-                padding: '0 4px',
-                fontSize: '10px',
-                fontWeight: 700,
-                color: 'var(--zenith-primary)' 
-              }}>
-                Économies Disponibles
-              </label>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                border: '1px solid var(--zenith-outline-variant)', 
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 16px'
-              }}>
-                <span className="font-data" style={{ marginRight: '8px', color: 'var(--zenith-on-surface-variant)' }}>{currencyCode}</span>
-                <input 
-                  type="number" 
-                  value={savingsInput}
-                  onChange={(e) => setSavingsInput(e.target.value)}
-                  placeholder="0.00" 
-                  style={{
-                    width: '100%',
-                    border: 'none',
-                    outline: 'none',
-                    fontFamily: 'var(--font-data)',
-                    fontSize: '16px',
-                    backgroundColor: 'transparent'
-                  }}
-                />
-              </div>
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={loading}
-              style={{
-                width: '100%',
-                backgroundColor: 'var(--zenith-primary)',
-                color: 'white',
-                border: 'none',
-                padding: '16px',
-                borderRadius: 'var(--radius-md)',
-                fontFamily: 'var(--font-headings)',
-                fontSize: '14px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: 'var(--zenith-shadow-soft)',
-                transition: 'opacity 0.2s'
-              }}
-            >
-              {loading ? 'Optimisation en cours...' : "Mettre à jour l'algorithme"}
-            </button>
-          </form>
+        {/* Assistant Tip */}
+        <div style={{
+          backgroundColor: 'rgba(26, 79, 139, 0.05)',
+          padding: '12px 16px',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--zenith-outline-variant)',
+          fontSize: '12px',
+          color: 'var(--zenith-on-surface-variant)',
+          lineHeight: '1.4'
+        }}>
+          💡 <strong>Astuce :</strong> Vous pouvez également répartir manuellement vos fonds en vous rendant sur la fiche de chaque projet dans l'onglet <strong>Projets</strong>.
         </div>
 
         {/* Assistant Analysis Panel */}
@@ -459,9 +320,9 @@ const PremiumFunding = () => {
               Analyse de l'Assistant
             </h4>
             <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', margin: 0, lineHeight: '1.5' }}>
-              {targetProjects.length > 0
-                ? `L'algorithme distribue actuellement ${Math.round(totalAllocated - totalRecurringNeed).toLocaleString()} ${currencyCode} vers vos objectifs de vie en priorisant ceux à date limite proche.`
-                : "Aucun projet actif. Configurez vos objectifs dans l'onglet Projets pour activer l'analyse."}
+              {unallocatedSavings > 0 
+                ? `Vous disposez de ${unallocatedSavings.toLocaleString()} ${currencyCode} non alloués. L'algorithme propose de répartir ${previewTotalAllocated.toLocaleString()} ${currencyCode} vers vos objectifs prioritaires.`
+                : "Toutes vos économies sont actuellement allouées. Ajoutez de l'argent dans votre épargne gratuite pour l'attribuer à de nouveaux objectifs."}
             </p>
           </div>
         </div>
@@ -478,7 +339,7 @@ const PremiumFunding = () => {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h3 className="font-heading" style={{ fontSize: '16px', color: 'var(--zenith-on-surface)', margin: 0 }}>
-            Répartition Prévisionnelle
+            Répartition Proposée par l'Algorithme
           </h3>
           <span style={{
             backgroundColor: '#E8F5E9',
@@ -499,35 +360,32 @@ const PremiumFunding = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {/* Recurring projects */}
-          {recurringProjects.map(project => {
-            const need = calculateMonthlyNeed(project);
-            return (
-              <div key={project.id}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '8px' }}>
-                  <div>
-                    <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--zenith-data-recurring)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Récurrent
-                    </span>
-                    <h4 className="font-heading" style={{ fontSize: '14px', margin: '2px 0 0 0', color: 'var(--zenith-on-surface)' }}>
-                      {project.name}
-                    </h4>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span className="font-data" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
-                      {need.toLocaleString()} {currencyCode}
-                    </span>
-                    <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>/ mois</span>
-                  </div>
+          {recurringAllocations.map(project => (
+            <div key={project.id}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '8px' }}>
+                <div>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--zenith-data-recurring)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Récurrent
+                  </span>
+                  <h4 className="font-heading" style={{ fontSize: '14px', margin: '2px 0 0 0', color: 'var(--zenith-on-surface)' }}>
+                    {project.name}
+                  </h4>
                 </div>
-                <div style={{ height: '8px', backgroundColor: 'var(--zenith-bg)', borderRadius: 'var(--radius-pill)', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', backgroundColor: 'var(--zenith-data-recurring)', width: '100%' }}></div>
+                <div style={{ textAlign: 'right' }}>
+                  <span className="font-data" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
+                    {project.allocation.toLocaleString()} {currencyCode}
+                  </span>
+                  <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>alloués ce mois</span>
                 </div>
               </div>
-            );
-          })}
+              <div style={{ height: '8px', backgroundColor: 'var(--zenith-bg)', borderRadius: 'var(--radius-pill)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', backgroundColor: 'var(--zenith-data-recurring)', width: project.allocation > 0 ? '100%' : '0%' }}></div>
+              </div>
+            </div>
+          ))}
 
           {/* Allocated target projects */}
-          {projectAllocations.map(project => {
+          {targetAllocations.map(project => {
             const current = parseFloat(project.current_amount || 0);
             const target = parseFloat(project.target_amount || 0);
             const currentPercent = target > 0 ? (current / target) * 100 : 0;
@@ -551,7 +409,7 @@ const PremiumFunding = () => {
                     <span className="font-data" style={{ fontSize: '15px', color: 'var(--zenith-primary)', fontWeight: 700 }}>
                       {Math.round(project.allocation).toLocaleString()} {currencyCode}
                     </span>
-                    <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>/ mois</span>
+                    <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>alloués</span>
                   </div>
                 </div>
 
@@ -573,8 +431,6 @@ const PremiumFunding = () => {
                     backgroundColor: barColor, 
                     opacity: 0.4,
                     width: `${deltaPercent}%`,
-                    // subtle pulse effect mock style
-                    animation: 'pulse 1.5s infinite' 
                   }}></div>
                 </div>
 
@@ -603,10 +459,10 @@ const PremiumFunding = () => {
         }}>
           <div>
             <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-              Reste à Allouer
+              Reste après Répartition
             </span>
             <span className="font-data" style={{ fontSize: '24px', color: 'var(--zenith-primary)', fontWeight: 700 }}>
-              {Math.round(leftToAllocate).toLocaleString()} {currencyCode}
+              {Math.round(unallocatedSavings - previewTotalAllocated).toLocaleString()} {currencyCode}
             </span>
           </div>
           
@@ -620,7 +476,7 @@ const PremiumFunding = () => {
           }}>
             <div style={{ textAlign: 'right' }}>
               <p style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)', margin: '0 0 2px 0' }}>Score de Faisabilité</p>
-              <p className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-secondary)', margin: 0 }}>92%</p>
+              <p className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-secondary)', margin: 0 }}>{viability}%</p>
             </div>
             <div style={{
               width: '32px',
@@ -628,17 +484,36 @@ const PremiumFunding = () => {
               borderRadius: '50%',
               border: '3px solid var(--zenith-secondary)',
               borderTopColor: 'var(--zenith-outline-variant)',
-              transform: 'rotate(45deg)'
+              transform: `rotate(${Math.round(viability * 1.8)}deg)`
             }}></div>
           </div>
         </div>
 
         {/* Action Button to execute allocations */}
+        {previewTotalAllocated === 0 && (
+          <div style={{
+            marginTop: '24px',
+            padding: '12px',
+            backgroundColor: 'var(--zenith-surface-variant)',
+            color: 'var(--zenith-on-surface-variant)',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            textAlign: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            <AlertCircle size={16} />
+            Aucun fonds disponible ou nécessaire à répartir ce mois-ci.
+          </div>
+        )}
+        
         <button 
           onClick={handleExecuteAllocations}
-          disabled={loading || totalAllocated === 0}
+          disabled={loading || previewTotalAllocated === 0}
           style={{
-            marginTop: '24px',
+            marginTop: previewTotalAllocated === 0 ? '12px' : '24px',
             width: '100%',
             backgroundColor: confirming ? 'var(--zenith-status-alert, #F59E0B)' : 'var(--zenith-secondary)',
             color: 'white',
@@ -651,7 +526,7 @@ const PremiumFunding = () => {
             cursor: 'pointer',
             boxShadow: 'var(--zenith-shadow-soft)',
             transition: 'all 0.2s',
-            opacity: (loading || totalAllocated === 0) ? 0.7 : 1,
+            opacity: (loading || previewTotalAllocated === 0) ? 0.7 : 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

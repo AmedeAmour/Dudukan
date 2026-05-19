@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePremium } from '../context/PremiumContext';
+import { useAuth } from '../../context/AuthContext';
 import { 
   TrendingUp, 
   AlertTriangle, 
@@ -22,8 +23,11 @@ const PremiumDashboard = () => {
     executePriorityAction,
     alerts,
     priorities,
-    currency
+    currency,
+    freeSalary
   } = usePremium();
+
+  const { user } = useAuth();
 
   // 1. Calculations for global progress card (Real data only)
   const targetProjects = projects.filter(p => !p.is_recurring);
@@ -38,7 +42,7 @@ const PremiumDashboard = () => {
   // Let's compute a realistic viability score based on their projects, but if projects are empty, default to 80% (mockup)
   let viability = 100;
   if (projects.length > 0) {
-    const salary = parseFloat(profile?.salary || 0);
+    const salary = parseFloat(freeSalary || 0);
     if (salary > 0 && monthlyNeed > 0) {
       const ratio = monthlyNeed / salary;
       if (ratio <= 0.4) {
@@ -83,7 +87,7 @@ const PremiumDashboard = () => {
   };
 
   const gaugeConfig = getGaugeConfig();
-  const userName = profile?.full_name?.split(' ')[0] || 'Marc';
+  const userName = user?.user_metadata?.full_name?.split(' ')[0] || profile?.full_name?.split(' ')[0] || 'Utilisateur';
   const currencyCode = currency?.code || 'XOF';
 
   return (
@@ -211,16 +215,6 @@ const PremiumDashboard = () => {
                 </div>
               ))}
             </div>
-            
-            <span style={{ 
-              fontSize: '12px', 
-              color: 'var(--zenith-primary)', 
-              fontWeight: 700, 
-              cursor: 'pointer',
-              marginLeft: 'auto'
-            }}>
-              Détails flux
-            </span>
           </div>
         </div>
 

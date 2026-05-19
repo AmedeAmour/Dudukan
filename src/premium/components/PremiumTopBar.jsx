@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Bell, User } from 'lucide-react';
 
-const PremiumTopBar = ({ title = "Financial Assistant" }) => {
+const PremiumTopBar = ({ title = "Financial Assistant", onBellClick }) => {
   const { user } = useAuth();
   const avatarUrl = user?.user_metadata?.avatar_url;
 
@@ -37,7 +37,9 @@ const PremiumTopBar = ({ title = "Financial Assistant" }) => {
           {title}
         </h1>
       </div>
-      <button style={{
+      <button 
+        onClick={onBellClick}
+        style={{
         background: 'none',
         border: 'none',
         padding: '8px',

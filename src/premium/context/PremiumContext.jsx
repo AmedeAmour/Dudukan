@@ -5,7 +5,7 @@ import { useFinance } from '../../context/FinanceContext';
 const PremiumContext = createContext();
 
 export const PremiumProvider = ({ children }) => {
-  const { currency, savings: financeSavings, setSavings: setFinanceSavings, balance } = useFinance();
+  const { currency, savings: financeSavings, setSavings: setFinanceSavings, balance, salary: freeSalary } = useFinance();
   const [profile, setProfile] = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +46,7 @@ export const PremiumProvider = ({ children }) => {
       }
       
       setProfile(profileData);
-      setAvailableFunds(profileData?.savings || 0);
+      setAvailableFunds(financeSavings || 0);
 
       // 2. Fetch Projects with their Milestones
       const { data: projectsData, error: projectsError } = await supabase
@@ -60,10 +60,100 @@ export const PremiumProvider = ({ children }) => {
 
       if (projectsError) throw projectsError;
       
-      const loadedProjects = projectsData || [];
+      let loadedProjects = projectsData || [];
+
+      // 3. Detect and handle savings decrease (withdrawal)
+      const lastSynchronizedSavings = parseFloat(profileData?.savings || 0);
+      const currentRealSavings = parseFloat(financeSavings || 0);
+
+      if (currentRealSavings < lastSynchronizedSavings) {
+        const reductionAmount = lastSynchronizedSavings - currentRealSavings;
+        
+        // Apply automatic reduction inverse of allocation
+        let remainingReduction = reductionAmount;
+        let targetProjectsList = loadedProjects.filter(p => !p.is_recurring && parseFloat(p.current_amount || 0) > 0);
+        const priorityWeights = { 1: 3, 3: 1.5, 5: 1 };
+
+        while (remainingReduction > 0 && targetProjectsList.length > 0) {
+          const totalWeight = targetProjectsList.reduce((acc, p) => acc + (priorityWeights[p.priority] || 1), 0);
+          let reductionApplied = false;
+          const updates = [];
+
+          for (const project of targetProjectsList) {
+            const weight = priorityWeights[project.priority] || 1;
+            const share = weight / totalWeight;
+            const projectReduction = Math.min(parseFloat(project.current_amount || 0), remainingReduction * share);
+            
+            if (projectReduction > 0) {
+              const newAmount = parseFloat(project.current_amount || 0) - projectReduction;
+              updates.push({ id: project.id, current_amount: newAmount });
+              remainingReduction -= projectReduction;
+              reductionApplied = true;
+            }
+          }
+
+          if (!reductionApplied) break;
+
+          // Perform DB updates for reduced projects
+          for (const update of updates) {
+            await supabase
+              .from('projects')
+              .update({ current_amount: update.current_amount })
+              .eq('id', update.id);
+
+            // Sync milestones for this project
+            const { data: milestones, error: mErr } = await supabase
+              .from('milestones')
+              .select('*')
+              .eq('project_id', update.id);
+            
+            if (!mErr && milestones) {
+              let accumulated = 0;
+              for (const milestone of milestones) {
+                accumulated += parseFloat(milestone.target_amount || 0);
+                const shouldBeCompleted = update.current_amount >= accumulated;
+                if (milestone.is_completed !== shouldBeCompleted) {
+                  await supabase
+                    .from('milestones')
+                    .update({ is_completed: shouldBeCompleted })
+                    .eq('id', milestone.id);
+                }
+              }
+            }
+          }
+
+          // Reload projects data to reflect updates
+          const { data: refreshedData } = await supabase
+            .from('projects')
+            .select(`
+              *,
+              milestones(*)
+            `)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+          if (refreshedData) {
+            loadedProjects = refreshedData;
+          }
+          targetProjectsList = loadedProjects.filter(p => !p.is_recurring && parseFloat(p.current_amount || 0) > 0);
+        }
+
+        // Update profile savings to match currentRealSavings
+        await supabase
+          .from('profiles')
+          .update({ savings: currentRealSavings })
+          .eq('id', user.id);
+      } else if (currentRealSavings > lastSynchronizedSavings) {
+        // Just update profile savings to match the increase without automatically allocating
+        await supabase
+          .from('profiles')
+          .update({ savings: currentRealSavings })
+          .eq('id', user.id);
+      }
+
       setProjects(loadedProjects);
 
-      // 3. Process Smart Alerts & Priorities
+      // 4. Process Smart Alerts & Priorities
       generateAlertsAndPriorities(loadedProjects, profileData);
 
     } catch (error) {
@@ -130,16 +220,22 @@ export const PremiumProvider = ({ children }) => {
 
       // Rule 2: Milestones fully funded but not marked completed (for Complex Projects)
       if (project.is_complex && project.milestones) {
-        project.milestones.forEach(milestone => {
-          const mAmount = parseFloat(milestone.amount || 0);
-          const mAllocated = parseFloat(milestone.current_allocated || 0);
+        const sortedMilestones = [...project.milestones].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+        let previousTargetsSum = 0;
+
+        sortedMilestones.forEach(milestone => {
+          const mAmount = parseFloat(milestone.target_amount || 0);
+          const mAllocated = Math.max(0, Math.min(mAmount, current - previousTargetsSum));
+          previousTargetsSum += mAmount;
+
+          const isFullyFunded = mAllocated >= mAmount;
           
-          if (mAllocated >= mAmount && !milestone.completed) {
+          if (isFullyFunded && !milestone.is_completed) {
             newAlerts.push({
               id: `realize-milestone-${milestone.id}`,
               type: 'ready_to_realize',
               title: 'Étape prête à réaliser !',
-              description: `L'étape "${milestone.name}" du projet "${project.name}" est entièrement financée. Vous pouvez la lancer !`,
+              description: `L'étape "${milestone.name}" du projet "${project.name}" est prête à être validée. Vous pouvez la lancer !`,
               projectId: project.id,
               milestoneId: milestone.id,
               milestone: milestone
@@ -197,15 +293,31 @@ export const PremiumProvider = ({ children }) => {
         // Complete milestone in database
         const { error } = await supabase
           .from('milestones')
-          .update({ completed: true })
+          .update({ is_completed: true })
           .eq('id', priority.milestoneId);
         
         if (error) throw error;
       } else if (priority.type === 'realize') {
-        // Mark project as complete (in projects we could delete it, or update status/archive)
+        const project = projects.find(p => p.id === priority.projectId);
+        const projectAmount = project ? parseFloat(project.current_amount || 0) : 0;
+
+        // Deduct the realized project budget from free savings (money is spent)
+        const newSavings = Math.max(0, parseFloat(financeSavings || 0) - projectAmount);
+        setFinanceSavings(newSavings);
+
+        // Update profile in DB to match new savings
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase
+            .from('profiles')
+            .update({ savings: newSavings })
+            .eq('id', user.id);
+        }
+
+        // Delete/archive project from DB
         const { error } = await supabase
           .from('projects')
-          .delete() // Simple action: archive or remove completed project
+          .delete()
           .eq('id', priority.projectId);
 
         if (error) throw error;
@@ -237,7 +349,8 @@ export const PremiumProvider = ({ children }) => {
       balance,
       fetchData,
       calculateMonthlyNeed,
-      executePriorityAction
+      executePriorityAction,
+      freeSalary
     }}>
       {children}
     </PremiumContext.Provider>

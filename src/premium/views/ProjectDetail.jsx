@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const ProjectDetail = ({ project, onBack }) => {
-  const { profile, fetchData, currency, financeSavings, setFinanceSavings } = usePremium();
+  const { profile, fetchData, currency, financeSavings, setFinanceSavings, projects } = usePremium();
   const [allocationAmount, setAllocationAmount] = useState('');
   const [fundingLoading, setFundingLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -27,9 +27,9 @@ const ProjectDetail = ({ project, onBack }) => {
   const [editPriority, setEditPriority] = useState(project.priority || 3);
   const [editDeadline, setEditDeadline] = useState(project.deadline ? project.deadline.substring(0, 10) : '');
   const [editFrequency, setEditFrequency] = useState(project.frequency || 'monthly');
-  const [editSteps, setEditSteps] = useState(project.milestones ? [...project.milestones].sort((a, b) => a.step_order - b.step_order).map(m => ({ id: m.id, name: m.name, amount: m.amount, current_allocated: m.current_allocated || 0, completed: m.completed || false })) : []);
+  const [editSteps, setEditSteps] = useState(project.milestones ? [...project.milestones].map(m => ({ id: m.id, name: m.name, target_amount: m.target_amount, is_completed: m.is_completed || false })) : []);
 
-  const handleAddEditStep = () => setEditSteps([...editSteps, { name: '', amount: '', current_allocated: 0, completed: false }]);
+  const handleAddEditStep = () => setEditSteps([...editSteps, { name: '', target_amount: '', is_completed: false }]);
   const handleRemoveEditStep = (index) => setEditSteps(editSteps.filter((_, i) => i !== index));
   const handleEditStepChange = (index, field, value) => {
     const newSteps = [...editSteps];
@@ -66,8 +66,8 @@ const ProjectDetail = ({ project, onBack }) => {
 
     try {
       const targetAmount = project.is_complex
-        ? editSteps.reduce((acc, s) => acc + parseFloat(s.amount || 0), 0)
-        : parseFloat(editTarget);
+        ? editSteps.reduce((acc, s) => acc + (parseFloat(s.target_amount.toString().replace(/[\s,]/g, '') || 0) || 0), 0)
+        : parseFloat(editTarget.toString().replace(/[\s,]/g, '') || 0) || 0;
 
       if (isNaN(targetAmount) || targetAmount <= 0) {
         throw new Error("Veuillez renseigner un montant valide supérieur à 0.");
@@ -108,11 +108,10 @@ const ProjectDetail = ({ project, onBack }) => {
           const s = editSteps[i];
           const mData = {
             project_id: project.id,
-            name: s.name,
-            amount: parseFloat(s.amount),
-            step_order: i + 1,
-            current_allocated: parseFloat(s.current_allocated || 0),
-            completed: parseFloat(s.current_allocated || 0) >= parseFloat(s.amount)
+            user_id: project.user_id, // include user_id in case it's required by schema
+            name: s.name || `Étape ${i + 1}`,
+            target_amount: parseFloat(s.target_amount.toString().replace(/[\s,]/g, '') || 0) || 0,
+            is_completed: s.is_completed || false
           };
 
           if (s.id) {
@@ -145,14 +144,14 @@ const ProjectDetail = ({ project, onBack }) => {
   const current = parseFloat(project.current_amount || 0);
   const globalProgress = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
 
-  // Sort milestones by step_order
-  const milestones = project.milestones ? [...project.milestones].sort((a, b) => a.step_order - b.step_order) : [];
+  // Sort milestones by created_at
+  const milestones = project.milestones ? [...project.milestones].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0)) : [];
 
   // Determine active, completed, and locked states
   let foundActive = false;
   const processedMilestones = milestones.map(m => {
     let state = 'locked';
-    if (m.completed) {
+    if (m.is_completed) {
       state = 'completed';
     } else if (!foundActive) {
       state = 'active';
@@ -167,33 +166,40 @@ const ProjectDetail = ({ project, onBack }) => {
     e.preventDefault();
     if (!activeMilestone) return;
 
-    const amountToAllocate = parseFloat(allocationAmount);
+    const amountToAllocate = parseFloat(allocationAmount.toString().replace(/[\s,]/g, '') || 0) || 0;
     if (isNaN(amountToAllocate) || amountToAllocate <= 0) {
       alert("Veuillez entrer un montant valide supérieur à 0.");
       return;
     }
 
-    const availableSavings = parseFloat(financeSavings || 0);
-    if (amountToAllocate > availableSavings) {
-      alert("Fonds insuffisants dans votre épargne. Veuillez d'abord épargner dans l'onglet Épargne gratuit.");
+    const totalAllocatedToProjects = projects.reduce((acc, p) => acc + parseFloat(p.current_amount || 0), 0);
+    const unallocatedSavings = Math.max(0, parseFloat(financeSavings || 0) - totalAllocatedToProjects);
+
+    if (amountToAllocate > unallocatedSavings) {
+      alert("Fonds insuffisants dans votre épargne non allouée. Veuillez d'abord épargner dans l'onglet Épargne gratuit.");
       return;
     }
 
     setFundingLoading(true);
 
     try {
-      // 1. Calculate new milestone allocated amount
-      const currentAllocated = parseFloat(activeMilestone.current_allocated || 0);
-      const newAllocated = currentAllocated + amountToAllocate;
-      const targetMilestoneAmount = parseFloat(activeMilestone.amount || 0);
+      // Calculate dynamic allocated amount for this milestone
+      let previousTargetsSum = 0;
+      const idx = processedMilestones.findIndex(m => m.id === activeMilestone.id);
+      for (let i = 0; i < idx; i++) {
+        previousTargetsSum += parseFloat(processedMilestones[i].target_amount || 0);
+      }
+      const activeMilestoneAllocated = Math.max(0, Math.min(parseFloat(activeMilestone.target_amount || 0), current - previousTargetsSum));
+      
+      const newAllocated = activeMilestoneAllocated + amountToAllocate;
+      const targetMilestoneAmount = parseFloat(activeMilestone.target_amount || 0);
       const isMilestoneCompleted = newAllocated >= targetMilestoneAmount;
 
       // 2. Update Milestone in database
       const { error: mError } = await supabase
         .from('milestones')
         .update({
-          current_allocated: newAllocated,
-          completed: isMilestoneCompleted
+          is_completed: isMilestoneCompleted
         })
         .eq('id', activeMilestone.id);
 
@@ -209,12 +215,49 @@ const ProjectDetail = ({ project, onBack }) => {
 
       if (pError) throw pError;
 
-      // 4. Deduct allocated funds from Free account savings
-      setFinanceSavings(availableSavings - amountToAllocate);
-
       setAllocationAmount('');
       await fetchData();
       alert("Fonds alloués avec succès vers l'étape active !");
+      onBack();
+    } catch (err) {
+      alert("Erreur de virement : " + err.message);
+    } finally {
+      setFundingLoading(false);
+    }
+  };
+
+  const handleAllocateSimple = async (e) => {
+    e.preventDefault();
+
+    const amountToAllocate = parseFloat(allocationAmount.toString().replace(/[\s,]/g, '') || 0) || 0;
+    if (isNaN(amountToAllocate) || amountToAllocate <= 0) {
+      alert("Veuillez entrer un montant valide supérieur à 0.");
+      return;
+    }
+
+    const totalAllocatedToProjects = projects.reduce((acc, p) => acc + parseFloat(p.current_amount || 0), 0);
+    const unallocatedSavings = Math.max(0, parseFloat(financeSavings || 0) - totalAllocatedToProjects);
+
+    if (amountToAllocate > unallocatedSavings) {
+      alert("Fonds insuffisants dans votre épargne non allouée. Veuillez d'abord épargner dans l'onglet Épargne gratuit.");
+      return;
+    }
+
+    setFundingLoading(true);
+
+    try {
+      const { error: pError } = await supabase
+        .from('projects')
+        .update({
+          current_amount: current + amountToAllocate
+        })
+        .eq('id', project.id);
+
+      if (pError) throw pError;
+
+      setAllocationAmount('');
+      await fetchData();
+      alert("Fonds alloués avec succès !");
       onBack();
     } catch (err) {
       alert("Erreur de virement : " + err.message);
@@ -427,7 +470,7 @@ const ProjectDetail = ({ project, onBack }) => {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span className="font-heading" style={{ fontSize: '12px', color: 'var(--zenith-secondary)' }}>
-                        Étape #{idx + 1} {step.current_allocated > 0 && `(${step.current_allocated} ${currencyCode} sécurisés)`}
+                        Étape #{idx + 1}
                       </span>
                       {editSteps.length > 1 && (
                         <button 
@@ -468,8 +511,8 @@ const ProjectDetail = ({ project, onBack }) => {
                         required
                         type="number" 
                         placeholder="Montant" 
-                        value={step.amount}
-                        onChange={(e) => handleEditStepChange(idx, 'amount', e.target.value)}
+                        value={step.target_amount}
+                        onChange={(e) => handleEditStepChange(idx, 'target_amount', e.target.value)}
                         style={{
                           flex: 1.2,
                           padding: '10px 12px',
@@ -649,6 +692,63 @@ const ProjectDetail = ({ project, onBack }) => {
           </div>
         </div>
 
+        {/* Manual Allocation Form for Simple Projects */}
+        {!project.is_complex && current < target && (
+          <div style={{
+            backgroundColor: '#F8FAFC',
+            padding: '16px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--zenith-outline-variant)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '8px'
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)', fontWeight: 700 }}>Montant restant</span>
+              <span className="font-data" style={{ fontSize: '15px', color: 'var(--zenith-primary)', fontWeight: 700 }}>
+                {(target - current).toLocaleString()} {currencyCode}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <input 
+                type="number"
+                placeholder="Montant"
+                value={allocationAmount}
+                onChange={(e) => setAllocationAmount(e.target.value)}
+                style={{
+                  width: '100px',
+                  padding: '6px 8px',
+                  border: '1px solid var(--zenith-outline-variant)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontFamily: 'var(--font-data)',
+                  fontSize: '13px',
+                  outline: 'none',
+                  backgroundColor: 'white'
+                }}
+              />
+              <button
+                onClick={handleAllocateSimple}
+                disabled={fundingLoading}
+                style={{
+                  backgroundColor: 'var(--zenith-primary)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontFamily: 'var(--font-headings)',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Allouer
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Circular Feasibility */}
         <div style={{
           backgroundColor: '#F8FAFC',
@@ -693,8 +793,14 @@ const ProjectDetail = ({ project, onBack }) => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative' }}>
             {processedMilestones.map((milestone, idx) => {
-              const mAmount = parseFloat(milestone.amount || 0);
-              const mAllocated = parseFloat(milestone.current_allocated || 0);
+              const mAmount = parseFloat(milestone.target_amount || 0);
+              
+              // Calculate dynamic allocated amount for this milestone
+              let previousTargetsSum = 0;
+              for (let i = 0; i < idx; i++) {
+                previousTargetsSum += parseFloat(processedMilestones[i].target_amount || 0);
+              }
+              const mAllocated = Math.max(0, Math.min(mAmount, current - previousTargetsSum));
               const mProgress = mAmount > 0 ? Math.min(100, Math.round((mAllocated / mAmount) * 100)) : 0;
 
               return (
