@@ -13,21 +13,17 @@ export const PremiumProvider = ({ children }) => {
   const [alerts, setAlerts] = useState([]);
   const [priorities, setPriorities] = useState([]);
   const [coachInsights, setCoachInsights] = useState([]);
-  const [latestAllocationReport, setLatestAllocationReportState] = useState(() => {
-    try {
-      const saved = localStorage.getItem('dudukan_latest_allocation_report');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [latestAllocationReport, setLatestAllocationReportState] = useState(null);
 
-  const setLatestAllocationReport = useCallback((report) => {
+  const setLatestAllocationReport = useCallback(async (report) => {
     setLatestAllocationReportState(report);
-    if (report) {
-      localStorage.setItem('dudukan_latest_allocation_report', JSON.stringify(report));
-    } else {
-      localStorage.removeItem('dudukan_latest_allocation_report');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      if (report) {
+        localStorage.setItem(`dudukan_latest_allocation_report_${user.id}`, JSON.stringify(report));
+      } else {
+        localStorage.removeItem(`dudukan_latest_allocation_report_${user.id}`);
+      }
     }
   }, []);
 
@@ -37,6 +33,17 @@ export const PremiumProvider = ({ children }) => {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Clean up old global key if it exists
+      localStorage.removeItem('dudukan_latest_allocation_report');
+
+      // Load user-specific allocation report
+      try {
+        const saved = localStorage.getItem(`dudukan_latest_allocation_report_${user.id}`);
+        setLatestAllocationReportState(saved ? JSON.parse(saved) : null);
+      } catch (e) {
+        setLatestAllocationReportState(null);
+      }
 
       // 1. Fetch Profile (with automatic defensive creation if missing)
       let { data: profileData, error: profileError } = await supabase
