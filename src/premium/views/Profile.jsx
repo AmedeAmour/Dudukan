@@ -135,6 +135,42 @@ const Profile = ({ onSwitchMode }) => {
         </div>
       </div>
 
+      {/* Downgrade Action */}
+      <div className="premium-card" style={{ 
+        padding: '20px', 
+        border: '1px solid rgba(239, 68, 68, 0.15)',
+        backgroundColor: 'rgba(239, 68, 68, 0.02)',
+        marginBottom: '28px'
+      }}>
+        <h4 className="font-heading" style={{ fontSize: '14px', color: 'var(--zenith-status-alert)', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <LogOut size={16} />
+          Retourner au mode standard
+        </h4>
+        <p style={{ fontSize: '12px', color: 'var(--zenith-on-surface-variant)', margin: '0 0 16px 0', lineHeight: '1.4' }}>
+          Le passage en mode gratuit conservera vos projets mais supprimera les fonctionnalités d'allocation automatique séquentielle, de matelas de protection et les rapports de suivi détaillé.
+        </p>
+        <button 
+          onClick={() => onSwitchMode('free')}
+          style={{
+            width: '100%',
+            padding: '12px',
+            backgroundColor: 'transparent',
+            border: '1.5px solid var(--zenith-status-alert)',
+            color: 'var(--zenith-status-alert)',
+            borderRadius: 'var(--radius-md)',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-headings)',
+            fontSize: '12px',
+            fontWeight: 700,
+            transition: 'background-color 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.05)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
+          Repasser en mode Gratuit
+        </button>
+      </div>
+
       {/* Financial Profile Summary */}
       <div className="premium-card" style={{ padding: '20px', marginBottom: '24px' }}>
         <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -311,41 +347,6 @@ const Profile = ({ onSwitchMode }) => {
             {syncing ? 'Synchronisation...' : 'Synchroniser'}
           </button>
         </div>
-      </div>
-
-      {/* Downgrade Action */}
-      <div className="premium-card" style={{ 
-        padding: '20px', 
-        border: '1px solid rgba(239, 68, 68, 0.15)',
-        backgroundColor: 'rgba(239, 68, 68, 0.02)'
-      }}>
-        <h4 className="font-heading" style={{ fontSize: '14px', color: 'var(--zenith-status-alert)', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <LogOut size={16} />
-          Retourner au mode standard
-        </h4>
-        <p style={{ fontSize: '12px', color: 'var(--zenith-on-surface-variant)', margin: '0 0 16px 0', lineHeight: '1.4' }}>
-          Le passage en mode gratuit conservera vos projets mais supprimera les fonctionnalités d'allocation automatique séquentielle, de matelas de protection et les rapports de suivi détaillé.
-        </p>
-        <button 
-          onClick={() => onSwitchMode('free')}
-          style={{
-            width: '100%',
-            padding: '12px',
-            backgroundColor: 'transparent',
-            border: '1.5px solid var(--zenith-status-alert)',
-            color: 'var(--zenith-status-alert)',
-            borderRadius: 'var(--radius-md)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-headings)',
-            fontSize: '12px',
-            fontWeight: 700,
-            transition: 'background-color 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.05)'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-        >
-          Repasser en mode Gratuit
-        </button>
       </div>
 
     </div>
