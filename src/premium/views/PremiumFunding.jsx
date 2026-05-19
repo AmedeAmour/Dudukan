@@ -16,7 +16,8 @@ const PremiumFunding = () => {
     fetchData, 
     currency, 
     financeSavings,
-    freeSalary 
+    freeSalary,
+    setLatestAllocationReport
   } = usePremium();
   
   const [loading, setLoading] = useState(false);
@@ -97,6 +98,79 @@ const PremiumFunding = () => {
     setLoading(true);
 
     try {
+      // Build allocation report before database mutations
+      const report = {
+        timestamp: new Date().toISOString(),
+        totalSavingsAtExecution: totalSavings,
+        totalAllocatedThisTime: previewTotalAllocated,
+        projects: [
+          ...recurringAllocations.map(p => ({
+            id: p.id,
+            name: p.name,
+            is_recurring: true,
+            is_complex: false,
+            allocatedAmount: p.allocation,
+            currentAmountBefore: parseFloat(p.current_amount || 0),
+            currentAmountAfter: parseFloat(p.current_amount || 0) + p.allocation,
+            targetAmount: parseFloat(p.target_amount || 0),
+            steps: []
+          })),
+          ...targetAllocations.map(p => {
+            const current = parseFloat(p.current_amount || 0);
+            const target = parseFloat(p.target_amount || 0);
+            const allocatedAmount = p.allocation;
+            
+            let steps = [];
+            if (p.is_complex && p.milestones) {
+              let remainingAllocation = allocatedAmount;
+              const sortedMilestones = [...p.milestones].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+              
+              steps = sortedMilestones.map((milestone, idx) => {
+                const milestoneTarget = parseFloat(milestone.target_amount || 0);
+                // Calculate dynamic allocated amount before this new allocation
+                let previousTargetsSum = 0;
+                for (let i = 0; i < idx; i++) {
+                  previousTargetsSum += parseFloat(sortedMilestones[i].target_amount || 0);
+                }
+                const milestoneCurrentBefore = Math.max(0, Math.min(milestoneTarget, current - previousTargetsSum));
+                const addedToStep = Math.max(0, Math.min(remainingAllocation, milestoneTarget - milestoneCurrentBefore));
+                remainingAllocation -= addedToStep;
+                const milestoneCurrentAfter = milestoneCurrentBefore + addedToStep;
+
+                let status = 'non_commencee';
+                if (milestone.is_completed || milestoneCurrentAfter >= milestoneTarget) {
+                  status = 'realisee';
+                } else if (milestoneCurrentAfter > 0) {
+                  status = 'en_cours_de_financement';
+                }
+
+                return {
+                  id: milestone.id,
+                  name: milestone.name,
+                  targetAmount: milestoneTarget,
+                  currentBefore: milestoneCurrentBefore,
+                  addedAmount: addedToStep,
+                  currentAfter: milestoneCurrentAfter,
+                  status: status
+                };
+              });
+            }
+
+            return {
+              id: p.id,
+              name: p.name,
+              is_recurring: false,
+              is_complex: p.is_complex,
+              allocatedAmount: allocatedAmount,
+              currentAmountBefore: current,
+              currentAmountAfter: current + allocatedAmount,
+              targetAmount: target,
+              steps: steps
+            };
+          })
+        ].filter(p => p.allocatedAmount > 0)
+      };
+
       // 1. Process recurring projects updates
       for (const project of recurringAllocations) {
         if (project.allocation > 0) {
@@ -165,6 +239,7 @@ const PremiumFunding = () => {
       }
 
       await fetchData();
+      setLatestAllocationReport(report);
       alert("Répartition automatique exécutée avec succès !");
     } catch (err) {
       alert("Erreur lors de l'allocation : " + err.message);

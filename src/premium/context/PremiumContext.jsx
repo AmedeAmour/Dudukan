@@ -13,6 +13,23 @@ export const PremiumProvider = ({ children }) => {
   const [alerts, setAlerts] = useState([]);
   const [priorities, setPriorities] = useState([]);
   const [coachInsights, setCoachInsights] = useState([]);
+  const [latestAllocationReport, setLatestAllocationReportState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dudukan_latest_allocation_report');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const setLatestAllocationReport = useCallback((report) => {
+    setLatestAllocationReportState(report);
+    if (report) {
+      localStorage.setItem('dudukan_latest_allocation_report', JSON.stringify(report));
+    } else {
+      localStorage.removeItem('dudukan_latest_allocation_report');
+    }
+  }, []);
 
   // Fetch all premium data from Supabase
   const fetchData = useCallback(async () => {
@@ -471,7 +488,9 @@ export const PremiumProvider = ({ children }) => {
       calculateMonthlyNeed,
       executePriorityAction,
       freeSalary,
-      coachInsights
+      coachInsights,
+      latestAllocationReport,
+      setLatestAllocationReport
     }}>
       {children}
     </PremiumContext.Provider>
