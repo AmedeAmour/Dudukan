@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NotificationService } from '../NotificationService';
 import NotificationObserver from '../components/NotificationObserver';
 import PremiumTopBar from './components/PremiumTopBar';
@@ -18,13 +18,10 @@ const PremiumAppContent = ({ onSwitchMode }) => {
   const [isAddingProject, setIsAddingProject] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [showQuickActions, setShowQuickActions] = useState(false);
-  const mainRef = useRef(null);
 
-  // Scroll to top when the active view changes
+  // Scroll to top when the active view changes (Premium App only)
   useEffect(() => {
-    if (mainRef.current) {
-      mainRef.current.scrollTop = 0;
-    }
+    window.scrollTo(0, 0);
   }, [activeTab, isAddingProject, selectedProject]);
 
   // Request notification permission on mount
@@ -81,7 +78,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
       <PremiumTopBar title={getScreenTitle()} onBellClick={handleBellClick} />
       <NotificationObserver />
       
-      <main ref={mainRef} style={{ flex: 1, paddingBottom: '96px', overflowY: 'auto' }}>
+      <main style={{ flex: 1, paddingBottom: '96px', overflowY: 'auto' }}>
         {renderScreen()}
       </main>
 
