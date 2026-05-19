@@ -90,8 +90,19 @@ const PremiumAppContent = ({ onSwitchMode }) => {
         <div className="action-sheet-overlay" onClick={() => setShowQuickActions(false)}>
           <div className="action-sheet" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Sparkles size={20} color="var(--zenith-accent-gold)" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Sparkles size={18} color="var(--zenith-accent-gold)" strokeWidth={1.5} />
+                </div>
                 <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
                   Actions Dudukan Premium
                 </h3>
