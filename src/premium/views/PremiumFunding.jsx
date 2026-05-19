@@ -396,7 +396,7 @@ const PremiumFunding = () => {
             </h4>
             <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', margin: 0, lineHeight: '1.5' }}>
               {unallocatedSavings > 0 
-                ? `Vous disposez de ${unallocatedSavings.toLocaleString()} ${currencyCode} non alloués. L'algorithme propose de répartir ${previewTotalAllocated.toLocaleString()} ${currencyCode} vers vos objectifs prioritaires.`
+                ? `Vous disposez de ${unallocatedSavings.toLocaleString()} ${currencyCode} non alloués. Dudukan propose de répartir ${previewTotalAllocated.toLocaleString()} ${currencyCode} vers vos objectifs prioritaires.`
                 : "Toutes vos économies sont actuellement allouées. Ajoutez de l'argent dans votre épargne gratuite pour l'attribuer à de nouveaux objectifs."}
             </p>
           </div>
@@ -414,7 +414,7 @@ const PremiumFunding = () => {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h3 className="font-heading" style={{ fontSize: '16px', color: 'var(--zenith-on-surface)', margin: 0 }}>
-            Répartition Proposée par l'Algorithme
+            Répartition Proposée par Dudukan
           </h3>
           <span style={{
             backgroundColor: '#E8F5E9',
@@ -514,7 +514,7 @@ const PremiumFunding = () => {
                     Financement : {Math.round(currentPercent)}%
                   </span>
                   <span style={{ color: 'var(--zenith-secondary)', fontWeight: 700 }}>
-                    +{Math.round(deltaPercent)}% via algorithme
+                    +{Math.round(deltaPercent)}% via répartition automatique
                   </span>
                 </div>
               </div>

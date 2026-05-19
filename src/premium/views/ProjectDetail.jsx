@@ -777,7 +777,7 @@ const ProjectDetail = ({ project, onBack }) => {
               Projet viable
             </h4>
             <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', margin: 0, lineHeight: '1.4' }}>
-              Zenith AI confirme que vos flux actuels couvrent les échéances prévues.
+              Dudukan confirme que vos flux actuels couvrent les échéances prévues.
             </p>
           </div>
         </div>
@@ -1028,7 +1028,7 @@ const ProjectDetail = ({ project, onBack }) => {
           <div style={{ position: 'relative', zIndex: 2 }}>
             <h4 className="font-heading" style={{ fontSize: '16px', margin: '0 0 8px 0', color: 'var(--zenith-white)' }}>Action de l'Assistant</h4>
             <p style={{ fontSize: '13px', margin: 0, opacity: 0.95, lineHeight: '1.5' }}>
-              Zenith AI conseille d'approvisionner l'étape active dès que possible pour consolider la planification des suivantes.
+              Dudukan conseille d'approvisionner l'étape active dès que possible pour consolider la planification des suivantes.
             </p>
           </div>
           {/* Subtle background brain watermark */}

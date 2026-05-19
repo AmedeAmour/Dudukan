@@ -23,7 +23,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 
   // Handler for bell click – send a test notification
   const handleBellClick = () => {
-    NotificationService.sendNotification('Rappel', "Ceci est une notification de test depuis Zenith IA.");
+    NotificationService.sendNotification('Rappel', "Ceci est une notification de test depuis Dudukan.");
   };
 
   const handleTabChange = (tab) => {

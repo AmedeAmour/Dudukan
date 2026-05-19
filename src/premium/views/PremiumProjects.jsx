@@ -30,7 +30,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
     if (delayCount === 0) {
       return `Votre stratégie actuelle permet de financer tous vos projets dans les délais impartis. Tout est au vert !`;
     }
-    return `Votre stratégie actuelle permet de financer ${totalProjects - delayCount} sur ${totalProjects} projets dans les délais. L'algorithme Zenith suggère des réajustements de versements.`;
+    return `Votre stratégie actuelle permet de financer ${totalProjects - delayCount} sur ${totalProjects} projets dans les délais. Dudukan suggère des réajustements de versements.`;
   };
 
   // Filter projects based on active tab
