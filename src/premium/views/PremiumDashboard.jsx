@@ -161,19 +161,9 @@ const PremiumDashboard = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {coachInsights.map((insight, idx) => (
                 <div key={idx} style={{
-                  display: 'flex',
-                  gap: '12px',
-                  alignItems: 'flex-start',
                   paddingBottom: idx < coachInsights.length - 1 ? '16px' : '0',
                   borderBottom: idx < coachInsights.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
                 }}>
-                  <div style={{
-                    fontSize: '16px',
-                    lineHeight: 1,
-                    marginTop: '2px'
-                  }}>
-                    {insight.type === 'success' ? '🎯' : insight.type === 'warning' ? '🛡️' : insight.type === 'danger' ? '⚠️' : '💡'}
-                  </div>
                   <p style={{
                     fontSize: '13px',
                     margin: 0,
