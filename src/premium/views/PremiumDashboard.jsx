@@ -189,81 +189,36 @@ const PremiumDashboard = () => {
               </span>
             </div>
 
-            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* Vertical timeline connector line */}
-              {coachInsights.length > 1 && (
-                <div style={{
-                  position: 'absolute',
-                  left: '11px',
-                  top: '12px',
-                  bottom: '12px',
-                  width: '2px',
-                  background: 'linear-gradient(to bottom, var(--zenith-accent-gold) 0%, rgba(255, 255, 255, 0.1) 100%)',
-                  zIndex: 1,
-                  opacity: 0.3
-                }} />
-              )}
-
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {coachInsights.map((insight, idx) => {
                 const tagConfig = getInsightTag(insight.type);
-                
-                // Select a professional Lucide icon based on type
-                let NodeIcon = Info;
-                let iconColor = 'var(--zenith-accent-gold)';
-                if (insight.type === 'success') {
-                  NodeIcon = TrendingUp;
-                  iconColor = '#10B981';
-                } else if (insight.type === 'warning' || insight.type === 'danger') {
-                  NodeIcon = AlertTriangle;
-                  iconColor = '#EF4444';
-                }
 
                 return (
                   <div key={idx} style={{
-                    display: 'flex',
-                    gap: '16px',
-                    position: 'relative',
-                    zIndex: 2
+                    paddingBottom: idx < coachInsights.length - 1 ? '16px' : '0',
+                    borderBottom: idx < coachInsights.length - 1 ? '1px solid rgba(255, 255, 255, 0.08)' : 'none'
                   }}>
-                    {/* Circle icon container centered on the timeline line */}
-                    <div style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--zenith-primary-container)',
-                      border: `1.5px solid ${iconColor}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                    }}>
-                      <NodeIcon size={12} color={iconColor} />
-                    </div>
-
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                        <span style={{
-                          fontSize: '9px',
-                          padding: '1px 6px',
-                          borderRadius: 'var(--radius-pill)',
-                          fontWeight: '800',
-                          textTransform: 'uppercase',
-                          ...tagConfig.style
-                        }}>
-                          {tagConfig.text}
-                        </span>
-                      </div>
-                      <p style={{
-                        fontSize: '13px',
-                        margin: 0,
-                        lineHeight: '1.5',
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        fontFamily: 'var(--font-body)'
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <span style={{
+                        fontSize: '9px',
+                        padding: '2px 8px',
+                        borderRadius: 'var(--radius-pill)',
+                        fontWeight: '800',
+                        textTransform: 'uppercase',
+                        ...tagConfig.style
                       }}>
-                        {insight.text}
-                      </p>
+                        {tagConfig.text}
+                      </span>
                     </div>
+                    <p style={{
+                      fontSize: '13px',
+                      margin: 0,
+                      lineHeight: '1.6',
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontFamily: 'var(--font-body)'
+                    }}>
+                      {insight.text}
+                    </p>
                   </div>
                 );
               })}
