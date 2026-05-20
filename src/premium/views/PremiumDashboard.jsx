@@ -133,19 +133,51 @@ const PremiumDashboard = () => {
 
       {/* Smart Daily Summary Card */}
       <div className="premium-card" style={{
-        padding: '20px',
-        backgroundColor: '#F8FAFC',
+        background: 'linear-gradient(135deg, var(--zenith-primary) 0%, #17253A 100%)',
+        color: 'white',
+        padding: '24px',
+        borderRadius: 'var(--radius-xl)',
+        marginBottom: '28px',
         position: 'relative',
         overflow: 'hidden',
-        marginBottom: '28px',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
         boxShadow: 'var(--zenith-shadow-md)'
       }}>
-        <h4 className="font-heading" style={{ fontSize: '12px', color: 'var(--zenith-primary-container)', margin: '0 0 6px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          Résumé intelligent du jour
-        </h4>
-        <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', margin: 0, lineHeight: '1.5' }}>
-          Votre plan financier global progresse régulièrement. Vous êtes financé à <strong>{globalProgress}%</strong> sur vos projets cibles. La viabilité de vos objectifs de vie est estimée à <strong>{viability}%</strong>.
-        </p>
+        {/* Subtle decorative gold circle */}
+        <div style={{
+          position: 'absolute',
+          top: '-40px',
+          right: '-40px',
+          width: '140px',
+          height: '140px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%)',
+          pointerEvents: 'none'
+        }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative', zIndex: 2 }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(212, 175, 55, 0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '2px solid var(--zenith-accent-gold)',
+            flexShrink: 0
+          }}>
+            <Zap size={28} color="var(--zenith-accent-gold)" />
+          </div>
+          <div>
+            <h4 className="font-heading" style={{ fontSize: '14px', color: 'var(--zenith-accent-gold)', margin: '0 0 6px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Résumé intelligent du jour
+            </h4>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)', margin: 0, lineHeight: '1.5' }}>
+              Votre plan financier global progresse régulièrement. Vous êtes financé à <strong style={{ color: 'white' }}>{globalProgress}%</strong> sur vos projets cibles. La viabilité de vos objectifs de vie est estimée à <strong style={{ color: 'white' }}>{viability}%</strong>.
+            </p>
+          </div>
+        </div>
       </div>
  
 
