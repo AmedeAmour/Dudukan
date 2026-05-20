@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePremium } from '../context/PremiumContext';
 import { useAuth } from '../../context/AuthContext';
+import { useFinance } from '../../context/FinanceContext';
 import { 
   TrendingUp, 
   AlertTriangle, 
@@ -16,7 +17,15 @@ import {
   Activity,
   Award,
   Zap,
-  Info
+  Info,
+  TrendingDown, 
+  Utensils, 
+  Car, 
+  Home, 
+  CreditCard, 
+  PiggyBank, 
+  AlertCircle, 
+  User
 } from 'lucide-react';
 
 const PremiumDashboard = () => {
@@ -36,6 +45,14 @@ const PremiumDashboard = () => {
   } = usePremium();
 
   const { user } = useAuth();
+  const { allTransactions, categories, formatCurrency } = useFinance();
+  
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const displayTransactions = showAllTransactions ? allTransactions : allTransactions.slice(0, 3);
+  
+  const iconMap = {
+    Utensils, Car, Home, CreditCard, PiggyBank, AlertCircle, User
+  };
 
   // 1. Calculations for global progress card (Real data only)
   const targetProjects = projects.filter(p => !p.is_recurring);
@@ -132,36 +149,38 @@ const PremiumDashboard = () => {
       </div>
 
       {/* Smart Daily Summary Card */}
-      <div className="premium-card" style={{
-        background: 'linear-gradient(135deg, var(--zenith-primary) 0%, #17253A 100%)',
-        color: 'white',
-        padding: '24px',
-        borderRadius: 'var(--radius-xl)',
-        marginBottom: '28px',
-        position: 'relative',
-        overflow: 'hidden',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: 'var(--zenith-shadow-md)'
+      <div style={{
+        padding: '16px',
+        backgroundColor: 'rgba(16, 185, 129, 0.04)',
+        border: '1px solid rgba(16, 185, 129, 0.15)',
+        borderRadius: 'var(--radius-lg)',
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'flex-start',
+        marginBottom: '28px'
       }}>
-        {/* Subtle decorative gold circle */}
         <div style={{
-          position: 'absolute',
-          top: '-40px',
-          right: '-40px',
-          width: '140px',
-          height: '140px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%)',
-          pointerEvents: 'none'
-        }} />
-
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <h4 className="font-heading" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--zenith-accent-gold)', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            <Zap size={16} />
-            Résumé intelligent du jour
-          </h4>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)', margin: 0, lineHeight: '1.5' }}>
-            Votre plan financier global progresse régulièrement. Vous êtes financé à <strong style={{ color: 'white' }}>{globalProgress}%</strong> sur vos projets cibles. La viabilité de vos objectifs de vie est estimée à <strong style={{ color: 'white' }}>{viability}%</strong>.
+          color: 'var(--zenith-secondary)',
+          marginTop: '2px'
+        }}>
+          <CheckCircle size={18} />
+        </div>
+        <div>
+          <p className="font-heading" style={{ 
+            fontSize: '13px', 
+            margin: '0 0 4px 0', 
+            color: 'var(--zenith-secondary)',
+            fontWeight: 800
+          }}>
+            Résumé Intelligent
+          </p>
+          <p style={{ 
+            fontSize: '12px', 
+            margin: 0, 
+            color: 'var(--zenith-on-surface)',
+            lineHeight: '1.5'
+          }}>
+            Vous avez financé <strong>{globalProgress}%</strong> de vos projets ({totalSaved.toLocaleString()} {currencyCode} sur {totalTarget.toLocaleString()} {currencyCode}). Avec une viabilité estimée à <strong>{viability}%</strong>, {gaugeConfig.desc.charAt(0).toLowerCase() + gaugeConfig.desc.slice(1)}
           </p>
         </div>
       </div>
@@ -725,6 +744,82 @@ const PremiumDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Recent Transactions */}
+      <div style={{ marginTop: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
+            {showAllTransactions ? 'Toutes les transactions (50j)' : 'Transactions récentes'}
+          </h3>
+          <button 
+            onClick={() => setShowAllTransactions(!showAllTransactions)}
+            style={{ background: 'none', border: 'none', color: 'var(--zenith-secondary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
+          >
+            {showAllTransactions ? 'Réduire' : 'Voir tout'}
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {displayTransactions && displayTransactions.length > 0 ? (
+            displayTransactions.map((tx) => {
+              const category = tx.type === 'expense' ? categories?.find(c => c.id === tx.categoryId) : null;
+              const IconComponent = category ? (iconMap[category.icon] || Info) : (tx.type === 'income' ? TrendingUp : TrendingDown);
+              
+              // Adapt colors to premium scheme
+              const iconColor = tx.type === 'income' ? 'var(--zenith-secondary)' : 'var(--zenith-on-surface-variant)';
+              const bgColor = 'var(--zenith-bg)';
+
+              return (
+                <div 
+                  key={tx.id} 
+                  className="premium-card" 
+                  style={{ margin: 0, padding: '16px', border: '1px solid var(--zenith-outline-variant)' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ 
+                        width: '44px', 
+                        height: '44px', 
+                        borderRadius: '14px', 
+                        background: bgColor, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        color: iconColor,
+                        flexShrink: 0
+                      }}>
+                        <IconComponent size={20} />
+                      </div>
+                      <div>
+                        <p style={{ fontWeight: '600', fontSize: '15px', color: 'var(--zenith-on-surface)', margin: '0 0 4px 0' }}>
+                          {tx.note || (tx.type === 'income' ? 'Revenu' : (tx.categoryId === 'debt' ? 'Remboursement' : category?.name || 'Dépense'))}
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {category && (
+                            <span style={{ fontSize: '11px', fontWeight: '500', color: iconColor, background: bgColor, padding: '2px 6px', borderRadius: '4px' }}>
+                              {category.name}
+                            </span>
+                          )}
+                          <p style={{ fontSize: '12px', color: 'var(--zenith-on-surface-variant)', margin: 0 }}>
+                            {new Date(tx.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <p style={{ fontWeight: '700', fontSize: '16px', color: tx.type === 'income' ? 'var(--zenith-secondary)' : 'var(--zenith-on-surface)', margin: 0 }}>
+                      {tx.type === 'income' ? '+' : '-'}{formatCurrency ? formatCurrency(tx.amount) : tx.amount}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--zenith-on-surface-variant)' }}>
+              Aucune transaction récente.
+            </div>
+          )}
+        </div>
+      </div>
 
     </div>
   );
