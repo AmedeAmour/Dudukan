@@ -133,21 +133,13 @@ const PremiumDashboard = () => {
 
       {/* Smart Daily Summary Card */}
       <div className="premium-card" style={{
-        padding: '18px 20px 18px 24px',
+        padding: '20px',
         backgroundColor: '#F8FAFC',
         position: 'relative',
         overflow: 'hidden',
-        marginBottom: '28px'
+        marginBottom: '28px',
+        boxShadow: 'var(--zenith-shadow-md)'
       }}>
-        {/* Full-height vertical color accent bar respecting border-radius */}
-        <div style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: '5px',
-          backgroundColor: 'var(--zenith-accent-gold)'
-        }} />
         <h4 className="font-heading" style={{ fontSize: '12px', color: 'var(--zenith-primary-container)', margin: '0 0 6px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           Résumé intelligent du jour
         </h4>
@@ -156,88 +148,7 @@ const PremiumDashboard = () => {
         </p>
       </div>
  
-      {/* Coach Dudukan - Insights section */}
-      {coachInsights && coachInsights.length > 0 && (
-        <div className="premium-card-dark" style={{
-          padding: '24px',
-          marginBottom: '32px',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Subtle backgrounds */}
-          <div style={{
-            position: 'absolute',
-            top: '-30px',
-            right: '-30px',
-            width: '150px',
-            height: '150px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%)',
-            pointerEvents: 'none'
-          }} />
 
-          <div style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(212, 175, 55, 0.15)',
-                  border: '1px solid rgba(212, 175, 55, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  <Sparkles size={16} color="var(--zenith-accent-gold)" strokeWidth={1.5} />
-                </div>
-                <h3 className="font-heading" style={{ fontSize: '17px', color: 'white', margin: 0 }}>
-                  Accompagnement Stratégique
-                </h3>
-              </div>
-              <span className="premium-badge premium-badge-gold" style={{ fontSize: '9px', padding: '2px 8px' }}>
-                Conseils Coach
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {coachInsights.map((insight, idx) => {
-                const tagConfig = getInsightTag(insight.type);
-
-                return (
-                  <div key={idx} style={{
-                    paddingBottom: idx < coachInsights.length - 1 ? '16px' : '0',
-                    borderBottom: idx < coachInsights.length - 1 ? '1px solid rgba(255, 255, 255, 0.08)' : 'none'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                      <span style={{
-                        fontSize: '9px',
-                        padding: '2px 8px',
-                        borderRadius: 'var(--radius-pill)',
-                        fontWeight: '800',
-                        textTransform: 'uppercase',
-                        ...tagConfig.style
-                      }}>
-                        {tagConfig.text}
-                      </span>
-                    </div>
-                    <p style={{
-                      fontSize: '13px',
-                      margin: 0,
-                      lineHeight: '1.6',
-                      color: 'rgba(255, 255, 255, 0.9)',
-                      fontFamily: 'var(--font-body)'
-                    }}>
-                      {insight.text}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Bento Grid: Metrics */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
@@ -741,6 +652,89 @@ const PremiumDashboard = () => {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Coach Dudukan - Insights section (Moved to bottom) */}
+      {coachInsights && coachInsights.length > 0 && (
+        <div className="premium-card-dark" style={{
+          padding: '24px',
+          marginTop: '32px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Subtle backgrounds */}
+          <div style={{
+            position: 'absolute',
+            top: '-30px',
+            right: '-30px',
+            width: '150px',
+            height: '150px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%)',
+            pointerEvents: 'none'
+          }} />
+
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                  border: '1px solid rgba(212, 175, 55, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Sparkles size={16} color="var(--zenith-accent-gold)" strokeWidth={1.5} />
+                </div>
+                <h3 className="font-heading" style={{ fontSize: '17px', color: 'white', margin: 0 }}>
+                  Accompagnement Stratégique
+                </h3>
+              </div>
+              <span className="premium-badge premium-badge-gold" style={{ fontSize: '9px', padding: '2px 8px' }}>
+                Conseils Coach
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {coachInsights.map((insight, idx) => {
+                const tagConfig = getInsightTag(insight.type);
+
+                return (
+                  <div key={idx} style={{
+                    paddingBottom: idx < coachInsights.length - 1 ? '16px' : '0',
+                    borderBottom: idx < coachInsights.length - 1 ? '1px solid rgba(255, 255, 255, 0.08)' : 'none'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <span style={{
+                        fontSize: '9px',
+                        padding: '2px 8px',
+                        borderRadius: 'var(--radius-pill)',
+                        fontWeight: '800',
+                        textTransform: 'uppercase',
+                        ...tagConfig.style
+                      }}>
+                        {tagConfig.text}
+                      </span>
+                    </div>
+                    <p style={{
+                      fontSize: '13px',
+                      margin: 0,
+                      lineHeight: '1.6',
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontFamily: 'var(--font-body)'
+                    }}>
+                      {insight.text}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
