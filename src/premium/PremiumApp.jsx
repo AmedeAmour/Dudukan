@@ -18,6 +18,18 @@ const PremiumAppContent = ({ onSwitchMode }) => {
   const [isAddingProject, setIsAddingProject] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem('premium_theme') || 'light');
+
+  // Apply theme class to root element
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark-mode');
+    } else {
+      root.classList.remove('dark-mode');
+    }
+    localStorage.setItem('premium_theme', theme);
+  }, [theme]);
 
   // Scroll to top when the active view changes (Premium App only)
   useEffect(() => {
@@ -40,6 +52,10 @@ const PremiumAppContent = ({ onSwitchMode }) => {
     setSelectedProject(null);
   };
 
+  const handleThemeToggle = () => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   // Define screen layout titles dynamically
   const getScreenTitle = () => {
     switch (activeTab) {
@@ -55,7 +71,6 @@ const PremiumAppContent = ({ onSwitchMode }) => {
     if (isAddingProject) {
       return <AddProject onBack={() => setIsAddingProject(false)} />;
     }
-
     switch (activeTab) {
       case 'dashboard':
         return <PremiumDashboard />;
@@ -75,9 +90,9 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 
   return (
     <div className="premium-app-shell">
-      <PremiumTopBar title={getScreenTitle()} onBellClick={handleBellClick} />
+      <PremiumTopBar title={getScreenTitle()} onBellClick={handleBellClick} onToggleTheme={handleThemeToggle} />
       <NotificationObserver />
-      
+
       <main style={{ flex: 1, paddingBottom: '96px', overflowY: 'auto' }}>
         {renderScreen()}
       </main>
@@ -121,7 +136,6 @@ const PremiumAppContent = ({ onSwitchMode }) => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              
               {/* Option 1 */}
               <button 
                 onClick={() => {
@@ -222,7 +236,6 @@ const PremiumAppContent = ({ onSwitchMode }) => {
     </div>
   );
 };
-
 const PremiumApp = ({ onSwitchMode }) => {
   return (
     <PremiumProvider>

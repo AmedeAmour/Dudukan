@@ -282,3 +282,56 @@
 input, textarea {
   user-select: text;
 }
+
+/* ----------------------------------
+   DARK MODE OVERRIDES
+----------------------------------- */
+:root.dark-mode {
+  --zenith-primary: #0F172A;          /* Deeper Slate */
+  --zenith-primary-container: #1E293B;/* Dark Container */
+  --zenith-accent-gold: #D4AF37;       /* Soft Champagne Gold - kept */
+  --zenith-accent-gold-light: #B59410; /* Darker Gold Accent */
+  --zenith-secondary: #059669;        /* Deeper Emerald */
+  --zenith-secondary-container: #064E3B; /* Dark Emerald Container */
+  
+  --zenith-bg: #090E17;                /* Deep Space Background */
+  --zenith-white: #121826;             /* Raised Surface / Card background */
+  --zenith-surface: #1E293B;           /* Surface variations */
+  
+  /* Text & Border Contrasts */
+  --zenith-on-surface: #F8FAFC;       /* Off-White Text */
+  --zenith-on-surface-variant: #94A3B8;/* Muted Light Gray */
+  --zenith-outline-variant: #334155;  /* Dark Border */
+  
+  /* Shadows */
+  --zenith-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --zenith-shadow-md: 0 15px 35px rgba(0, 0, 0, 0.5);
+  --zenith-shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Smooth theme transitions */
+body, .premium-app-shell, .premium-topbar, .premium-bottomnav-container, .premium-card, .action-sheet {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Adjustments for dark mode elements */
+:root.dark-mode .premium-card-glass {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+:root.dark-mode .premium-badge-gold {
+  background-color: rgba(212, 175, 55, 0.15);
+  color: #D4AF37;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+:root.dark-mode .premium-badge-success {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+:root.dark-mode .action-sheet-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
