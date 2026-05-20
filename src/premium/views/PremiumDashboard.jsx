@@ -765,7 +765,6 @@ const PremiumDashboard = () => {
               const category = tx.type === 'expense' ? categories?.find(c => c.id === tx.categoryId) : null;
               const IconComponent = category ? (iconMap[category.icon] || Info) : (tx.type === 'income' ? TrendingUp : TrendingDown);
               
-              // Adapt colors to premium scheme
               const iconColor = tx.type === 'income' ? 'var(--zenith-secondary)' : 'var(--zenith-on-surface-variant)';
               const bgColor = 'var(--zenith-bg)';
 
@@ -792,7 +791,15 @@ const PremiumDashboard = () => {
                       </div>
                       <div>
                         <p style={{ fontWeight: '600', fontSize: '15px', color: 'var(--zenith-on-surface)', margin: '0 0 4px 0' }}>
-                          {tx.note || (tx.type === 'income' ? 'Revenu' : (tx.categoryId === 'debt' ? 'Remboursement' : category?.name || 'Dépense'))}
+                          {(() => {
+                            const typeLabel = tx.type === 'allocation' ? 'Allocation' : tx.type === 'completion' ? 'Réalisé' : tx.type === 'life_allocation' ? 'Allocation Vie' : '';
+                            return (
+                              <>
+                                {typeLabel && <span style={{ fontWeight: '500', marginRight: '4px' }}>{typeLabel}:</span>}
+                                {tx.projectName || tx.note || (tx.type === 'income' ? 'Revenu' : (tx.categoryId === 'debt' ? 'Remboursement' : category?.name || 'Dépense'))}
+                              </>
+                            );
+                          })()}
                         </p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           {category && (
@@ -801,7 +808,7 @@ const PremiumDashboard = () => {
                             </span>
                           )}
                           <p style={{ fontSize: '12px', color: 'var(--zenith-on-surface-variant)', margin: 0 }}>
-                            {new Date(tx.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                            {new Date(tx.date).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
                       </div>
