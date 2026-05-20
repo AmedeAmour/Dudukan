@@ -1,8 +1,8 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, User } from 'lucide-react';
+import { Bell, User, Moon, Sun } from 'lucide-react';
 
-const PremiumTopBar = ({ title = "Financial Assistant", onBellClick }) => {
+const PremiumTopBar = ({ title = "Financial Assistant", onBellClick, theme, onToggleTheme }) => {
   const { user } = useAuth();
   const avatarUrl = user?.user_metadata?.avatar_url;
 
@@ -31,31 +31,49 @@ const PremiumTopBar = ({ title = "Financial Assistant", onBellClick }) => {
         </div>
         <h1 className="font-heading" style={{
           fontSize: '18px',
-          color: 'var(--zenith-primary)',
+          color: 'var(--zenith-on-surface)',
           margin: 0
         }}>
           {title}
         </h1>
       </div>
-      <button 
-        onClick={onBellClick}
-        style={{
-        background: 'none',
-        border: 'none',
-        padding: '8px',
-        borderRadius: '50%',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'var(--zenith-primary)',
-        transition: 'background-color 0.2s'
-      }}
-      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(26, 79, 139, 0.05)'}
-      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-      >
-        <Bell size={20} />
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button 
+          onClick={onToggleTheme}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '8px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            color: 'var(--zenith-on-surface)',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(26, 79, 139, 0.05)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
+          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+        <button 
+          onClick={onBellClick}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '8px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--zenith-on-surface)',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(26, 79, 139, 0.05)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
+          <Bell size={20} />
+        </button>
+      </div>
     </header>
   );
 };

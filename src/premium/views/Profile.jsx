@@ -81,59 +81,6 @@ const Profile = ({ onSwitchMode }) => {
         </p>
       </div>
 
-      {/* Premium Status Badge Card */}
-      <div className="premium-card" style={{
-        background: 'linear-gradient(135deg, var(--zenith-primary) 0%, #17253A 100%)',
-        color: 'white',
-        padding: '24px',
-        borderRadius: 'var(--radius-xl)',
-        marginBottom: '28px',
-        position: 'relative',
-        overflow: 'hidden',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: 'var(--zenith-shadow-md)'
-      }}>
-        {/* Subtle decorative gold circle */}
-        <div style={{
-          position: 'absolute',
-          top: '-40px',
-          right: '-40px',
-          width: '140px',
-          height: '140px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%)',
-          pointerEvents: 'none'
-        }} />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{
-            width: '56px',
-            height: '56px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(212, 175, 55, 0.15)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '2px solid var(--zenith-accent-gold)',
-            flexShrink: 0
-          }}>
-            <Crown size={28} color="var(--zenith-accent-gold)" />
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 className="font-heading" style={{ fontSize: '18px', margin: 0, color: 'white' }}>
-                Julia Premium
-              </h3>
-              <span className="premium-badge premium-badge-gold" style={{ fontSize: '9px', padding: '2px 8px' }}>
-                VIP
-              </span>
-            </div>
-            <p style={{ fontSize: '12px', margin: '4px 0 0 0', color: 'rgba(255,255,255,0.7)' }}>
-              Accompagnement financier actif
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* Downgrade Action */}
       <div className="premium-card" style={{ 
@@ -227,7 +174,7 @@ const Profile = ({ onSwitchMode }) => {
               borderRadius: 'var(--radius-md)',
               fontSize: '13px',
               color: 'var(--zenith-on-surface)',
-              backgroundColor: 'white',
+              backgroundColor: 'var(--zenith-surface)',
               cursor: 'pointer'
             }}
           >
@@ -252,7 +199,7 @@ const Profile = ({ onSwitchMode }) => {
               borderRadius: 'var(--radius-md)',
               fontSize: '13px',
               color: 'var(--zenith-on-surface)',
-              backgroundColor: 'white',
+              backgroundColor: 'var(--zenith-surface)',
               cursor: 'pointer'
             }}
           >
