@@ -257,6 +257,8 @@ const Settings = ({ onSwitchToPremium }) => {
       });
 
       doc.save(`Rapport_Dudukan_${new Date().toISOString().split('T')[0]}.pdf`);
+      // Notify user that the PDF was generated and downloaded
+      alert('Rapport PDF téléchargé avec succès !');
     } catch (err) {
       console.error(err);
       alert('Erreur lors de la génération du PDF.');
@@ -504,7 +506,7 @@ const Settings = ({ onSwitchToPremium }) => {
               alert('Veuillez autoriser les notifications dans les réglages de votre site.');
             }
           } },
-          { icon: Trash2, label: 'Réinitialiser toutes les données', color: 'var(--accent-pink)', onClick: () => { if(window.confirm('Voulez-vous vraiment TOUT supprimer ?')) resetData(); } },
+          { icon: Trash2, label: 'Réinitialiser toutes les données', color: 'var(--accent-pink)', onClick: () => { if(window.confirm('Voulez-vous vraiment TOUT supprimer ?')) { resetData(); alert('Toutes les données ont été réinitialisées.'); } } },
           { icon: LogOut, label: 'Se déconnecter du compte', color: 'var(--text-light)', onClick: signOut },
         ].map((item, index, arr) => (
           <div key={index} onClick={item.onClick} style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: index === arr.length - 1 ? 'none' : '1px solid #F3F4F6', cursor: 'pointer' }}>

@@ -1,8 +1,8 @@
 import React from 'react';
+import { Bell, User, Moon, Sun, Download } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, User, Moon, Sun } from 'lucide-react';
 
-const PremiumTopBar = ({ title = "Financial Assistant", onBellClick, theme, onToggleTheme }) => {
+const PremiumTopBar = ({ title = "Financial Assistant", onBellClick, theme, onToggleTheme, onDownloadReport }) => {
   const { user } = useAuth();
   const avatarUrl = user?.user_metadata?.avatar_url;
 
@@ -72,6 +72,22 @@ const PremiumTopBar = ({ title = "Financial Assistant", onBellClick, theme, onTo
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
           <Bell size={20} />
+        </button>
+        <button
+          onClick={onDownloadReport}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '8px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            color: 'var(--zenith-on-surface)',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(26, 79, 139, 0.05)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
+          <Download size={20} />
         </button>
       </div>
     </header>

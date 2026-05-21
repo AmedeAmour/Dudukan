@@ -21,7 +21,9 @@ const PremiumFunding = () => {
     currency, 
     financeSavings,
     freeSalary,
-    setLatestAllocationReport
+    latestAllocationReport,
+    setLatestAllocationReport,
+    createTransaction
   } = usePremium();
   
   const [loading, setLoading] = useState(false);
@@ -228,6 +230,20 @@ const PremiumFunding = () => {
           .from('profiles')
           .update({ savings: totalSavings })
           .eq('id', user.id);
+      }
+
+      // Log allocations as premium transactions
+      for (const p of [...recurringAllocations, ...targetAllocations]) {
+        if (p.allocation > 0) {
+          await createTransaction({
+            type: 'allocation',
+            title: `Allocation - ${p.name}`,
+            description: `Répartition automatique d'épargne vers le projet : ${p.name}`,
+            amount: p.allocation,
+            project_id: p.id,
+            project_name: p.name
+          });
+        }
       }
 
       await fetchData();
@@ -550,15 +566,19 @@ const PremiumFunding = () => {
         </h4>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '10px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
-            <div>
-              <span style={{ fontWeight: 700, color: 'var(--zenith-on-surface)', display: 'block' }}>Répartition mensuelle automatique</span>
-              <span style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)' }}>Aujourd'hui</span>
+          {latestAllocationReport && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '10px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
+              <div>
+                <span style={{ fontWeight: 700, color: 'var(--zenith-on-surface)', display: 'block' }}>Dernière répartition automatique</span>
+                <span style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)' }}>
+                  {new Date(latestAllocationReport.timestamp).toLocaleDateString()} à {new Date(latestAllocationReport.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+              <span className="font-data" style={{ color: 'var(--zenith-secondary)', fontWeight: 700 }}>
+                +{latestAllocationReport.totalAllocatedThisTime.toLocaleString()} {currencyCode}
+              </span>
             </div>
-            <span className="font-data" style={{ color: 'var(--zenith-secondary)', fontWeight: 700 }}>
-              +{previewTotalAllocated.toLocaleString()} {currencyCode}
-            </span>
-          </div>
+          )}
           
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '10px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
             <div>

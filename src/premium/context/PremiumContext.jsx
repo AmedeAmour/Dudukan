@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useFinance } from '../../context/FinanceContext';
+import { useAuth } from '../../context/AuthContext';
 
 const PremiumContext = createContext();
 
 export const PremiumProvider = ({ children }) => {
+  const { user } = useAuth();
   const { currency, savings: financeSavings, setSavings: setFinanceSavings, balance, salary: freeSalary } = useFinance();
   const [profile, setProfile] = useState(null);
   const [projects, setProjects] = useState([]);
@@ -14,6 +16,65 @@ export const PremiumProvider = ({ children }) => {
   const [priorities, setPriorities] = useState([]);
   const [coachInsights, setCoachInsights] = useState([]);
   const [latestAllocationReport, setLatestAllocationReportState] = useState(null);
+  
+  // State for premium transactions (used as 'transactions' in UI)
+  const [transactions, setTransactions] = useState([]);
+  // Helper to fetch premium transactions for the current user and map to UI format
+  const fetchPremiumTransactions = async (userId) => {
+    const { data, error } = await supabase
+      .from('premium_transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('Failed to fetch premium transactions', error);
+      return;
+    }
+    const mapped = (data || []).map(tx => ({
+      id: tx.id,
+      type: tx.transaction_type,
+      projectName: tx.project_name,
+      amount: parseFloat(tx.amount || 0),
+      date: tx.created_at,
+      note: tx.description || tx.title,
+      stepName: tx.step_name,
+      projectId: tx.project_id,
+      stepId: tx.step_id,
+      relatedAllocationId: tx.related_allocation_id,
+      metadata: tx.metadata
+    }));
+    setTransactions(mapped);
+  };
+
+
+
+// Helper to create a new premium transaction
+  const createTransaction = async (tx) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.warn('createTransaction: No authenticated user found');
+      return;
+    }
+    const payload = {
+      user_id: user.id,
+      transaction_type: tx.type,
+      title: tx.title,
+      description: tx.description || null,
+      amount: tx.amount || null,
+      project_id: tx.project_id || null,
+      project_name: tx.project_name || null,
+      step_id: tx.step_id || null,
+      step_name: tx.step_name || null,
+      related_allocation_id: tx.related_allocation_id || null,
+      metadata: tx.metadata || null
+    };
+    const { error } = await supabase.from('premium_transactions').insert([payload]).select();
+    if (error) {
+      console.error('Failed to create premium transaction:', error.message);
+    } else {
+      await fetchPremiumTransactions(user.id);
+    }
+  };
 
   const setLatestAllocationReport = useCallback(async (report) => {
     setLatestAllocationReportState(report);
@@ -73,7 +134,10 @@ export const PremiumProvider = ({ children }) => {
       setProfile(profileData);
       setAvailableFunds(financeSavings || 0);
 
-      // 2. Fetch Projects with their Milestones
+      // Load premium transactions for this user
+      await fetchPremiumTransactions(user.id);
+
+      // 3. Fetch Projects and their milestones
       const { data: projectsData, error: projectsError } = await supabase
         .from('projects')
         .select(`
@@ -434,6 +498,9 @@ export const PremiumProvider = ({ children }) => {
   const executePriorityAction = async (priority) => {
     try {
       if (priority.type === 'milestone_complete') {
+        const project = projects.find(p => p.id === priority.projectId);
+        const milestone = project?.milestones?.find(m => m.id === priority.milestoneId);
+
         // Complete milestone in database
         const { error } = await supabase
           .from('milestones')
@@ -441,6 +508,18 @@ export const PremiumProvider = ({ children }) => {
           .eq('id', priority.milestoneId);
         
         if (error) throw error;
+
+        // Log milestone complete as life_allocation
+        await createTransaction({
+          type: 'life_allocation',
+          title: milestone ? `Jalon validé : ${milestone.name}` : priority.title,
+          description: `Déblocage de l'étape clé du projet : ${project?.name || ''}`,
+          amount: priority.amount || null,
+          project_id: priority.projectId,
+          project_name: project?.name,
+          step_id: priority.milestoneId,
+          step_name: milestone?.name
+        });
       } else if (priority.type === 'realize') {
         const project = projects.find(p => p.id === priority.projectId);
         const projectAmount = project ? parseFloat(project.current_amount || 0) : 0;
@@ -465,13 +544,133 @@ export const PremiumProvider = ({ children }) => {
           .eq('id', priority.projectId);
 
         if (error) throw error;
+
+        // Log project realization as completion
+        await createTransaction({
+          type: 'completion',
+          title: `Projet réalisé : ${project?.name || ''}`,
+          description: `Accomplissement final et concrétisation de l'objectif de vie`,
+          amount: projectAmount,
+          project_id: priority.projectId,
+          project_name: project?.name
+        });
       }
-      
-      // Refresh
+
+      // Refresh data after action
       await fetchData();
     } catch (err) {
-      console.error('Error executing Zenith Action:', err.message);
-      alert('Erreur action: ' + err.message);
+      console.error('Error executing priority action:', err);
+      throw err;
+    }
+  };
+
+  const [reminders, setReminders] = useState([]);
+
+  // Load reminders when user changes
+  useEffect(() => {
+    if (user) {
+      try {
+        const saved = localStorage.getItem(`dudukan_premium_reminders_${user.id}`);
+        setReminders(saved ? JSON.parse(saved) : []);
+      } catch (e) {
+        setReminders([]);
+      }
+    } else {
+      setReminders([]);
+    }
+  }, [user]);
+
+  // Helper to save reminders
+  const saveReminders = useCallback((newReminders) => {
+    setReminders(newReminders);
+    if (user) {
+      localStorage.setItem(`dudukan_premium_reminders_${user.id}`, JSON.stringify(newReminders));
+    }
+  }, [user]);
+
+  const addReminder = useCallback((reminder) => {
+    const newReminder = {
+      id: Date.now().toString(),
+      enabled: true,
+      createdAt: new Date().toISOString(),
+      ...reminder
+    };
+    saveReminders([...reminders, newReminder]);
+  }, [reminders, saveReminders]);
+
+  const deleteReminder = useCallback((id) => {
+    saveReminders(reminders.filter(r => r.id !== id));
+  }, [reminders, saveReminders]);
+
+  const toggleReminder = useCallback((id) => {
+    saveReminders(reminders.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r));
+  }, [reminders, saveReminders]);
+
+  const resetPremiumData = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      // 1. Delete premium transactions
+      const { error: txError } = await supabase
+        .from('premium_transactions')
+        .delete()
+        .eq('user_id', user.id);
+      if (txError) console.error('Error resetting premium transactions:', txError);
+
+      // 2. Delete milestones
+      const { data: userProjects } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('user_id', user.id);
+      
+      if (userProjects && userProjects.length > 0) {
+        const projectIds = userProjects.map(p => p.id);
+        const { error: msError } = await supabase
+          .from('milestones')
+          .delete()
+          .in('project_id', projectIds);
+        if (msError) console.error('Error resetting milestones:', msError);
+      }
+
+      // 3. Delete projects
+      const { error: prError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('user_id', user.id);
+      if (prError) console.error('Error resetting projects:', prError);
+
+      // 4. Reset profile savings & salary to 0
+      const { error: profError } = await supabase
+        .from('profiles')
+        .update({ savings: 0, salary: 0 })
+        .eq('id', user.id);
+      if (profError) console.error('Error resetting profile:', profError);
+
+      // 5. Clean local state
+      setProjects([]);
+      setTransactions([]);
+      setAvailableFunds(0);
+      setLatestAllocationReportState(null);
+      setAlerts([]);
+      setPriorities([]);
+      setCoachInsights([]);
+      setReminders([]);
+
+      // 6. Clean localStorage
+      localStorage.removeItem(`dudukan_latest_allocation_report_${user.id}`);
+      localStorage.removeItem(`dudukan_premium_reminders_${user.id}`);
+      localStorage.removeItem('dudukan_coaching_tone');
+      localStorage.removeItem('dudukan_dominant_strategy');
+      localStorage.removeItem('dudukan_alert_safety_mat');
+      localStorage.removeItem('dudukan_auto_analysis');
+
+      // Reload data to ensure everything is clean
+      await fetchData();
+    } catch (err) {
+      console.error('Error resetting premium data:', err);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -497,7 +696,14 @@ export const PremiumProvider = ({ children }) => {
       freeSalary,
       coachInsights,
       latestAllocationReport,
-      setLatestAllocationReport
+      setLatestAllocationReport,
+      transactions,
+      createTransaction,
+      reminders,
+      addReminder,
+      deleteReminder,
+      toggleReminder,
+      resetPremiumData
     }}>
       {children}
     </PremiumContext.Provider>

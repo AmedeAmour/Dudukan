@@ -29,10 +29,10 @@ import {
 } from 'lucide-react';
 
 const PremiumDashboard = () => {
-  const { 
-    profile, 
-    projects, 
-    availableFunds, 
+  const {
+    profile,
+    projects,
+    availableFunds,
     calculateMonthlyNeed,
     executePriorityAction,
     alerts,
@@ -41,14 +41,17 @@ const PremiumDashboard = () => {
     freeSalary,
     coachInsights,
     latestAllocationReport,
-    setLatestAllocationReport
+    setLatestAllocationReport,
+    transactions,
   } = usePremium();
 
   const { user } = useAuth();
-  const { allTransactions, categories, formatCurrency } = useFinance();
+  const { categories, formatCurrency } = useFinance();
   
   const [showAllTransactions, setShowAllTransactions] = useState(false);
-  const displayTransactions = showAllTransactions ? allTransactions : allTransactions.slice(0, 3);
+  const allowedTypes = ['allocation', 'completion', 'life_allocation'];
+  const filteredTransactions = transactions.filter(tx => allowedTypes.includes(tx.type));
+  const displayTransactions = showAllTransactions ? filteredTransactions : filteredTransactions.slice(0, 3);
   
   const iconMap = {
     Utensils, Car, Home, CreditCard, PiggyBank, AlertCircle, User

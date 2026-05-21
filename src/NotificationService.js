@@ -5,26 +5,40 @@ export const NotificationService = {
       console.log('Ce navigateur ne supporte pas les notifications.');
       return false;
     }
-
     const permission = await Notification.requestPermission();
+    console.log('Notification permission:', permission);
     return permission === 'granted';
   },
 
   async sendNotification(title, body) {
+    // Ensure permission is granted before sending
+    if (Notification.permission !== 'granted') {
+      const granted = await this.requestPermission();
+      if (!granted) {
+        console.warn('Notification not sent: permission not granted');
+        return;
+      }
+    }
     if (Notification.permission === 'granted') {
-      const registration = await navigator.serviceWorker.ready;
-      if (registration && registration.showNotification) {
-        registration.showNotification(title, {
-          body,
-          icon: '/sampa-electro.png',
-          badge: '/favicon.svg',
-          vibrate: [100, 50, 100],
-          data: {
-            dateOfArrival: Date.now(),
-            primaryKey: 1
-          }
-        });
-      } else {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration && registration.showNotification) {
+          registration.showNotification(title, {
+            body,
+            icon: '/sampa-electro.png',
+            badge: '/favicon.svg',
+            vibrate: [100, 50, 100],
+            data: {
+              dateOfArrival: Date.now(),
+              primaryKey: 1
+            }
+          });
+        } else {
+          new Notification(title, { body, icon: '/sampa-electro.png' });
+        }
+      } catch (e) {
+        console.error('Error using service worker for notification:', e);
+        // Fallback to simple Notification API
         new Notification(title, { body, icon: '/sampa-electro.png' });
       }
     }
