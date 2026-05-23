@@ -23,8 +23,34 @@ const PremiumFunding = () => {
     freeSalary,
     latestAllocationReport,
     setLatestAllocationReport,
-    createTransaction
+    createTransaction,
+    transactions
   } = usePremium();
+
+  // Group allocations from transactions into operations
+  const allocations = (transactions || []).filter(tx => tx.type === 'allocation');
+  const operations = [];
+  
+  allocations.forEach(tx => {
+    const txTime = new Date(tx.date).getTime();
+    const existingOp = operations.find(op => Math.abs(new Date(op.timestamp).getTime() - txTime) <= 10000);
+    
+    if (existingOp) {
+      existingOp.totalAmount += tx.amount;
+      existingOp.projects.push(tx);
+      if (tx.metadata?.source?.startsWith('projet_manuel') || tx.note?.toLowerCase().includes('manuel') || tx.title?.toLowerCase().includes('manuelle') || tx.description?.toLowerCase().includes('page du projet')) {
+        existingOp.isManual = true;
+      }
+    } else {
+      operations.push({
+        id: tx.id,
+        timestamp: tx.date,
+        totalAmount: tx.amount,
+        isManual: tx.metadata?.source?.startsWith('projet_manuel') || tx.note?.toLowerCase().includes('manuel') || tx.title?.toLowerCase().includes('manuelle') || tx.description?.toLowerCase().includes('page du projet'),
+        projects: [tx]
+      });
+    }
+  });
   
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -566,19 +592,31 @@ const PremiumFunding = () => {
         </h4>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {latestAllocationReport && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '10px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
-              <div>
-                <span style={{ fontWeight: 700, color: 'var(--zenith-on-surface)', display: 'block' }}>Dernière répartition automatique</span>
-                <span style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)' }}>
-                  {new Date(latestAllocationReport.timestamp).toLocaleDateString()} à {new Date(latestAllocationReport.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {operations.slice(0, 5).map(op => {
+            let label = '';
+            if (op.isManual) {
+              label = `Allocation manuelle - ${op.projects[0].projectName || op.projects[0].note || 'Projet'}`;
+            } else {
+              if (op.projects.length === 1) {
+                label = `Allocation automatique - ${op.projects[0].projectName || op.projects[0].note || 'Projet'}`;
+              } else {
+                label = `Répartition automatique (${op.projects.length} projets)`;
+              }
+            }
+            return (
+              <div key={op.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '10px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
+                <div>
+                  <span style={{ fontWeight: 700, color: 'var(--zenith-on-surface)', display: 'block' }}>{label}</span>
+                  <span style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)' }}>
+                    {new Date(op.timestamp).toLocaleString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <span className="font-data" style={{ color: 'var(--zenith-secondary)', fontWeight: 700 }}>
+                  +{op.totalAmount.toLocaleString()} {currencyCode}
                 </span>
               </div>
-              <span className="font-data" style={{ color: 'var(--zenith-secondary)', fontWeight: 700 }}>
-                +{latestAllocationReport.totalAllocatedThisTime.toLocaleString()} {currencyCode}
-              </span>
-            </div>
-          )}
+            );
+          })}
           
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '10px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
             <div>

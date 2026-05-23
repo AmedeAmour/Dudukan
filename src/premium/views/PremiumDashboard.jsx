@@ -49,10 +49,112 @@ const PremiumDashboard = () => {
   const { categories, formatCurrency } = useFinance();
   
   const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const [hiddenReportTime, setHiddenReportTimeState] = useState(() => {
+    return localStorage.getItem('dudukan_hidden_report_time') || null;
+  });
+
+  const setHiddenReportTime = (time) => {
+    setHiddenReportTimeState(time);
+    if (time) {
+      localStorage.setItem('dudukan_hidden_report_time', time);
+    } else {
+      localStorage.removeItem('dudukan_hidden_report_time');
+    }
+  };
+
   const allowedTypes = ['allocation', 'completion', 'life_allocation'];
   const filteredTransactions = transactions.filter(tx => allowedTypes.includes(tx.type));
   const displayTransactions = showAllTransactions ? filteredTransactions : filteredTransactions.slice(0, 3);
   
+  // Reconstruct latest operation report dynamically from the allocations in transactions history
+  const allocations = transactions.filter(tx => tx.type === 'allocation');
+  let latestOpReport = null;
+  if (allocations.length > 0) {
+    const latestTx = allocations[0];
+    const latestTime = new Date(latestTx.date).getTime();
+    
+    // Group all allocations within 10 seconds of the latest one
+    const group = allocations.filter(tx => {
+      const txTime = new Date(tx.date).getTime();
+      return Math.abs(latestTime - txTime) <= 10000;
+    });
+    
+    // Build projects array for display
+    const opProjects = group.map(tx => {
+      const proj = projects.find(p => p.id === tx.projectId || p.name === tx.projectName);
+      if (proj) {
+        const targetAmount = parseFloat(proj.target_amount || 0);
+        const currentAmountAfter = parseFloat(proj.current_amount || 0);
+        const currentAmountBefore = Math.max(0, currentAmountAfter - tx.amount);
+        
+        let steps = [];
+        if (proj.is_complex && proj.milestones) {
+          const sortedMilestones = [...proj.milestones].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+          steps = sortedMilestones.map((m, idx) => {
+            const milestoneTarget = parseFloat(m.target_amount || 0);
+            let previousTargetsSum = 0;
+            for (let i = 0; i < idx; i++) {
+              previousTargetsSum += parseFloat(sortedMilestones[i].target_amount || 0);
+            }
+            const milestoneCurrentBefore = Math.max(0, Math.min(milestoneTarget, currentAmountBefore - previousTargetsSum));
+            const milestoneCurrentAfter = Math.max(0, Math.min(milestoneTarget, currentAmountAfter - previousTargetsSum));
+            const addedToStep = Math.max(0, milestoneCurrentAfter - milestoneCurrentBefore);
+            
+            let status = 'non_commencee';
+            if (m.is_completed || milestoneCurrentAfter >= milestoneTarget) {
+              status = 'realisee';
+            } else if (milestoneCurrentAfter > 0) {
+              status = 'en_cours_de_financement';
+            }
+            
+            return {
+              id: m.id,
+              name: m.name,
+              targetAmount: milestoneTarget,
+              currentBefore: milestoneCurrentBefore,
+              addedAmount: addedToStep,
+              currentAfter: milestoneCurrentAfter,
+              status: status
+            };
+          });
+        }
+        
+        return {
+          id: proj.id,
+          name: proj.name,
+          is_recurring: proj.is_recurring,
+          is_complex: proj.is_complex,
+          allocatedAmount: tx.amount,
+          currentAmountBefore,
+          currentAmountAfter,
+          targetAmount,
+          steps,
+          note: tx.note
+        };
+      } else {
+        return {
+          id: tx.projectId || tx.id,
+          name: tx.projectName || tx.note || 'Projet',
+          is_recurring: false,
+          is_complex: false,
+          allocatedAmount: tx.amount,
+          currentAmountBefore: 0,
+          currentAmountAfter: tx.amount,
+          targetAmount: tx.amount,
+          steps: [],
+          note: tx.note
+        };
+      }
+    });
+    
+    latestOpReport = {
+      timestamp: latestTx.date,
+      totalAllocatedThisTime: group.reduce((sum, tx) => sum + tx.amount, 0),
+      projects: opProjects,
+      isManual: group.some(tx => tx.metadata?.source?.startsWith('projet_manuel') || tx.note?.toLowerCase().includes('manuel') || tx.title?.toLowerCase().includes('manuelle') || tx.description?.toLowerCase().includes('page du projet'))
+    };
+  }
+
   const iconMap = {
     Utensils, Car, Home, CreditCard, PiggyBank, AlertCircle, User
   };
@@ -534,278 +636,171 @@ const PremiumDashboard = () => {
         </div>
       )}
 
-      {/* Suivi de la dernière répartition */}
-{latestAllocationReport ? (
-  <div className="premium-card" style={{ padding: '24px', marginBottom: '32px' }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <CheckCircle size={20} color="var(--zenith-secondary)" />
-        <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
-          Suivi de la dernière répartition
-        </h3>
-      </div>
-      <button
-        onClick={() => setLatestAllocationReport(null)}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: 'var(--zenith-on-surface-variant)',
-          fontSize: '11px',
-          cursor: 'pointer',
-          textDecoration: 'underline',
-          fontWeight: 700
-        }}
-      >
-        Masquer
-      </button>
-    </div>
-    <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', marginTop: '-8px', marginBottom: '20px', lineHeight: '1.4' }}>
-      Répartition validée le {new Date(latestAllocationReport.timestamp).toLocaleDateString()} pour un montant total de <strong>{latestAllocationReport.totalAllocatedThisTime.toLocaleString()} {currencyCode}</strong>.
-    </p>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {latestAllocationReport.projects.map(p => {
-        const allocationShare = latestAllocationReport.totalAllocatedThisTime > 0 ? ((p.allocatedAmount / latestAllocationReport.totalAllocatedThisTime) * 100).toFixed(1) : 0;
-        const currentProgress = p.targetAmount > 0 ? Math.min(100, Math.round((p.currentAmountAfter / p.targetAmount) * 100)) : 0;
-        const prevProgress = p.targetAmount > 0 ? Math.min(100, Math.round((p.currentAmountBefore / p.targetAmount) * 100)) : 0;
-        const progressDiff = currentProgress - prevProgress;
-        const remaining = Math.max(0, p.targetAmount - p.currentAmountAfter);
-        return (
-          <div key={p.id} style={{ padding: '16px', backgroundColor: '#F8FAFC', border: '1px solid var(--zenith-outline-variant)', borderRadius: 'var(--radius-lg)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-              <div>
-                <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: 0, fontWeight: 700 }}>{p.name}</h4>
-                <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', fontWeight: 600 }}>{p.is_recurring ? 'Mensuel récurrent' : p.is_complex ? 'Projet complexe' : 'Projet cible simple'}</span>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <span className="font-data" style={{ fontSize: '14px', color: 'var(--zenith-secondary)', fontWeight: 800, display: 'block' }}>
-                  +{p.allocatedAmount.toLocaleString()} {currencyCode}
-                </span>
-                <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>{allocationShare}% de la répartition</span>
-              </div>
+      {/* Suivi Opérationnel des Dernières Allocations */}
+      {latestOpReport && latestOpReport.projects && latestOpReport.projects.length > 0 && latestOpReport.timestamp !== hiddenReportTime && (
+        <div className="premium-card" style={{
+          padding: '24px',
+          marginBottom: '32px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CheckCircle size={20} color="var(--zenith-secondary)" />
+              <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
+                {latestOpReport.isManual ? "Suivi de la dernière opération" : "Suivi de la dernière répartition"}
+              </h3>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', padding: '10px 0', borderTop: '1px solid var(--zenith-outline-variant)', borderBottom: '1px solid var(--zenith-outline-variant)' }}>
-              <div>
-                <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Financement actuel</span>
-                <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>{p.currentAmountAfter.toLocaleString()} / {p.targetAmount.toLocaleString()} {currencyCode} ({currentProgress}%)</span>
-              </div>
-              <div>
-                <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Reste à financer</span>
-                <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>{remaining.toLocaleString()} {currencyCode}</span>
-              </div>
-            </div>
-            {progressDiff > 0 && (
-              <div style={{ fontSize: '12px', color: 'var(--zenith-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
-                <TrendingUp size={14} /> Le financement a progressé de +{progressDiff}% grâce à cette allocation.
-              </div>
-            )}
-            {p.is_complex && p.steps && p.steps.length > 0 && (
-              <div style={{ marginTop: '12px', backgroundColor: 'white', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--zenith-outline-variant)' }}>
-                <h5 className="font-heading" style={{ fontSize: '11px', color: 'var(--zenith-on-surface)', margin: '0 0 10px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Détail des étapes :</h5>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {p.steps.map(step => {
-                    const stepProgress = step.targetAmount > 0 ? Math.min(100, Math.round((step.currentAfter / step.targetAmount) * 100)) : 0;
-                    let statusText = 'Non commencée';
-                    let statusColor = '#757575';
-                    let statusBg = '#EEEEEE';
-                    if (step.status === 'realisee') {
-                      statusText = 'Réalisée / Prête';
-                      statusColor = '#2E7D32';
-                      statusBg = '#E8F5E9';
-                    } else if (step.status === 'en_cours_de_financement') {
-                      statusText = 'En cours';
-                      statusColor = '#E65100';
-                      statusBg = '#FFE0B2';
-                    }
-                    return (
-                      <div key={step.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', paddingBottom: '6px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
-                        <div>
-                          <span style={{ fontWeight: 600, color: 'var(--zenith-on-surface)' }}>{step.name}</span>
-                          <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>{step.currentAfter.toLocaleString()} / {step.targetAmount.toLocaleString()} {currencyCode} ({stepProgress}%)</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {step.addedAmount > 0 && (
-                            <span style={{ fontSize: '11px', color: 'var(--zenith-secondary)', fontWeight: 600 }}>+{step.addedAmount.toLocaleString()}</span>
-                          )}
-                          <span style={{ padding: '2px 8px', fontSize: '10px', borderRadius: '10px', fontWeight: 700, color: statusColor, backgroundColor: statusBg }}>{statusText}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            <button 
+              onClick={() => setHiddenReportTime(latestOpReport.timestamp)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--zenith-on-surface-variant)',
+                fontSize: '11px',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                fontWeight: 700
+              }}
+            >
+              Masquer
+            </button>
           </div>
-        );
-      })}
-    </div>
-  </div>
-) : (
-  <>
-    <h4 className="font-heading" style={{ fontSize: '16px', color: 'var(--zenith-on-surface)', marginBottom: '12px' }}>Dernières allocations manuelles</h4>
-    {transactions.filter(tx => tx.type === 'allocation').slice(0, 5).map(tx => (
-      <div key={tx.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--zenith-outline-variant)' }}>
-        <div>
-          <span style={{ fontWeight: 600, color: 'var(--zenith-on-surface)' }}>{tx.projectName || tx.note}</span><br />
-          <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>{new Date(tx.date).toLocaleDateString()}</span>
-        </div>
-        <div style={{ fontWeight: 700, color: 'var(--zenith-secondary)' }}>+{tx.amount.toLocaleString()} {currencyCode}</div>
-      </div>
-    ))}
-    {transactions.filter(tx => tx.type === 'allocation').length === 0 && (
-      <p style={{ color: 'var(--zenith-on-surface-variant)', fontSize: '13px' }}>Aucune allocation manuelle récente.</p>
-    )}
-  </>
-)}
-                  {latestAllocationReport && latestAllocationReport.projects && latestAllocationReport.projects.length > 0 && (
-              <div className="premium-card" style={{
-                padding: '24px',
-                marginBottom: '32px'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <CheckCircle size={20} color="var(--zenith-secondary)" />
-                    <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
-                      Suivi de la dernière répartition
-                    </h3>
+
+          <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', marginTop: '-8px', marginBottom: '20px', lineHeight: '1.4' }}>
+            {latestOpReport.isManual 
+              ? `Allocation manuelle effectuée le ${new Date(latestOpReport.timestamp).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} pour un montant de `
+              : `Répartition automatique validée le ${new Date(latestOpReport.timestamp).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} pour un montant total de `
+            }
+            <strong>{latestOpReport.totalAllocatedThisTime.toLocaleString()} {currencyCode}</strong>.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {latestOpReport.projects.map(p => {
+              const allocationShare = latestOpReport.totalAllocatedThisTime > 0 
+                ? ((p.allocatedAmount / latestOpReport.totalAllocatedThisTime) * 100).toFixed(1)
+                : 0;
+              const currentProgress = p.targetAmount > 0 
+                ? Math.min(100, Math.round((p.currentAmountAfter / p.targetAmount) * 100))
+                : 0;
+              const prevProgress = p.targetAmount > 0
+                ? Math.min(100, Math.round((p.currentAmountBefore / p.targetAmount) * 100))
+                : 0;
+              const progressDiff = currentProgress - prevProgress;
+              const remaining = Math.max(0, p.targetAmount - p.currentAmountAfter);
+
+              return (
+                <div key={p.id} style={{
+                  padding: '16px',
+                  backgroundColor: '#F8FAFC',
+                  border: '1px solid var(--zenith-outline-variant)',
+                  borderRadius: 'var(--radius-lg)'
+                }}>
+                  {/* Projet Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: 0, fontWeight: 700 }}>
+                        {p.name}
+                      </h4>
+                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', fontWeight: 600 }}>
+                        {p.is_recurring ? 'Mensuel récurrent' : p.is_complex ? 'Projet complexe' : 'Projet cible simple'}
+                      </span>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span className="font-data" style={{ fontSize: '14px', color: 'var(--zenith-secondary)', fontWeight: 800, display: 'block' }}>
+                        +{p.allocatedAmount.toLocaleString()} {currencyCode}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>
+                        {allocationShare}% de la répartition
+                      </span>
+                    </div>
                   </div>
-                  <button 
-                    onClick={() => setLatestAllocationReport(null)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--zenith-on-surface-variant)',
-                      fontSize: '11px',
-                      cursor: 'pointer',
-                      textDecoration: 'underline',
-                      fontWeight: 700
-                    }}
-                  >
-                    Masquer
-                  </button>
-                </div>
-                <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', marginTop: '-8px', marginBottom: '20px', lineHeight: '1.4' }}>
-                  Répartition validée le {new Date(latestAllocationReport.timestamp).toLocaleDateString()} pour un montant total de <strong>{latestAllocationReport.totalAllocatedThisTime.toLocaleString()} {currencyCode}</strong>.
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {latestAllocationReport.projects.map(p => {
-                    const allocationShare = latestAllocationReport.totalAllocatedThisTime > 0 
-                      ? ((p.allocatedAmount / latestAllocationReport.totalAllocatedThisTime) * 100).toFixed(1)
-                      : 0;
-                    const currentProgress = p.targetAmount > 0 
-                      ? Math.min(100, Math.round((p.currentAmountAfter / p.targetAmount) * 100))
-                      : 0;
-                    const prevProgress = p.targetAmount > 0
-                      ? Math.min(100, Math.round((p.currentAmountBefore / p.targetAmount) * 100))
-                      : 0;
-                    const progressDiff = currentProgress - prevProgress;
-                    const remaining = Math.max(0, p.targetAmount - p.currentAmountAfter);
-                    return (
-                      <div key={p.id} style={{
-                        padding: '16px',
-                        backgroundColor: '#F8FAFC',
-                        border: '1px solid var(--zenith-outline-variant)',
-                        borderRadius: 'var(--radius-lg)'
-                      }}>
-                        {/* Projet Header */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                          <div>
-                            <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: 0, fontWeight: 700 }}>
-                              {p.name}
-                            </h4>
-                            <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', fontWeight: 600 }}>
-                              {p.is_recurring ? 'Mensuel récurrent' : p.is_complex ? 'Projet complexe' : 'Projet cible simple'}
-                            </span>
-                          </div>
-                          <div style={{ textAlign: 'right' }}>
-                            <span className="font-data" style={{ fontSize: '14px', color: 'var(--zenith-secondary)', fontWeight: 800, display: 'block' }}>
-                              +{p.allocatedAmount.toLocaleString()} {currencyCode}
-                            </span>
-                            <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>
-                              {allocationShare}% de la répartition
-                            </span>
-                          </div>
-                        </div>
-                        {/* Financement Info */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', padding: '10px 0', borderTop: '1px solid var(--zenith-outline-variant)', borderBottom: '1px solid var(--zenith-outline-variant)' }}>
-                          <div>
-                            <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Financement actuel</span>
-                            <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
-                              {p.currentAmountAfter.toLocaleString()} / {p.targetAmount.toLocaleString()} {currencyCode} ({currentProgress}%)
-                            </span>
-                          </div>
-                          <div>
-                            <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Reste à financer</span>
-                            <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
-                              {remaining.toLocaleString()} {currencyCode}
-                            </span>
-                          </div>
-                        </div>
-                        {progressDiff > 0 && (
-                          <div style={{ fontSize: '12px', color: 'var(--zenith-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
-                            <TrendingUp size={14} /> Le financement a progressé de +{progressDiff}% grâce à cette allocation.
-                          </div>
-                        )}
-                        {p.is_complex && p.steps && p.steps.length > 0 && (
-                          <div style={{ marginTop: '12px', backgroundColor: 'white', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--zenith-outline-variant)' }}>
-                            <h5 className="font-heading" style={{ fontSize: '11px', color: 'var(--zenith-on-surface)', margin: '0 0 10px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                              Détail des étapes :
-                            </h5>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              {p.steps.map(step => {
-                                const stepProgress = step.targetAmount > 0 
-                                  ? Math.min(100, Math.round((step.currentAfter / step.targetAmount) * 100))
-                                  : 0;
-                                let statusText = 'Non commencée';
-                                let statusColor = '#757575';
-                                let statusBg = '#EEEEEE';
-                                if (step.status === 'realisee') {
-                                  statusText = 'Réalisée / Prête';
-                                  statusColor = '#2E7D32';
-                                  statusBg = '#E8F5E9';
-                                } else if (step.status === 'en_cours_de_financement') {
-                                  statusText = 'En cours';
-                                  statusColor = '#E65100';
-                                  statusBg = '#FFE0B2';
-                                }
-                                return (
-                                  <div key={step.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', paddingBottom: '6px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
-                                    <div>
-                                      <span style={{ fontWeight: 600, color: 'var(--zenith-on-surface)' }}>{step.name}</span>
-                                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
-                                        {step.currentAfter.toLocaleString()} / {step.targetAmount.toLocaleString()} {currencyCode} ({stepProgress}%)
-                                      </span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      {step.addedAmount > 0 && (
-                                        <span style={{ fontSize: '11px', color: 'var(--zenith-secondary)', fontWeight: 600 }}>
-                                          +{step.addedAmount.toLocaleString()}
-                                        </span>
-                                      )}
-                                      <span style={{
-                                        padding: '2px 8px',
-                                        fontSize: '10px',
-                                        borderRadius: '10px',
-                                        fontWeight: 700,
-                                        color: statusColor,
-                                        backgroundColor: statusBg
-                                      }}>
-                                        {statusText}
-                                      </span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
+
+                  {/* Financement Info */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', padding: '10px 0', borderTop: '1px solid var(--zenith-outline-variant)', borderBottom: '1px solid var(--zenith-outline-variant)' }}>
+                    <div>
+                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Financement actuel</span>
+                      <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
+                        {p.currentAmountAfter.toLocaleString()} / {p.targetAmount.toLocaleString()} {currencyCode} ({currentProgress}%)
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Reste à financer</span>
+                      <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
+                        {remaining.toLocaleString()} {currencyCode}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Impact */}
+                  {progressDiff > 0 && (
+                    <div style={{ fontSize: '12px', color: 'var(--zenith-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                      <TrendingUp size={14} /> Le financement a progressé de +{progressDiff}% grâce à cette allocation.
+                    </div>
+                  )}
+
+                  {/* Steps details for complex projects */}
+                  {p.is_complex && p.steps && p.steps.length > 0 && (
+                    <div style={{ marginTop: '12px', backgroundColor: 'white', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--zenith-outline-variant)' }}>
+                      <h5 className="font-heading" style={{ fontSize: '11px', color: 'var(--zenith-on-surface)', margin: '0 0 10px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Détail des étapes :
+                      </h5>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {p.steps.map(step => {
+                          const stepProgress = step.targetAmount > 0 
+                            ? Math.min(100, Math.round((step.currentAfter / step.targetAmount) * 100))
+                            : 0;
+                          
+                          let statusText = 'Non commencée';
+                          let statusColor = '#757575';
+                          let statusBg = '#EEEEEE';
+
+                          if (step.status === 'realisee') {
+                            statusText = 'Réalisée / Prête';
+                            statusColor = '#2E7D32';
+                            statusBg = '#E8F5E9';
+                          } else if (step.status === 'en_cours_de_financement') {
+                            statusText = 'En cours';
+                            statusColor = '#E65100';
+                            statusBg = '#FFE0B2';
+                          }
+
+                          return (
+                            <div key={step.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', paddingBottom: '6px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
+                              <div>
+                                <span style={{ fontWeight: 600, color: 'var(--zenith-on-surface)' }}>{step.name}</span>
+                                <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
+                                  {step.currentAfter.toLocaleString()} / {step.targetAmount.toLocaleString()} {currencyCode} ({stepProgress}%)
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                {step.addedAmount > 0 && (
+                                  <span style={{ fontSize: '11px', color: 'var(--zenith-secondary)', fontWeight: 600 }}>
+                                    +{step.addedAmount.toLocaleString()}
+                                  </span>
+                                )}
+                                <span style={{
+                                  padding: '2px 8px',
+                                  fontSize: '10px',
+                                  borderRadius: '10px',
+                                  fontWeight: 700,
+                                  color: statusColor,
+                                  backgroundColor: statusBg
+                                }}>
+                                  {statusText}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          );
+                        })}
                       </div>
-                    );
-                  })}
+                    </div>
+                  )}
+
                 </div>
-              </div>
-            )}
-
-
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Coach Dudukan - Insights section (Moved to bottom) */}
       {coachInsights && coachInsights.length > 0 && (
