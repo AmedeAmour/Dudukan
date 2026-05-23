@@ -215,6 +215,16 @@ const ProjectDetail = ({ project, onBack }) => {
 
       if (pError) throw pError;
 
+      await createTransaction({
+        type: 'allocation',
+        title: `Allocation manuelle au projet ${project.name} - étape ${activeMilestone.name}`,
+        description: 'Montant alloué depuis la page du projet',
+        amount: amountToAllocate,
+        project_id: project.id,
+        project_name: project.name,
+        metadata: { source: 'projet_manuel_milestone' }
+      });
+
       setAllocationAmount('');
       await fetchData();
       alert("Fonds alloués avec succès vers l'étape active !");
@@ -266,6 +276,7 @@ const ProjectDetail = ({ project, onBack }) => {
           project_name: project.name,
           metadata: { source: 'projet_manuel' }
         });
+        await fetchData();
 
     } catch (err) {
       alert("Erreur de virement : " + err.message);

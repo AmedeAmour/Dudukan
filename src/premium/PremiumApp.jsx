@@ -267,22 +267,13 @@ const PremiumAppContent = ({ onSwitchMode }) => {
       
       doc.setTextColor(50, 50, 50);
       
-      // Merge normal transactions and premium transactions for a complete view
-      const mergedTransactions = [...(allTransactions || [])];
-      
-      // Add premium specific transactions if they have a date and aren't duplicated
-      if (premiumTransactions && premiumTransactions.length > 0) {
-        premiumTransactions.forEach(ptx => {
-          if (!mergedTransactions.find(t => t.id === ptx.id)) {
-            mergedTransactions.push({
-              ...ptx,
-              date: ptx.created_at || ptx.date,
-              categoryId: ptx.type,
-              note: ptx.description || ptx.title || `Opération Premium (${ptx.type})`
-            });
-          }
-        });
-      }
+      // Only show Premium transactions — free-version transactions are excluded
+      const mergedTransactions = (premiumTransactions || []).map(ptx => ({
+        ...ptx,
+        date: ptx.date || ptx.created_at,
+        categoryId: ptx.type,
+        note: ptx.note || ptx.description || ptx.title || `Opération Premium (${ptx.type})`
+      }));
       
       // Sort by date descending
       mergedTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -306,12 +297,18 @@ const PremiumAppContent = ({ onSwitchMode }) => {
           }
           const dateStr = tx.date ? new Date(tx.date).toLocaleDateString('fr-FR') : '-';
           const category = categories.find(c => c.id === tx.categoryId);
-          let catStr = category ? category.name : '';
-          if (!catStr) {
-            if (tx.type === 'income') catStr = 'Revenu';
-            else if (tx.type === 'allocation') catStr = 'Allocation';
-            else if (tx.type === 'completion') catStr = 'Réalisation';
-            else catStr = 'Autre';
+          let catStr = '';
+          if (category) {
+            catStr = category.name;
+          } else {
+            // Map known transaction types to readable categories
+            const typeMap = {
+              allocation: 'Allocation',
+              completion: 'Réalisé',
+              income: 'Revenu',
+              expense: 'Dépense',
+            };
+            catStr = typeMap[tx.type] || 'Autre';
           }
           let rawNote = tx.note || '';
           if (tx.projectName) {
