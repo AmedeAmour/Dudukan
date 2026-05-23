@@ -12,7 +12,7 @@ import ProjectDetail from './views/ProjectDetail';
 import Profile from './views/Profile';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
-import { PremiumActions } from './components/PremiumActions';
+
 import { Sparkles, Wallet, Settings, X, Plus } from 'lucide-react';
 import './PremiumStyles.css';
 import { supabase } from '../supabaseClient';
@@ -466,8 +466,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
               </button>
             </div>
 
-                        {/* Premium Actions */}
-            <PremiumActions onDownloadReport={handleDownloadReport} />
+            
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
               {/* Option 1 */}
               <button 

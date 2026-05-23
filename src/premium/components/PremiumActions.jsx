@@ -2,20 +2,13 @@ import React from 'react';
 import {
   Download,
   Bell,
-  Trash2,
-  Calendar,
-  CheckCircle,
-  Sparkles,
-  Plus,
-  Settings,
-  Wallet,
-  X,
+  Trash2
 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
 import { NotificationService } from '../../NotificationService';
 
 export const PremiumActions = ({ onDownloadReport }) => {
-  const { resetData, notificationSchedule, setNotificationSchedule } = useFinance();
+  const { resetData } = useFinance();
 
   const handleTestNotification = async () => {
     const granted = await NotificationService.requestPermission();
@@ -32,12 +25,6 @@ export const PremiumActions = ({ onDownloadReport }) => {
       resetData();
       alert('Toutes les données ont été réinitialisées.');
     }
-  };
-
-  const toggleDay = (idx) => {
-    const newSched = [...notificationSchedule];
-    newSched[idx].enabled = !newSched[idx].enabled;
-    setNotificationSchedule(newSched);
   };
 
   return (
@@ -75,25 +62,6 @@ export const PremiumActions = ({ onDownloadReport }) => {
           <h4>🗑️ Réinitialiser toutes les données</h4>
           <p>Supprimez toutes les données locales et recommencez à zéro.</p>
           <button onClick={handleReset} className="action-btn danger">Tout réinitialiser</button>
-        </div>
-      </div>
-
-      {/* Planning des rappels */}
-      <div className="action-card">
-        <div className="icon-wrapper" style={{ background: 'rgba(255,165,0,0.1)' }}>
-          <Calendar size={20} color="var(--zenith-accent-orange)" />
-        </div>
-        <div className="content">
-          <h4>🗓️ Planning des rappels</h4>
-          <p>Activez ou désactivez les jours de rappel.</p>
-          <div className="schedule-list">
-            {notificationSchedule.map((s, i) => (
-              <label key={s.day} className="schedule-item">
-                <input type="checkbox" checked={s.enabled} onChange={() => toggleDay(i)} />
-                <span>{s.label} – {s.time}</span>
-              </label>
-            ))}
-          </div>
         </div>
       </div>
     </div>
