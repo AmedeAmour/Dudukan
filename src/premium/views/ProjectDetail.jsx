@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const ProjectDetail = ({ project, onBack }) => {
-  const { profile, fetchData, currency, financeSavings, setFinanceSavings, projects } = usePremium();
+  const { profile, fetchData, currency, financeSavings, setFinanceSavings, projects, createTransaction } = usePremium();
   const [allocationAmount, setAllocationAmount] = useState('');
   const [fundingLoading, setFundingLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -246,19 +246,27 @@ const ProjectDetail = ({ project, onBack }) => {
     setFundingLoading(true);
 
     try {
-      const { error: pError } = await supabase
-        .from('projects')
-        .update({
-          current_amount: current + amountToAllocate
-        })
-        .eq('id', project.id);
+        // Update project's current amount
+        const { error: pError } = await supabase
+          .from('projects')
+          .update({
+            current_amount: current + amountToAllocate
+          })
+          .eq('id', project.id);
 
-      if (pError) throw pError;
+        if (pError) throw pError;
 
-      setAllocationAmount('');
-      await fetchData();
-      alert("Fonds alloués avec succès !");
-      onBack();
+        // Log the manual allocation as a premium transaction
+        await createTransaction({
+          type: 'allocation',
+          title: `Allocation manuelle au projet ${project.name}`,
+          description: 'Montant alloué directement depuis la page du projet',
+          amount: amountToAllocate,
+          project_id: project.id,
+          project_name: project.name,
+          metadata: { source: 'projet_manuel' }
+        });
+
     } catch (err) {
       alert("Erreur de virement : " + err.message);
     } finally {
