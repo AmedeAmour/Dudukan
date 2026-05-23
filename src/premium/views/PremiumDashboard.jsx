@@ -534,167 +534,278 @@ const PremiumDashboard = () => {
         </div>
       )}
 
-      {/* Suivi Opérationnel des Dernières Allocations */}
-      {latestAllocationReport && latestAllocationReport.projects && latestAllocationReport.projects.length > 0 && (
-        <div className="premium-card" style={{
-          padding: '24px',
-          marginBottom: '32px'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <CheckCircle size={20} color="var(--zenith-secondary)" />
-              <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
-                Suivi de la dernière répartition
-              </h3>
+      {/* Suivi de la dernière répartition */}
+{latestAllocationReport ? (
+  <div className="premium-card" style={{ padding: '24px', marginBottom: '32px' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <CheckCircle size={20} color="var(--zenith-secondary)" />
+        <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
+          Suivi de la dernière répartition
+        </h3>
+      </div>
+      <button
+        onClick={() => setLatestAllocationReport(null)}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: 'var(--zenith-on-surface-variant)',
+          fontSize: '11px',
+          cursor: 'pointer',
+          textDecoration: 'underline',
+          fontWeight: 700
+        }}
+      >
+        Masquer
+      </button>
+    </div>
+    <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', marginTop: '-8px', marginBottom: '20px', lineHeight: '1.4' }}>
+      Répartition validée le {new Date(latestAllocationReport.timestamp).toLocaleDateString()} pour un montant total de <strong>{latestAllocationReport.totalAllocatedThisTime.toLocaleString()} {currencyCode}</strong>.
+    </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {latestAllocationReport.projects.map(p => {
+        const allocationShare = latestAllocationReport.totalAllocatedThisTime > 0 ? ((p.allocatedAmount / latestAllocationReport.totalAllocatedThisTime) * 100).toFixed(1) : 0;
+        const currentProgress = p.targetAmount > 0 ? Math.min(100, Math.round((p.currentAmountAfter / p.targetAmount) * 100)) : 0;
+        const prevProgress = p.targetAmount > 0 ? Math.min(100, Math.round((p.currentAmountBefore / p.targetAmount) * 100)) : 0;
+        const progressDiff = currentProgress - prevProgress;
+        const remaining = Math.max(0, p.targetAmount - p.currentAmountAfter);
+        return (
+          <div key={p.id} style={{ padding: '16px', backgroundColor: '#F8FAFC', border: '1px solid var(--zenith-outline-variant)', borderRadius: 'var(--radius-lg)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+              <div>
+                <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: 0, fontWeight: 700 }}>{p.name}</h4>
+                <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', fontWeight: 600 }}>{p.is_recurring ? 'Mensuel récurrent' : p.is_complex ? 'Projet complexe' : 'Projet cible simple'}</span>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <span className="font-data" style={{ fontSize: '14px', color: 'var(--zenith-secondary)', fontWeight: 800, display: 'block' }}>
+                  +{p.allocatedAmount.toLocaleString()} {currencyCode}
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>{allocationShare}% de la répartition</span>
+              </div>
             </div>
-            <button 
-              onClick={() => setLatestAllocationReport(null)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--zenith-on-surface-variant)',
-                fontSize: '11px',
-                cursor: 'pointer',
-                textDecoration: 'underline',
-                fontWeight: 700
-              }}
-            >
-              Masquer
-            </button>
-          </div>
-
-          <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', marginTop: '-8px', marginBottom: '20px', lineHeight: '1.4' }}>
-            Répartition validée le {new Date(latestAllocationReport.timestamp).toLocaleDateString()} pour un montant total de <strong>{latestAllocationReport.totalAllocatedThisTime.toLocaleString()} {currencyCode}</strong>.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {latestAllocationReport.projects.map(p => {
-              const allocationShare = latestAllocationReport.totalAllocatedThisTime > 0 
-                ? ((p.allocatedAmount / latestAllocationReport.totalAllocatedThisTime) * 100).toFixed(1)
-                : 0;
-              const currentProgress = p.targetAmount > 0 
-                ? Math.min(100, Math.round((p.currentAmountAfter / p.targetAmount) * 100))
-                : 0;
-              const prevProgress = p.targetAmount > 0
-                ? Math.min(100, Math.round((p.currentAmountBefore / p.targetAmount) * 100))
-                : 0;
-              const progressDiff = currentProgress - prevProgress;
-              const remaining = Math.max(0, p.targetAmount - p.currentAmountAfter);
-
-              return (
-                <div key={p.id} style={{
-                  padding: '16px',
-                  backgroundColor: '#F8FAFC',
-                  border: '1px solid var(--zenith-outline-variant)',
-                  borderRadius: 'var(--radius-lg)'
-                }}>
-                  {/* Projet Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                    <div>
-                      <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: 0, fontWeight: 700 }}>
-                        {p.name}
-                      </h4>
-                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', fontWeight: 600 }}>
-                        {p.is_recurring ? 'Mensuel récurrent' : p.is_complex ? 'Projet complexe' : 'Projet cible simple'}
-                      </span>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <span className="font-data" style={{ fontSize: '14px', color: 'var(--zenith-secondary)', fontWeight: 800, display: 'block' }}>
-                        +{p.allocatedAmount.toLocaleString()} {currencyCode}
-                      </span>
-                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>
-                        {allocationShare}% de la répartition
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Financement Info */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', padding: '10px 0', borderTop: '1px solid var(--zenith-outline-variant)', borderBottom: '1px solid var(--zenith-outline-variant)' }}>
-                    <div>
-                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Financement actuel</span>
-                      <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
-                        {p.currentAmountAfter.toLocaleString()} / {p.targetAmount.toLocaleString()} {currencyCode} ({currentProgress}%)
-                      </span>
-                    </div>
-                    <div>
-                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Reste à financer</span>
-                      <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
-                        {remaining.toLocaleString()} {currencyCode}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Impact */}
-                  {progressDiff > 0 && (
-                    <div style={{ fontSize: '12px', color: 'var(--zenith-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
-                      <TrendingUp size={14} /> Le financement a progressé de +{progressDiff}% grâce à cette allocation.
-                    </div>
-                  )}
-
-                  {/* Steps details for complex projects */}
-                  {p.is_complex && p.steps && p.steps.length > 0 && (
-                    <div style={{ marginTop: '12px', backgroundColor: 'white', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--zenith-outline-variant)' }}>
-                      <h5 className="font-heading" style={{ fontSize: '11px', color: 'var(--zenith-on-surface)', margin: '0 0 10px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        Détail des étapes :
-                      </h5>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {p.steps.map(step => {
-                          const stepProgress = step.targetAmount > 0 
-                            ? Math.min(100, Math.round((step.currentAfter / step.targetAmount) * 100))
-                            : 0;
-                          
-                          let statusText = 'Non commencée';
-                          let statusColor = '#757575';
-                          let statusBg = '#EEEEEE';
-
-                          if (step.status === 'realisee') {
-                            statusText = 'Réalisée / Prête';
-                            statusColor = '#2E7D32';
-                            statusBg = '#E8F5E9';
-                          } else if (step.status === 'en_cours_de_financement') {
-                            statusText = 'En cours';
-                            statusColor = '#E65100';
-                            statusBg = '#FFE0B2';
-                          }
-
-                          return (
-                            <div key={step.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', paddingBottom: '6px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
-                              <div>
-                                <span style={{ fontWeight: 600, color: 'var(--zenith-on-surface)' }}>{step.name}</span>
-                                <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
-                                  {step.currentAfter.toLocaleString()} / {step.targetAmount.toLocaleString()} {currencyCode} ({stepProgress}%)
-                                </span>
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                {step.addedAmount > 0 && (
-                                  <span style={{ fontSize: '11px', color: 'var(--zenith-secondary)', fontWeight: 600 }}>
-                                    +{step.addedAmount.toLocaleString()}
-                                  </span>
-                                )}
-                                <span style={{
-                                  padding: '2px 8px',
-                                  fontSize: '10px',
-                                  borderRadius: '10px',
-                                  fontWeight: 700,
-                                  color: statusColor,
-                                  backgroundColor: statusBg
-                                }}>
-                                  {statusText}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', padding: '10px 0', borderTop: '1px solid var(--zenith-outline-variant)', borderBottom: '1px solid var(--zenith-outline-variant)' }}>
+              <div>
+                <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Financement actuel</span>
+                <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>{p.currentAmountAfter.toLocaleString()} / {p.targetAmount.toLocaleString()} {currencyCode} ({currentProgress}%)</span>
+              </div>
+              <div>
+                <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Reste à financer</span>
+                <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>{remaining.toLocaleString()} {currencyCode}</span>
+              </div>
+            </div>
+            {progressDiff > 0 && (
+              <div style={{ fontSize: '12px', color: 'var(--zenith-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                <TrendingUp size={14} /> Le financement a progressé de +{progressDiff}% grâce à cette allocation.
+              </div>
+            )}
+            {p.is_complex && p.steps && p.steps.length > 0 && (
+              <div style={{ marginTop: '12px', backgroundColor: 'white', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--zenith-outline-variant)' }}>
+                <h5 className="font-heading" style={{ fontSize: '11px', color: 'var(--zenith-on-surface)', margin: '0 0 10px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Détail des étapes :</h5>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {p.steps.map(step => {
+                    const stepProgress = step.targetAmount > 0 ? Math.min(100, Math.round((step.currentAfter / step.targetAmount) * 100)) : 0;
+                    let statusText = 'Non commencée';
+                    let statusColor = '#757575';
+                    let statusBg = '#EEEEEE';
+                    if (step.status === 'realisee') {
+                      statusText = 'Réalisée / Prête';
+                      statusColor = '#2E7D32';
+                      statusBg = '#E8F5E9';
+                    } else if (step.status === 'en_cours_de_financement') {
+                      statusText = 'En cours';
+                      statusColor = '#E65100';
+                      statusBg = '#FFE0B2';
+                    }
+                    return (
+                      <div key={step.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', paddingBottom: '6px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
+                        <div>
+                          <span style={{ fontWeight: 600, color: 'var(--zenith-on-surface)' }}>{step.name}</span>
+                          <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>{step.currentAfter.toLocaleString()} / {step.targetAmount.toLocaleString()} {currencyCode} ({stepProgress}%)</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {step.addedAmount > 0 && (
+                            <span style={{ fontSize: '11px', color: 'var(--zenith-secondary)', fontWeight: 600 }}>+{step.addedAmount.toLocaleString()}</span>
+                          )}
+                          <span style={{ padding: '2px 8px', fontSize: '10px', borderRadius: '10px', fontWeight: 700, color: statusColor, backgroundColor: statusBg }}>{statusText}</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
-
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </div>
+            )}
           </div>
+        );
+      })}
+    </div>
+  </div>
+) : (
+  <>
+    <h4 className="font-heading" style={{ fontSize: '16px', color: 'var(--zenith-on-surface)', marginBottom: '12px' }}>Dernières allocations manuelles</h4>
+    {transactions.filter(tx => tx.type === 'allocation').slice(0, 5).map(tx => (
+      <div key={tx.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--zenith-outline-variant)' }}>
+        <div>
+          <span style={{ fontWeight: 600, color: 'var(--zenith-on-surface)' }}>{tx.projectName || tx.note}</span><br />
+          <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>{new Date(tx.date).toLocaleDateString()}</span>
         </div>
-      )}
+        <div style={{ fontWeight: 700, color: 'var(--zenith-secondary)' }}>+{tx.amount.toLocaleString()} {currencyCode}</div>
+      </div>
+    ))}
+    {transactions.filter(tx => tx.type === 'allocation').length === 0 && (
+      <p style={{ color: 'var(--zenith-on-surface-variant)', fontSize: '13px' }}>Aucune allocation manuelle récente.</p>
+    )}
+  </>
+)}
+                  {latestAllocationReport && latestAllocationReport.projects && latestAllocationReport.projects.length > 0 && (
+              <div className="premium-card" style={{
+                padding: '24px',
+                marginBottom: '32px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CheckCircle size={20} color="var(--zenith-secondary)" />
+                    <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
+                      Suivi de la dernière répartition
+                    </h3>
+                  </div>
+                  <button 
+                    onClick={() => setLatestAllocationReport(null)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--zenith-on-surface-variant)',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      fontWeight: 700
+                    }}
+                  >
+                    Masquer
+                  </button>
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', marginTop: '-8px', marginBottom: '20px', lineHeight: '1.4' }}>
+                  Répartition validée le {new Date(latestAllocationReport.timestamp).toLocaleDateString()} pour un montant total de <strong>{latestAllocationReport.totalAllocatedThisTime.toLocaleString()} {currencyCode}</strong>.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {latestAllocationReport.projects.map(p => {
+                    const allocationShare = latestAllocationReport.totalAllocatedThisTime > 0 
+                      ? ((p.allocatedAmount / latestAllocationReport.totalAllocatedThisTime) * 100).toFixed(1)
+                      : 0;
+                    const currentProgress = p.targetAmount > 0 
+                      ? Math.min(100, Math.round((p.currentAmountAfter / p.targetAmount) * 100))
+                      : 0;
+                    const prevProgress = p.targetAmount > 0
+                      ? Math.min(100, Math.round((p.currentAmountBefore / p.targetAmount) * 100))
+                      : 0;
+                    const progressDiff = currentProgress - prevProgress;
+                    const remaining = Math.max(0, p.targetAmount - p.currentAmountAfter);
+                    return (
+                      <div key={p.id} style={{
+                        padding: '16px',
+                        backgroundColor: '#F8FAFC',
+                        border: '1px solid var(--zenith-outline-variant)',
+                        borderRadius: 'var(--radius-lg)'
+                      }}>
+                        {/* Projet Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                          <div>
+                            <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: 0, fontWeight: 700 }}>
+                              {p.name}
+                            </h4>
+                            <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', fontWeight: 600 }}>
+                              {p.is_recurring ? 'Mensuel récurrent' : p.is_complex ? 'Projet complexe' : 'Projet cible simple'}
+                            </span>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <span className="font-data" style={{ fontSize: '14px', color: 'var(--zenith-secondary)', fontWeight: 800, display: 'block' }}>
+                              +{p.allocatedAmount.toLocaleString()} {currencyCode}
+                            </span>
+                            <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>
+                              {allocationShare}% de la répartition
+                            </span>
+                          </div>
+                        </div>
+                        {/* Financement Info */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', padding: '10px 0', borderTop: '1px solid var(--zenith-outline-variant)', borderBottom: '1px solid var(--zenith-outline-variant)' }}>
+                          <div>
+                            <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Financement actuel</span>
+                            <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
+                              {p.currentAmountAfter.toLocaleString()} / {p.targetAmount.toLocaleString()} {currencyCode} ({currentProgress}%)
+                            </span>
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Reste à financer</span>
+                            <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
+                              {remaining.toLocaleString()} {currencyCode}
+                            </span>
+                          </div>
+                        </div>
+                        {progressDiff > 0 && (
+                          <div style={{ fontSize: '12px', color: 'var(--zenith-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                            <TrendingUp size={14} /> Le financement a progressé de +{progressDiff}% grâce à cette allocation.
+                          </div>
+                        )}
+                        {p.is_complex && p.steps && p.steps.length > 0 && (
+                          <div style={{ marginTop: '12px', backgroundColor: 'white', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--zenith-outline-variant)' }}>
+                            <h5 className="font-heading" style={{ fontSize: '11px', color: 'var(--zenith-on-surface)', margin: '0 0 10px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                              Détail des étapes :
+                            </h5>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {p.steps.map(step => {
+                                const stepProgress = step.targetAmount > 0 
+                                  ? Math.min(100, Math.round((step.currentAfter / step.targetAmount) * 100))
+                                  : 0;
+                                let statusText = 'Non commencée';
+                                let statusColor = '#757575';
+                                let statusBg = '#EEEEEE';
+                                if (step.status === 'realisee') {
+                                  statusText = 'Réalisée / Prête';
+                                  statusColor = '#2E7D32';
+                                  statusBg = '#E8F5E9';
+                                } else if (step.status === 'en_cours_de_financement') {
+                                  statusText = 'En cours';
+                                  statusColor = '#E65100';
+                                  statusBg = '#FFE0B2';
+                                }
+                                return (
+                                  <div key={step.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', paddingBottom: '6px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
+                                    <div>
+                                      <span style={{ fontWeight: 600, color: 'var(--zenith-on-surface)' }}>{step.name}</span>
+                                      <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
+                                        {step.currentAfter.toLocaleString()} / {step.targetAmount.toLocaleString()} {currencyCode} ({stepProgress}%)
+                                      </span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      {step.addedAmount > 0 && (
+                                        <span style={{ fontSize: '11px', color: 'var(--zenith-secondary)', fontWeight: 600 }}>
+                                          +{step.addedAmount.toLocaleString()}
+                                        </span>
+                                      )}
+                                      <span style={{
+                                        padding: '2px 8px',
+                                        fontSize: '10px',
+                                        borderRadius: '10px',
+                                        fontWeight: 700,
+                                        color: statusColor,
+                                        backgroundColor: statusBg
+                                      }}>
+                                        {statusText}
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+
 
       {/* Coach Dudukan - Insights section (Moved to bottom) */}
       {coachInsights && coachInsights.length > 0 && (
