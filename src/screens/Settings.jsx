@@ -134,29 +134,36 @@ const Settings = ({ onSwitchToPremium }) => {
 
   const handleDownloadReport = async () => {
     try {
+      console.log('📄 Starting PDF generation');
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
-      
+
+      // Utility to clean accented characters
       const clean = (str) => {
         if (!str) return '';
-        return String(str).replace(/\u00A0/g, ' ').replace(/\u202F/g, ' ').replace(/[^\x00-\x7F]/g, (c) => {
-          const map = {'é':'e', 'è':'e', 'ê':'e', 'à':'a', 'â':'a', 'î':'i', 'ï':'i', 'ô':'o', 'û':'u', 'ù':'u', 'Ç':'C', 'ç':'c'};
-          return map[c] || c;
-        });
+        return String(str)
+          .replace(/\u00A0/g, ' ')
+          .replace(/\u202F/g, ' ')
+          .replace(/[^\x00-\x7F]/g, (c) => {
+            const map = {
+              'é': 'e', 'è': 'e', 'ê': 'e', 'à': 'a', 'â': 'a',
+              'î': 'i', 'ï': 'i', 'ô': 'o', 'û': 'u', 'ù': 'u',
+              'Ç': 'C', 'ç': 'c', ' ': ' '
+            };
+            return map[c] || c;
+          });
       };
 
-      const loadLogo = () => {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.src = '/sampa-electro (15).png';
-          img.onload = () => resolve(img);
-          img.onerror = () => resolve(null);
-        });
-      };
-      
+      const loadLogo = () => new Promise((resolve) => {
+        const img = new Image();
+        img.src = '/sampa-electro (15).png';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+      });
+
       const logo = await loadLogo();
-      const navyColor = [26, 43, 85]; // Dark Navy from logo/design
-      
+      const navyColor = [26, 43, 85]; // Dark navy used in the header
+
       // 1. Header Background (Dark Blue)
       doc.setFillColor(navyColor[0], navyColor[1], navyColor[2]);
       doc.rect(0, 0, 210, 50, 'F');
@@ -165,12 +172,12 @@ const Settings = ({ onSwitchToPremium }) => {
       if (logo) {
         doc.addImage(logo, 'PNG', 20, 10, 20, 20);
       }
-      
+
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(28);
       doc.text("Dudukan", 45, 22);
-      
+
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.text(clean("L'assistant financier intelligent"), 45, 28);
@@ -178,32 +185,33 @@ const Settings = ({ onSwitchToPremium }) => {
       // 3. Right side header info
       doc.setFontSize(20);
       doc.text("RAPPORT FINANCIER", 195, 25, { align: 'right' });
-      
+
       doc.setFontSize(9);
       const today = new Date().toLocaleDateString('fr-FR');
-      doc.text(`Genere le : ${today}`, 195, 33, { align: 'right' });
-      
+      doc.text(`Généré le : ${today}`, 195, 33, { align: 'right' });
+
       // Client Name Addition
       const clientName = user?.user_metadata?.full_name || 'Utilisateur';
       doc.text(`Client : ${clean(clientName)}`, 195, 38, { align: 'right' });
 
-      // 4. RESUME DU MOIS Section
+      // 4. Clean Summary Section
       let y = 70;
-      doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
       doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("RESUME DU MOIS", 20, y);
-      doc.line(20, y + 2, 60, y + 2); // Underline
-      
-      y += 15;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
+      doc.text('RÉSUMÉ', 20, y);
+      doc.line(20, y + 2, 40, y + 2); // Underline
+      y += 12;
+
+      // Salary and balances (Key-Value layout)
       doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
+      doc.setFont('helvetica', 'normal');
       doc.setTextColor(80, 80, 80);
-      
+
       const resume = [
         { label: "Salaire de base :", value: formatCurrency(salary) },
-        { label: "Revenus complementaires :", value: formatCurrency(totalIncome - salary) },
-        { label: "Total des depenses :", value: formatCurrency(totalExpenses) },
+        { label: "Revenus complémentaires :", value: formatCurrency(totalIncome - salary) },
+        { label: "Total des dépenses :", value: formatCurrency(totalExpenses) },
         { label: "Solde actuel :", value: formatCurrency(balance) }
       ];
 
@@ -213,21 +221,21 @@ const Settings = ({ onSwitchToPremium }) => {
         y += 8;
       });
 
-      // 5. DERNIERES OPERATIONS Section
+      // 5. DERNIÈRES OPÉRATIONS Section
       y += 15;
       doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-      doc.text("DERNIERES OPERATIONS", 20, y);
+      doc.text("DERNIÈRES OPÉRATIONS", 20, y);
       doc.line(20, y + 2, 80, y + 2); // Underline
       
-      y += 15;
+      y += 12;
       doc.setFontSize(9);
       doc.setTextColor(120, 120, 120);
       
       // Table Header
       doc.text("Date", 20, y);
-      doc.text("Categorie", 45, y);
+      doc.text("Catégorie", 45, y);
       doc.text("Description", 90, y);
       doc.text("Montant", 190, y, { align: 'right' });
       
@@ -236,31 +244,50 @@ const Settings = ({ onSwitchToPremium }) => {
       doc.line(20, y, 195, y);
       y += 8;
 
-      // Table Content
       doc.setTextColor(50, 50, 50);
-      allTransactions.slice(0, 30).forEach((tx) => {
-        if (y > 275) { doc.addPage(); y = 20; }
-        
-        const dateStr = new Date(tx.date).toLocaleDateString('fr-FR');
-        const category = categories.find(c => c.id === tx.categoryId);
-        const catStr = clean(category ? category.name : (tx.type === 'income' ? 'Revenu' : 'Autre'));
-        const noteStr = clean(tx.note || (tx.type === 'income' ? 'Encaissement' : 'Depense'));
-        const prefix = tx.type === 'income' ? '+' : '-';
-        const amountStr = `${prefix}${formatCurrency(tx.amount)}`;
-        
-        doc.text(dateStr, 20, y);
-        doc.text(catStr, 45, y);
-        doc.text(noteStr.length > 35 ? noteStr.substring(0, 32) + '...' : noteStr, 90, y);
-        doc.text(clean(amountStr), 190, y, { align: 'right' });
-        
-        y += 7;
-      });
+      if (allTransactions && allTransactions.length > 0) {
+        allTransactions.slice(0, 10).forEach((tx) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+            // Redraw small header or lines
+            doc.setFontSize(9);
+            doc.setTextColor(120, 120, 120);
+            doc.text("Date", 20, y);
+            doc.text("Catégorie", 45, y);
+            doc.text("Description", 90, y);
+            doc.text("Montant", 190, y, { align: 'right' });
+            y += 4;
+            doc.line(20, y, 195, y);
+            y += 8;
+            doc.setTextColor(50, 50, 50);
+          }
+          const dateStr = new Date(tx.date).toLocaleDateString('fr-FR');
+          const category = categories.find(c => c.id === tx.categoryId);
+          const catStr = clean(category ? category.name : (tx.type === 'income' ? 'Revenu' : 'Autre'));
+          const noteStr = clean(tx.note || (tx.type === 'income' ? 'Encaissement' : 'Dépense'));
+          const prefix = tx.type === 'income' ? '+' : '-';
+          const amountStr = `${prefix}${formatCurrency(tx.amount)}`;
+          
+          doc.text(dateStr, 20, y);
+          doc.text(catStr, 45, y);
+          doc.text(noteStr.length > 35 ? noteStr.substring(0, 32) + '...' : noteStr, 90, y);
+          doc.text(clean(amountStr), 190, y, { align: 'right' });
+          
+          y += 7;
+        });
+      } else {
+        doc.text("Aucune transaction enregistrée.", 20, y);
+      }
 
       doc.save(`Rapport_Dudukan_${new Date().toISOString().split('T')[0]}.pdf`);
-      // Notify user that the PDF was generated and downloaded
+      console.log('✅ PDF generated and saved');
       alert('Rapport PDF téléchargé avec succès !');
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error('❌ Erreur lors de la génération du PDF Premium :', error);
+      console.log('🔎 Données utilisateur :', user);
+      console.log('📊 Transactions utilisées :', allTransactions);
+      console.log('💰 Salaires & balances :', { salary, totalIncome, totalExpenses, balance });
       alert('Erreur lors de la génération du PDF.');
     }
   };

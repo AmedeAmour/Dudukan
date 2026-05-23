@@ -15,6 +15,7 @@ import { useAuth } from '../context/AuthContext';
 import { PremiumActions } from './components/PremiumActions';
 import { Sparkles, Wallet, Settings, X, Plus } from 'lucide-react';
 import './PremiumStyles.css';
+import { supabase } from '../supabaseClient';
 
 const PremiumAppContent = ({ onSwitchMode }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -35,11 +36,13 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 
   const premium = usePremium();
   const {
+    loading,
     projects = [],
     coachInsights = [],
     transactions: premiumTransactions = [],
     financeSavings = 0,
-    latestAllocationReport = null
+    latestAllocationReport = null,
+    fetchData,
   } = premium || {};
 
 
@@ -47,265 +50,297 @@ const PremiumAppContent = ({ onSwitchMode }) => {
     try {
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
+      // Define colors used for cards and accents
+      const goldColor = [212, 175, 55]; // Zenith Gold
+      const navyColor = [18, 30, 49]; // Dark Navy
+      // Debug log to verify data availability
+      console.log('PDF generation context:', { financeSavings, projects, currency });
       
       const clean = (str) => {
         if (!str) return '';
         return String(str).replace(/\u00A0/g, ' ').replace(/\u202F/g, ' ').replace(/[^\x00-\x7F]/g, (c) => {
-          const map = {'é':'e', 'è':'e', 'ê':'e', 'à':'a', 'â':'a', 'î':'i', 'ï':'i', 'ô':'o', 'û':'u', 'ù':'u', 'Ç':'C', 'ç':'c'};
+          const map = {
+            'é':'e', 'è':'e', 'ê':'e', 'à':'a', 'â':'a',
+            'î':'i', 'ï':'i', 'ô':'o', 'û':'u', 'ù':'u',
+            'Ç':'C', 'ç':'c', ' ':' ', 'É':'E', 'È':'E'
+          };
           return map[c] || c;
         });
       };
-
       // Helper to format monetary amounts with French locale (space as thousand separator)
       const formatAmount = (value) => {
         const num = parseFloat(value || 0);
-        return num.toLocaleString('fr-FR') + (currency?.code ? ` ${currency.code}` : ' XOF');
+        return num.toLocaleString('fr-FR').replace(/\u202F/g, ' ') + (currency?.code ? ` ${currency.code}` : ' XOF');
       };
 
-      const loadLogo = () => {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.src = '/sampa-electro (15).png';
-          img.onload = () => resolve(img);
-          img.onerror = () => resolve(null);
-        });
-      };
-      
-      const logo = await loadLogo();
-      const goldColor = [212, 175, 55]; // Zenith Gold
-      const navyColor = [18, 30, 49]; // Zenith Dark Slate Blue/Navy
-      
-      // Page 1: Synthese Financiere & Projets
-      // 1. Header (Zenith style)
-      doc.setFillColor(navyColor[0], navyColor[1], navyColor[2]);
-      doc.rect(0, 0, 210, 45, 'F');
-
-      // Accent gold bar
-      doc.setFillColor(goldColor[0], goldColor[1], goldColor[2]);
-      doc.rect(0, 45, 210, 3, 'F');
-
-      if (logo) {
-        doc.addImage(logo, 'PNG', 15, 8, 24, 24);
+      if (premium && premium.loading) {
+        alert('Les données sont encore en cours de chargement, veuillez réessayer dans quelques secondes.');
+        return;
       }
-      
+      // Ensure we have the latest premium data before generating the PDF
+      await fetchData();
+      const loadLogo = () => new Promise((resolve) => {
+        const img = new Image();
+        img.src = '/sampa-electro (15).png';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+      });
+      const logo = await loadLogo();
+
+      // 1. Header Background (Emerald Green)
+      doc.setFillColor(16, 185, 129);
+      doc.rect(0, 0, 210, 50, 'F');
+
+      // 2. Logo & App Title
+      if (logo) {
+        doc.addImage(logo, 'PNG', 20, 10, 20, 20);
+      }
+
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(26);
-      doc.text("Dudukan Premium", 45, 20);
-      
+      doc.setFontSize(28);
+      doc.text("Dudukan", 45, 22);
+
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      doc.setTextColor(200, 200, 200);
-      doc.text(clean("Accompagnement strategique et gestion d'epargne haut de gamme"), 45, 26);
+      doc.text(clean("Bilan financier stratégique premium"), 45, 28);
 
-      doc.setFontSize(16);
-      doc.setTextColor(255, 255, 255);
-      doc.text("BILAN FINANCIER & STRATEGIQUE", 195, 22, { align: 'right' });
-      
+      // 3. Right side header info
+      doc.setFontSize(20);
+      doc.text("RAPPORT PREMIUM", 195, 25, { align: 'right' });
+
       doc.setFontSize(9);
       const today = new Date().toLocaleDateString('fr-FR');
-      doc.text(`Date : ${today}`, 195, 30, { align: 'right' });
+      doc.text(`Généré le : ${today}`, 195, 33, { align: 'right' });
+
+      // Client Name
       const clientName = user?.user_metadata?.full_name || 'Membre Premium';
-      doc.text(`Client : ${clean(clientName)}`, 195, 35, { align: 'right' });
+      doc.text(`Client : ${clean(clientName)}`, 195, 38, { align: 'right' });
 
-      // 2. Synthese de l'Epargne
-      let y = 62;
-      doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
-      doc.setFontSize(13);
-      doc.setFont("helvetica", "bold");
-      doc.text("1. SYNTHESE DE L'EPARGNE REELLE", 15, y);
-      doc.line(15, y + 2, 90, y + 2);
-      
-      y += 10;
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(60, 60, 60);
+      // ----- Synthèse globale -----
+// Ensure we have the freshest data for accurate calculations
+        let freshProjects = [];
+        let freshSavings = financeSavings;
+        if (user?.id) {
+          // Fetch latest projects with allocations
+          const { data: projData, error: projErr } = await supabase
+            .from('projects')
+            .select(`*, milestones(*)`)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+          if (!projErr && projData) freshProjects = projData;
 
-      const totalAllocated = projects.reduce((acc, p) => acc + parseFloat(p.current_amount || 0), 0);
-      const totalTarget = projects.reduce((acc, p) => acc + parseFloat(p.target_amount || 0), 0);
-      const unallocatedSavings = Math.max(0, parseFloat(financeSavings || 0) - totalAllocated);
-      const globalProgress = totalTarget > 0 ? Math.round((totalAllocated / totalTarget) * 100) : 0;
-
-      // Financial grid
-      doc.setFillColor(248, 250, 252);
-      doc.rect(15, y, 180, 24, 'F');
-      
-      doc.setFont("helvetica", "bold");
-      doc.text(clean("Epargne reelle totale"), 20, y + 8);
-      doc.text(clean("Epargne allouee"), 80, y + 8);
-      doc.text(clean("Epargne disponible (libre)"), 140, y + 8);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(12);
-      doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
-      doc.text(formatAmount(financeSavings), 20, y + 18);
-      doc.text(formatAmount(totalAllocated), 80, y + 18);
-      doc.text(formatAmount(unallocatedSavings), 140, y + 18);
-      // Global progress display
-      doc.setFontSize(12);
-      doc.text(`Progression globale : ${globalProgress}%`, 200, y + 18, { align: 'right' });
-      // Detailed summary
-      const remainingNeeded = Math.max(0, totalTarget - totalAllocated);
-      doc.setFontSize(10);
-      doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
-      doc.text(`Objectif global : ${formatAmount(totalTarget)}`, 15, y + 30);
-      doc.text(`Montant financé : ${formatAmount(totalAllocated)}`, 15, y + 38);
-      doc.text(`Besoin prévisionnel du mois : ${formatAmount(remainingNeeded)}`, 15, y + 46);
-      doc.text(`Reste à financer : ${formatAmount(remainingNeeded)}`, 15, y + 54);
-
-
-      // 3. Projets de Vie & Financements
-      y += 38;
-      doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
-      doc.setFontSize(13);
-      doc.setFont("helvetica", "bold");
-      doc.text("2. ETAT DES PROJETS DE VIE", 15, y);
-      doc.line(15, y + 2, 75, y + 2);
-
-      y += 10;
-      // Projects Table Header
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(100, 100, 100);
-      doc.text("Projet", 18, y);
-      doc.text("Objectif", 75, y);
-      doc.text("Finance", 110, y);
-      doc.text("Progression", 145, y);
-      doc.text("Statut", 180, y);
-
-      y += 3;
-      doc.setDrawColor(200, 200, 200);
-      doc.line(15, y, 195, y);
-      y += 6;
-
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(40, 40, 40);
-
-      projects.forEach((proj) => {
-        if (y > 275) { doc.addPage(); y = 20; }
-        const target = parseFloat(proj.target_amount || 0);
-        const current = parseFloat(proj.current_amount || 0);
-        const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
-        
-        doc.text(clean(proj.name), 18, y);
-        doc.text(formatAmount(target), 75, y);
-        doc.text(formatAmount(current), 110, y);
-        doc.text(`${pct}%`, 145, y);
-        doc.text(clean(proj.is_realized ? 'Realise' : 'En cours'), 180, y);
-        
-        // Render project milestones if complex
-        if (proj.is_complex && proj.milestones && proj.milestones.length > 0) {
-          y += 5;
-          proj.milestones.forEach((ms) => {
-            if (y > 275) { doc.addPage(); y = 20; }
-            const msTarget = parseFloat(ms.target_amount || 0);
-            const msCurrent = parseFloat(ms.current_amount || 0);
-            const msStatus = ms.is_completed ? '[x] Réalisée' : `[ ] En cours (${formatAmount(msCurrent)}/${formatAmount(msTarget)})`;
-            doc.setFontSize(8);
-            doc.setTextColor(110, 110, 110);
-            doc.text(`   - Jalon: ${clean(ms.name)} - ${clean(msStatus)}`, 18, y);
-            y += 4;
-          });
-          doc.setFontSize(9);
-          doc.setTextColor(40, 40, 40);
-        } else {
-          y += 6;
+          // Fetch latest total savings from profile
+          const { data: profileData, error: profErr } = await supabase
+            .from('profiles')
+            .select('savings')
+            .eq('id', user.id)
+            .single();
+          if (!profErr && profileData) freshSavings = profileData.savings;
         }
+        const safeProjects = Array.isArray(freshProjects) ? freshProjects : [];
+        const totalAllocated = safeProjects.reduce((acc, p) => acc + parseFloat(p.current_amount || 0), 0);
+        const totalTarget = safeProjects.reduce((acc, p) => acc + parseFloat(p.target_amount || 0), 0);
+        const unallocatedSavings = Math.max(0, parseFloat(freshSavings || 0) - totalAllocated);
+        const globalProgress = totalTarget > 0 ? Math.round((totalAllocated / totalTarget) * 100) : 0;
+        const resteAFinancer = Math.max(0, totalTarget - totalAllocated);
+        let besoinPrevisionnel = 0;
+        if (premium && typeof premium.calculateMonthlyNeed === 'function') {
+          besoinPrevisionnel = safeProjects.reduce((acc, p) => acc + premium.calculateMonthlyNeed(p), 0);
+        } else {
+          besoinPrevisionnel = resteAFinancer;
+        }
+        // Debug log for verification
+        console.log('PDF allocation metrics', { totalSavings: freshSavings, totalAllocated, totalTarget, unallocatedSavings, globalProgress, resteAFinancer, besoinPrevisionnel });
+
+      // 4. Clean Summary Section
+      let y = 70;
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
+      doc.text(clean('RÉSUMÉ STRATÉGIQUE'), 20, y);
+      doc.line(20, y + 2, 40, y + 2); // Underline
+      y += 12;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+
+      const resume = [
+        { label: "Objectif global :", value: formatAmount(totalTarget) },
+        { label: "Montant financé :", value: formatAmount(totalAllocated) },
+        { label: "Reste à financer :", value: formatAmount(resteAFinancer) },
+        { label: "Besoin prévisionnel :", value: formatAmount(besoinPrevisionnel) },
+        { label: "Épargne disponible :", value: formatAmount(unallocatedSavings) },
+        { label: "Progression globale :", value: `${globalProgress}%` }
+      ];
+
+      resume.forEach(item => {
+        doc.text(clean(item.label), 25, y);
+        doc.text(clean(item.value), 185, y, { align: 'right' });
+        y += 8;
       });
 
-      // Page 2: Synthese Strategique et Transactions
-      doc.addPage();
-      let y2 = 25;
+      // 5. PROJETS DE VIE Section (Replacing DERNIÈRES OPÉRATIONS)
+      y += 15;
+      doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("PROJETS DE VIE", 20, y);
+      doc.line(20, y + 2, 80, y + 2); // Underline
       
-      // Header Page 2
-      doc.setFillColor(navyColor[0], navyColor[1], navyColor[2]);
-      doc.rect(0, 0, 210, 15, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-      doc.text("DUDUKAN PREMIUM - ACCELERATEUR DE STRATEGIE FINANCIERE", 15, 10);
-
-      // 4. Conseils du Coach / Synthese strategique
-      y2 = 32;
-      doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
-      doc.setFontSize(13);
-      doc.setFont("helvetica", "bold");
-      doc.text("3. CONSEILS DU COACH & SYNTHESE STRATEGIQUE", 15, y2);
-      doc.line(15, y2 + 2, 115, y2 + 2);
-
-      y2 += 10;
-      doc.setFont("helvetica", "normal");
+      y += 12;
       doc.setFontSize(9);
+      doc.setTextColor(120, 120, 120);
+      
+      // Table Header
+      doc.text("Nom du projet", 20, y);
+      doc.text("Type", 75, y);
+      doc.text("Progression", 120, y);
+      doc.text("Financement", 190, y, { align: 'right' });
+      
+      y += 4;
+      doc.setDrawColor(220, 220, 220);
+      doc.line(20, y, 195, y);
+      y += 8;
+      
       doc.setTextColor(50, 50, 50);
-
-      if (!coachInsights || coachInsights.length === 0) {
-        doc.text("Aucun conseil strategique pour le moment. Votre profil est en cours de stabilisation.", 18, y2);
-        y2 += 10;
-      } else {
-        coachInsights.forEach((insight) => {
-          if (y2 > 270) { doc.addPage(); y2 = 25; }
-          doc.setFont("helvetica", "bold");
-          doc.text(`* ${clean(insight.title || 'Conseil')}`, 18, y2);
-          y2 += 5;
-          doc.setFont("helvetica", "normal");
-          // Multi-line description text wrapping
-          const lines = doc.splitTextToSize(clean(insight.description || ''), 175);
-          doc.text(lines, 22, y2);
-          y2 += (lines.length * 4) + 4;
+      if (safeProjects && safeProjects.length > 0) {
+        safeProjects.forEach((p) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+            // Redraw small header
+            doc.setFontSize(9);
+            doc.setTextColor(120, 120, 120);
+            doc.text("Nom du projet", 20, y);
+            doc.text("Type", 75, y);
+            doc.text("Progression", 120, y);
+            doc.text("Financement", 190, y, { align: 'right' });
+            y += 4;
+            doc.line(20, y, 195, y);
+            y += 8;
+            doc.setTextColor(50, 50, 50);
+          }
+          const nameStr = clean(p.name);
+          const typeStr = p.is_recurring ? 'Récurrent' : (p.is_complex ? 'Complexe' : 'Simple');
+          const progressVal = p.target_amount > 0 ? Math.round(((p.current_amount || 0) / p.target_amount) * 100) : 0;
+          const progressStr = `${progressVal}%`;
+          const financeStr = `${formatAmount(p.current_amount || 0)} / ${formatAmount(p.target_amount || 0)}`;
+          
+          doc.text(nameStr.length > 30 ? nameStr.substring(0, 27) + '...' : nameStr, 20, y);
+          doc.text(clean(typeStr), 75, y);
+          doc.text(progressStr, 120, y);
+          doc.text(clean(financeStr), 190, y, { align: 'right' });
+          
+          y += 7;
         });
+      } else {
+        doc.text("Aucun projet de vie enregistré.", 20, y);
       }
-
-      // 5. Dernieres Transactions Premium & Allocations
-      y2 += 8;
+      // 6. DERNIÈRES OPÉRATIONS Section
+      y += 15;
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
       doc.setTextColor(navyColor[0], navyColor[1], navyColor[2]);
-      doc.setFontSize(13);
+      doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-      doc.text("4. TRANSACTIONS & ALLOCATIONS RECENTES", 15, y2);
-      doc.line(15, y2 + 2, 105, y2 + 2);
-
-      y2 += 10;
+      doc.text("DERNIÈRES OPÉRATIONS", 20, y);
+      doc.line(20, y + 2, 80, y + 2); // Underline
+      
+      y += 12;
       doc.setFontSize(9);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(100, 100, 100);
-      doc.text("Date", 15, y2);
-      doc.text("Type / Projet", 55, y2);
-      doc.text("Description", 120, y2);
-      doc.text("Montant", 190, y2, { align: 'right' });
-
-      y2 += 3;
-      doc.line(15, y2, 195, y2);
-      y2 += 6;
-
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(40, 40, 40);
-
-      const displayTxs = premiumTransactions.slice(0, 20);
-      if (displayTxs.length === 0) {
-        doc.text("Aucune transaction premium enregistree.", 18, y2);
-      } else {
-        displayTxs.forEach((tx) => {
-          if (y2 > 275) { doc.addPage(); y2 = 25; }
-          const txDate = new Date(tx.date).toLocaleDateString('fr-FR');
-          const typeLabel = tx.type === 'allocation' ? 'Allocation' :
-                            tx.type === 'completion' ? 'Reussite' :
-                            tx.type === 'initial' ? 'Depot Initial' : 'Ajustement';
-          
-          doc.text(txDate, 18, y2);
-          doc.text(clean(`${typeLabel} : ${tx.projectName || ''}`), 45, y2);
-          
-          const desc = clean(tx.note || tx.stepName || '');
-          doc.text(desc, 100, y2);
-          doc.text(formatAmount(tx.amount), 190, y2, { align: 'right' });
-          
-          y2 += 6;
+      doc.setTextColor(120, 120, 120);
+      
+      // Table Header
+      doc.text("Date", 20, y);
+      doc.text("Catégorie", 45, y);
+      doc.text("Description", 90, y);
+      doc.text("Montant", 190, y, { align: 'right' });
+      
+      y += 4;
+      doc.setDrawColor(220, 220, 220);
+      doc.line(20, y, 195, y);
+      y += 8;
+      
+      doc.setTextColor(50, 50, 50);
+      
+      // Merge normal transactions and premium transactions for a complete view
+      const mergedTransactions = [...(allTransactions || [])];
+      
+      // Add premium specific transactions if they have a date and aren't duplicated
+      if (premiumTransactions && premiumTransactions.length > 0) {
+        premiumTransactions.forEach(ptx => {
+          if (!mergedTransactions.find(t => t.id === ptx.id)) {
+            mergedTransactions.push({
+              ...ptx,
+              date: ptx.created_at || ptx.date,
+              categoryId: ptx.type,
+              note: ptx.description || ptx.title || `Opération Premium (${ptx.type})`
+            });
+          }
         });
       }
+      
+      // Sort by date descending
+      mergedTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+      if (mergedTransactions.length > 0) {
+        mergedTransactions.slice(0, 15).forEach((tx) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+            // Redraw small header
+            doc.setFontSize(9);
+            doc.setTextColor(120, 120, 120);
+            doc.text("Date", 20, y);
+            doc.text("Catégorie", 45, y);
+            doc.text("Description", 90, y);
+            doc.text("Montant", 190, y, { align: 'right' });
+            y += 4;
+            doc.line(20, y, 195, y);
+            y += 8;
+            doc.setTextColor(50, 50, 50);
+          }
+          const dateStr = tx.date ? new Date(tx.date).toLocaleDateString('fr-FR') : '-';
+          const category = categories.find(c => c.id === tx.categoryId);
+          let catStr = category ? category.name : '';
+          if (!catStr) {
+            if (tx.type === 'income') catStr = 'Revenu';
+            else if (tx.type === 'allocation') catStr = 'Allocation';
+            else if (tx.type === 'completion') catStr = 'Réalisation';
+            else catStr = 'Autre';
+          }
+          let rawNote = tx.note || '';
+          if (tx.projectName) {
+            // Include project name prefix for clarity
+            rawNote = `[${tx.projectName}] ${rawNote}`;
+          }
+          const noteStr = clean(rawNote);
+          const isIncome = tx.type === 'income';
+          const isAllocation = tx.type === 'allocation';
+          const prefix = (isIncome || isAllocation) ? '+' : '-';
+          const amountStr = `${prefix}${formatAmount(tx.amount)}`;
+          
+          doc.text(dateStr, 20, y);
+          doc.text(clean(catStr).length > 20 ? clean(catStr).substring(0, 17) + '...' : clean(catStr), 45, y);
+          doc.text(noteStr.length > 45 ? noteStr.substring(0, 42) + '...' : noteStr, 90, y);
+          doc.text(clean(amountStr), 190, y, { align: 'right' });
+          
+          y += 7;
+        });
+      } else {
+        doc.text("Aucune opération enregistrée.", 20, y);
+      }
+      
+      // Save PDF
       doc.save(`Bilan_Premium_Dudukan_${new Date().toISOString().split('T')[0]}.pdf`);
-      alert('Rapport PDF Premium généré et téléchargé avec succès !');
+      alert('Rapport PDF Premium minimal généré avec succès !');
     } catch (err) {
-      console.error(err);
-      alert('Erreur lors de la génération du rapport PDF Premium.');
+      console.error('Erreur PDF', err);
+      alert('Erreur lors de la génération du rapport PDF : ' + (err && err.message ? err.message : err));
     }
   };
 
