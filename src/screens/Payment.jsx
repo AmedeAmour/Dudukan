@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { 
-  ArrowLeft, Check, Crown, Smartphone, CreditCard, 
+import {
+  ArrowLeft, Check, Crown, Smartphone, CreditCard,
   Lock, Sparkles, ShieldCheck, Zap, Layers, BarChart3, ChevronRight, Wallet
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,7 +21,7 @@ const Payment = ({ onBack, onUnlock }) => {
   const premiumFeatures = [
     {
       icon: Crown,
-      title: "Architecture Zenith",
+      title: "Architecture Premium",
       desc: "Gestion de projets complexes avec étapes illimitées et jalons.",
       color: "var(--accent-orange)"
     },
@@ -34,7 +34,7 @@ const Payment = ({ onBack, onUnlock }) => {
     {
       icon: BarChart3,
       title: "Score de Viabilité",
-      desc: "Algorithme prédictif évaluant la réussite de votre stratégie financière.",
+      desc: "Système prédictif évaluant la réussite de votre stratégie financière.",
       color: "var(--emerald)"
     },
     {
@@ -74,7 +74,7 @@ const Payment = ({ onBack, onUnlock }) => {
     if (!selectedMethod) return;
 
     setPaymentStep('processing');
-    
+
     // Simulate mobile money payment flow steps
     const steps = [
       "Initialisation de la transaction sécurisée...",
@@ -97,7 +97,7 @@ const Payment = ({ onBack, onUnlock }) => {
           // Permanently update user metadata in Supabase to grant premium lifetime access
           const { error } = await updateProfile({ is_premium: true });
           if (error) throw error;
-          
+
           setPaymentStep('success');
         } catch (err) {
           alert("Erreur lors de l'activation : " + err.message);
@@ -114,7 +114,7 @@ const Payment = ({ onBack, onUnlock }) => {
   return (
     <div className="app-container" style={{ padding: '24px 20px 40px', backgroundColor: 'var(--bg-main)' }}>
       <AnimatePresence mode="wait">
-        
+
         {/* Step 1: Feature Overview & Payment Selection */}
         {paymentStep === 'selection' && (
           <motion.div
@@ -124,19 +124,19 @@ const Payment = ({ onBack, onUnlock }) => {
             exit={{ opacity: 0, y: -15 }}
           >
             {/* Header / Back button with outline icon and circular background */}
-            <button 
-              onClick={onBack} 
-              style={{ 
-                background: 'none', 
-                border: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '10px', 
-                color: 'var(--navy)', 
-                marginBottom: '24px', 
-                cursor: 'pointer', 
-                fontWeight: '700', 
-                fontFamily: 'var(--font-headings)' 
+            <button
+              onClick={onBack}
+              style={{
+                background: 'none',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                color: 'var(--navy)',
+                marginBottom: '24px',
+                cursor: 'pointer',
+                fontWeight: '700',
+                fontFamily: 'var(--font-headings)'
               }}
             >
               <div style={{
@@ -173,10 +173,10 @@ const Payment = ({ onBack, onUnlock }) => {
                 <Crown size={28} />
               </div>
               <h1 className="font-outfit" style={{ fontSize: '28px', fontWeight: '800', color: 'var(--navy)', marginBottom: '8px' }}>
-                Accès Premium Zenith
+                Accès Premium Dudukan
               </h1>
               <p style={{ color: 'var(--text-light)', fontSize: '15px', lineHeight: '1.4' }}>
-                Libérez la puissance de vos finances de vie avec l'architecture Zenith.
+                Libérez la puissance de vos finances de vie avec l'architecture Premium.
               </p>
             </div>
 
@@ -214,10 +214,10 @@ const Payment = ({ onBack, onUnlock }) => {
             </div>
 
             {/* Single Lifetime Pricing Info */}
-            <div className="card" style={{ 
-              background: 'linear-gradient(135deg, #1A2B48 0%, #2D3E5E 100%)', 
-              color: 'white', 
-              padding: '24px', 
+            <div className="card" style={{
+              background: 'linear-gradient(135deg, #1A2B48 0%, #2D3E5E 100%)',
+              color: 'white',
+              padding: '24px',
               marginBottom: '32px',
               textAlign: 'center',
               border: 'none'
@@ -314,13 +314,13 @@ const Payment = ({ onBack, onUnlock }) => {
                           Numéro de téléphone mobile
                         </label>
                         <div style={{ display: 'flex', gap: '10px' }}>
-                          <select 
+                          <select
                             value={countryCode}
                             onChange={(e) => setCountryCode(e.target.value)}
-                            style={{ 
-                              width: '130px', 
-                              padding: '14px 10px', 
-                              borderRadius: 'var(--radius-sm)', 
+                            style={{
+                              width: '130px',
+                              padding: '14px 10px',
+                              borderRadius: 'var(--radius-sm)',
                               border: '1.5px solid #E5E7EB',
                               fontFamily: 'Inter',
                               fontSize: '14px',
@@ -329,7 +329,7 @@ const Payment = ({ onBack, onUnlock }) => {
                           >
                             {countries.map(c => <option key={c.code} value={c.code}>{c.code} {c.name.split(' ')[0]}</option>)}
                           </select>
-                          <input 
+                          <input
                             required
                             type="tel"
                             placeholder="Ex: 0707070707"
@@ -346,7 +346,7 @@ const Payment = ({ onBack, onUnlock }) => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <div>
                           <label className="label" style={{ fontWeight: 700, color: 'var(--navy)' }}>Nom sur la carte</label>
-                          <input 
+                          <input
                             required
                             type="text"
                             placeholder="Ex: Kouamé Koffi"
@@ -356,33 +356,33 @@ const Payment = ({ onBack, onUnlock }) => {
                         </div>
                         <div>
                           <label className="label" style={{ fontWeight: 700, color: 'var(--navy)' }}>Numéro de carte</label>
-                          <input 
+                          <input
                             required
                             type="text"
                             placeholder="xxxx xxxx xxxx xxxx"
                             value={cardNumber}
-                            onChange={(e) => setCardNumber(e.target.value.replace(/[^\d]/g, '').substring(0,16))}
+                            onChange={(e) => setCardNumber(e.target.value.replace(/[^\d]/g, '').substring(0, 16))}
                           />
                         </div>
                         <div style={{ display: 'flex', gap: '10px' }}>
                           <div style={{ flex: 1 }}>
                             <label className="label" style={{ fontWeight: 700, color: 'var(--navy)' }}>Expiration</label>
-                            <input 
+                            <input
                               required
                               type="text"
                               placeholder="MM/AA"
                               value={cardExpiry}
-                              onChange={(e) => setCardExpiry(e.target.value.substring(0,5))}
+                              onChange={(e) => setCardExpiry(e.target.value.substring(0, 5))}
                             />
                           </div>
                           <div style={{ flex: 1 }}>
                             <label className="label" style={{ fontWeight: 700, color: 'var(--navy)' }}>CVV</label>
-                            <input 
+                            <input
                               required
                               type="password"
                               placeholder="123"
                               value={cardCvv}
-                              onChange={(e) => setCardCvv(e.target.value.replace(/[^\d]/g, '').substring(0,3))}
+                              onChange={(e) => setCardCvv(e.target.value.replace(/[^\d]/g, '').substring(0, 3))}
                             />
                           </div>
                         </div>
@@ -390,12 +390,12 @@ const Payment = ({ onBack, onUnlock }) => {
                     )}
 
                     {/* Pay Button */}
-                    <button 
-                      type="submit" 
-                      className="btn-primary" 
-                      style={{ 
-                        marginTop: '24px', 
-                        backgroundColor: paymentMethods.find(m => m.id === selectedMethod)?.color || 'var(--navy)' 
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                      style={{
+                        marginTop: '24px',
+                        backgroundColor: paymentMethods.find(m => m.id === selectedMethod)?.color || 'var(--navy)'
                       }}
                     >
                       <Lock size={18} /> Confirmer et Payer 9 900 XOF
@@ -435,7 +435,7 @@ const Payment = ({ onBack, onUnlock }) => {
                 }}>
                   <ShieldCheck size={10} />
                 </div>
-                Zenith Protection
+                Protection Dudukan
               </span>
             </div>
           </motion.div>
@@ -468,7 +468,7 @@ const Payment = ({ onBack, onUnlock }) => {
                 border: '6px solid rgba(26, 43, 72, 0.1)',
                 borderRadius: '50%'
               }}></div>
-              <motion.div 
+              <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
                 style={{
@@ -496,7 +496,7 @@ const Payment = ({ onBack, onUnlock }) => {
             <h2 className="font-outfit" style={{ fontSize: '20px', fontWeight: '800', color: 'var(--navy)', marginBottom: '12px' }}>
               Paiement en cours
             </h2>
-            
+
             <p style={{ color: 'var(--text-light)', fontSize: '14px', maxWidth: '300px', margin: '0 auto', lineHeight: '1.6' }}>
               {processingStatus}
             </p>
@@ -551,25 +551,25 @@ const Payment = ({ onBack, onUnlock }) => {
               Abonnement Activé à Vie
             </span>
 
-            <h1 className="font-outfit" style={{ fontSize: '32px', fontWeight: '800', color: 'var(--navy)', marginTop: '16px', marginBottom: '12px' }}>
-              Bienvenue sur Zenith !
+             <h1 className="font-outfit" style={{ fontSize: '32px', fontWeight: '800', color: 'var(--navy)', marginTop: '16px', marginBottom: '12px' }}>
+              Bienvenue sur Dudukan Premium !
             </h1>
-            
+
             <p style={{ color: 'var(--text-light)', fontSize: '15px', maxWidth: '340px', margin: '0 auto 36px', lineHeight: '1.5' }}>
               Félicitations ! Vous disposez désormais de tous les outils stratégiques et prédictifs premium pour planifier vos projets de vie.
             </p>
 
-            <button 
-              onClick={handleFinish} 
-              className="btn-primary" 
-              style={{ 
+            <button
+              onClick={handleFinish}
+              className="btn-primary"
+              style={{
                 backgroundColor: 'var(--emerald)',
                 boxShadow: '0 8px 24px rgba(16, 185, 129, 0.25)',
                 width: '100%',
                 maxWidth: '300px'
               }}
             >
-              Découvrir Zenith Premium <Sparkles size={18} />
+              Découvrir Dudukan Premium <Sparkles size={18} />
             </button>
           </motion.div>
         )}
