@@ -166,20 +166,14 @@ const PremiumDashboard = () => {
   const globalProgress = totalTarget > 0 ? Math.min(100, Math.round((totalSaved / totalTarget) * 100)) : 0;
 
   // 2. Calculations for monthly needs card
-  // monthlyNeed = somme des besoins mensuels réels (reste / mois restants).
-  // Les projets en retard (deadline dépassée) retournent 0 et sont exclus.
-  const monthlyNeed = projects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0);
+  // monthlyForecastNeed = somme des besoins mensuels planifiés réels ou d'étapes actives.
+  // Les projets terminés ou en retard retournent 0.
+  const monthlyForecastNeed = projects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0);
 
-  // Projets actifs contribuant au besoin mensuel (avec échéance future ou récurrents)
+  // Projets actifs contribuant réellement au besoin mensuel (avec un besoin positif ce mois-ci)
+  const activeContributingProjects = projects.filter(p => calculateMonthlyNeed(p) > 0);
+
   const today = new Date();
-  const activeContributingProjects = projects.filter(p => {
-    if (p.is_recurring) return parseFloat(p.target_amount || 0) > 0;
-    if (!p.deadline) return false;
-    const deadline = new Date(p.deadline);
-    const monthsLeft = (deadline.getFullYear() - today.getFullYear()) * 12 + (deadline.getMonth() - today.getMonth());
-    const remaining = parseFloat(p.target_amount || 0) - parseFloat(p.current_amount || 0);
-    return monthsLeft >= 0 && remaining > 0;
-  });
   const overdueProjects = targetProjects.filter(p => {
     if (!p.deadline) return false;
     const deadline = new Date(p.deadline);
@@ -192,8 +186,8 @@ const PremiumDashboard = () => {
   let viability = 100;
   if (projects.length > 0) {
     const salary = parseFloat(freeSalary || 0);
-    if (salary > 0 && monthlyNeed > 0) {
-      const ratio = monthlyNeed / salary;
+    if (salary > 0 && monthlyForecastNeed > 0) {
+      const ratio = monthlyForecastNeed / salary;
       if (ratio <= 0.4) {
         viability = 95;
       } else if (ratio <= 0.7) {
@@ -201,7 +195,7 @@ const PremiumDashboard = () => {
       } else {
         viability = Math.max(30, Math.round(100 - (ratio * 50)));
       }
-    } else if (monthlyNeed > 0) {
+    } else if (monthlyForecastNeed > 0) {
       viability = 45;
     }
   }
@@ -398,17 +392,22 @@ const PremiumDashboard = () => {
                 Besoins prévisionnels du mois
               </span>
               <div style={{ marginTop: '6px' }}>
-                {monthlyNeed > 0 ? (
+                {monthlyForecastNeed > 0 ? (
                   <span className="font-data" style={{ fontSize: '32px', color: 'var(--zenith-on-surface)', fontWeight: '800' }}>
-                    {Math.round(monthlyNeed).toLocaleString()} {currencyCode}
+                    {Math.round(monthlyForecastNeed).toLocaleString()} {currencyCode}
                   </span>
                 ) : (
-                  <span className="font-data" style={{ fontSize: '24px', color: 'var(--zenith-secondary)', fontWeight: '800' }}>
-                    Aucun besoin planifié
-                  </span>
+                  <div>
+                    <span className="font-data" style={{ fontSize: '28px', color: 'var(--zenith-on-surface-variant)', fontWeight: '800' }}>
+                      0 {currencyCode}
+                    </span>
+                    <span style={{ display: 'block', fontSize: '11px', color: 'var(--zenith-secondary)', marginTop: '2px', fontWeight: 600 }}>
+                      Non défini pour ce mois
+                    </span>
+                  </div>
                 )}
               </div>
-              {monthlyNeed > 0 && (
+              {monthlyForecastNeed > 0 && (
                 <p style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', margin: '6px 0 0 0', lineHeight: '1.4' }}>
                   Contribution mensuelle recommandée, répartie sur les échéances actives
                 </p>

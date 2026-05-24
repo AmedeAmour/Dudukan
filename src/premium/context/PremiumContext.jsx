@@ -254,6 +254,7 @@ export const PremiumProvider = ({ children }) => {
 
   // Calculate monthly need for a single project
   const calculateMonthlyNeed = useCallback((project) => {
+    // 1. Projets récurrents : le besoin mensuel est le montant cible périodique (ex: loyer, abonnement).
     if (project.is_recurring) {
       return parseFloat(project.target_amount || 0);
     }
@@ -264,20 +265,72 @@ export const PremiumProvider = ({ children }) => {
     const current = parseFloat(project.current_amount || 0);
     const remaining = target - current;
     
+    // Si le projet est déjà entièrement financé, plus aucun besoin mensuel.
     if (remaining <= 0) return 0;
 
     const today = new Date();
     const deadline = new Date(project.deadline);
     const monthsLeft = (deadline.getFullYear() - today.getFullYear()) * 12 + (deadline.getMonth() - today.getMonth());
     
-    // Si la date limite est déjà dépassée, le projet est en retard :
-    // on ne l'inclut pas dans le besoin prévisionnel mensuel du dashboard.
+    // Si la date limite est déjà dépassée (projet en retard) :
+    // le besoin prévu pour le mois en cours est de 0 (exclu du budget mensuel).
     if (monthsLeft < 0) return 0;
 
-    // Pour un projet dont l'échéance est ce mois-ci ou au-delà,
-    // on divise le reste à financer sur les mois restants (min 1).
-    const effectiveMonths = Math.max(1, monthsLeft);
-    return remaining / effectiveMonths;
+    // 2. Projets complexes (avec étapes / jalons) :
+    // "des étapes prévues ce mois-ci" -> le besoin mensuel correspond au montant
+    // requis pour accomplir l'étape active en cours de réalisation (active milestone).
+    if (project.is_complex && project.milestones && project.milestones.length > 0) {
+      const sortedMilestones = [...project.milestones].sort(
+        (a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0)
+      );
+      
+      let previousTargetsSum = 0;
+      let activeMilestone = null;
+      
+      for (const m of sortedMilestones) {
+        if (!m.is_completed) {
+          activeMilestone = m;
+          break;
+        }
+        previousTargetsSum += parseFloat(m.target_amount || 0);
+      }
+      
+      if (activeMilestone) {
+        const activeTarget = parseFloat(activeMilestone.target_amount || 0);
+        // Calcule la part de l'épargne déjà allouée à cette étape active
+        const activeAllocated = Math.max(0, Math.min(activeTarget, current - previousTargetsSum));
+        const activeRemaining = activeTarget - activeAllocated;
+        
+        // Garantir que ce besoin d'étape n'équivaut pas accidentellement au reste à financer global du projet,
+        // sauf si le projet n'a qu'une seule étape.
+        if (activeRemaining > 0 && (activeRemaining < remaining || sortedMilestones.length === 1)) {
+          return activeRemaining;
+        }
+      }
+    }
+
+    // 3. Projets simples (non récurrents, non complexes) :
+    // Calcul de la contribution mensuelle recommandée.
+    // Si l'échéance est lointaine (dans au moins 2 mois), la contribution mensuelle recommandée est :
+    if (monthsLeft >= 2) {
+      return remaining / monthsLeft;
+    }
+
+    // Si l'échéance est imminente (ce mois-ci ou le mois prochain, monthsLeft === 0 ou 1) :
+    // Pour éviter d'afficher le reste à financer total ou l'objectif global comme besoin mensuel,
+    // on calcule la contribution mensuelle initialement prévue sur la durée totale du projet.
+    const start = project.created_at ? new Date(project.created_at) : today;
+    const totalDurationMonths = (deadline.getFullYear() - start.getFullYear()) * 12 + (deadline.getMonth() - start.getMonth());
+    
+    if (totalDurationMonths >= 2) {
+      // Retourne la contribution mensuelle planifiée d'origine (cible / durée totale)
+      return target / totalDurationMonths;
+    }
+
+    // Si le projet a été planifié sur une durée très courte (< 2 mois) ou si la donnée n'est pas disponible,
+    // on ne retourne pas le reste à financer total ou l'objectif global comme besoin du mois.
+    // On retourne 0 par défaut pour signifier qu'il n'y a pas de contribution mensuelle planifiée stable.
+    return 0;
   }, []);
 
   // Helper to compile alerts (including the "Ready to Realize" status)
