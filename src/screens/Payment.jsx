@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { 
   ArrowLeft, Check, Crown, Smartphone, CreditCard, 
-  Lock, Sparkles, ShieldCheck, Zap, Layers, BarChart3, ChevronRight
+  Lock, Sparkles, ShieldCheck, Zap, Layers, BarChart3, ChevronRight, Wallet
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Payment = ({ onBack, onUnlock }) => {
-  const { updateProfile, user } = useAuth();
+  const { updateProfile } = useAuth();
   const [selectedMethod, setSelectedMethod] = useState(null); // 'orange', 'wave', 'mtn', 'moov', 'card'
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+225'); // Default Côte d'Ivoire
@@ -52,11 +52,11 @@ const Payment = ({ onBack, onUnlock }) => {
   ];
 
   const paymentMethods = [
-    { id: 'wave', name: 'Wave', color: '#1B9CFC', icon: '🌊' },
-    { id: 'orange', name: 'Orange Money', color: '#FF793F', icon: '🍊' },
-    { id: 'mtn', name: 'MTN Mobile Money', color: '#FFC312', icon: '💛' },
-    { id: 'moov', name: 'Moov Money', color: '#0652DD', icon: '💙' },
-    { id: 'card', name: 'Carte Bancaire', color: 'var(--navy)', icon: '💳' }
+    { id: 'wave', name: 'Wave', color: '#1B9CFC', icon: Wallet },
+    { id: 'orange', name: 'Orange Money', color: '#FF793F', icon: Smartphone },
+    { id: 'mtn', name: 'MTN Mobile Money', color: '#FFC312', icon: Smartphone },
+    { id: 'moov', name: 'Moov Money', color: '#0652DD', icon: Smartphone },
+    { id: 'card', name: 'Carte Bancaire', color: 'var(--navy)', icon: CreditCard }
   ];
 
   const countries = [
@@ -123,7 +123,7 @@ const Payment = ({ onBack, onUnlock }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
           >
-            {/* Header / Back button */}
+            {/* Header / Back button with outline icon and circular background */}
             <button 
               onClick={onBack} 
               style={{ 
@@ -131,7 +131,7 @@ const Payment = ({ onBack, onUnlock }) => {
                 border: 'none', 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: '8px', 
+                gap: '10px', 
                 color: 'var(--navy)', 
                 marginBottom: '24px', 
                 cursor: 'pointer', 
@@ -139,23 +139,38 @@ const Payment = ({ onBack, onUnlock }) => {
                 fontFamily: 'var(--font-headings)' 
               }}
             >
-              <ArrowLeft size={18} strokeWidth={2.5} /> Retour
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--white)',
+                border: '1.5px solid rgba(0, 0, 0, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--navy)',
+                boxShadow: 'var(--shadow-soft)'
+              }}>
+                <ArrowLeft size={16} strokeWidth={2.5} />
+              </div>
+              Retour
             </button>
 
-            {/* Main Title Hero */}
+            {/* Main Title Hero with outline icon and circular background */}
             <div style={{ textAlign: 'center', marginBottom: '28px' }}>
               <div style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '60px',
-                height: '60px',
-                borderRadius: '20px',
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
                 backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                border: '1.5px solid rgba(212, 175, 55, 0.25)',
                 color: '#D4AF37',
                 marginBottom: '16px'
               }}>
-                <Crown size={32} />
+                <Crown size={28} />
               </div>
               <h1 className="font-outfit" style={{ fontSize: '28px', fontWeight: '800', color: 'var(--navy)', marginBottom: '8px' }}>
                 Accès Premium Zenith
@@ -165,7 +180,7 @@ const Payment = ({ onBack, onUnlock }) => {
               </p>
             </div>
 
-            {/* Premium Features List */}
+            {/* Premium Features List with outline icons and circular backgrounds */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
               {premiumFeatures.map((feat, idx) => {
                 const IconComponent = feat.icon;
@@ -174,8 +189,9 @@ const Payment = ({ onBack, onUnlock }) => {
                     <div style={{
                       width: '40px',
                       height: '40px',
-                      borderRadius: '12px',
+                      borderRadius: '50%',
                       backgroundColor: `${feat.color}15`,
+                      border: `1.5px solid ${feat.color}25`,
                       color: feat.color,
                       display: 'flex',
                       alignItems: 'center',
@@ -184,7 +200,7 @@ const Payment = ({ onBack, onUnlock }) => {
                     }}>
                       <IconComponent size={20} />
                     </div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <h4 className="font-outfit" style={{ fontSize: '15px', fontWeight: '700', color: 'var(--navy)', marginBottom: '2px' }}>
                         {feat.title}
                       </h4>
@@ -217,7 +233,7 @@ const Payment = ({ onBack, onUnlock }) => {
               </p>
             </div>
 
-            {/* Payment Method Selector */}
+            {/* Payment Method Selector with outline icons and circular backgrounds */}
             <h3 className="font-outfit" style={{ fontSize: '16px', fontWeight: '700', color: 'var(--navy)', marginBottom: '16px' }}>
               Choisissez votre moyen de paiement
             </h3>
@@ -243,16 +259,28 @@ const Payment = ({ onBack, onUnlock }) => {
                       transition: 'all 0.2s'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '20px' }}>{method.icon}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        backgroundColor: `${method.color}15`,
+                        border: `1.5px solid ${method.color}25`,
+                        color: method.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <method.icon size={20} />
+                      </div>
                       <span className="font-outfit" style={{ fontWeight: '700', fontSize: '15px', color: 'var(--navy)' }}>
                         {method.name}
                       </span>
                     </div>
                     {isSelected ? (
                       <div style={{
-                        width: '20px',
-                        height: '20px',
+                        width: '24px',
+                        height: '24px',
                         borderRadius: '50%',
                         backgroundColor: method.color,
                         display: 'flex',
@@ -260,7 +288,7 @@ const Payment = ({ onBack, onUnlock }) => {
                         justifyContent: 'center',
                         color: 'white'
                       }}>
-                        <Check size={12} strokeWidth={3} />
+                        <Check size={14} strokeWidth={3} />
                       </div>
                     ) : (
                       <ChevronRight size={18} color="var(--text-light)" />
@@ -377,13 +405,36 @@ const Payment = ({ onBack, onUnlock }) => {
               )}
             </AnimatePresence>
 
-            {/* Footer trust badges */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center', opacity: 0.6, marginTop: '20px' }}>
-              <span style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Lock size={12} /> Transaction 100% Cryptée
+            {/* Footer trust badges with outline icons and circular backgrounds */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', alignItems: 'center', opacity: 0.7, marginTop: '24px' }}>
+              <span style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--text-light)' }}>
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(31, 41, 55, 0.05)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-light)'
+                }}>
+                  <Lock size={10} />
+                </div>
+                Transaction Cryptée
               </span>
-              <span style={{ fontSize: '11px' }}>•</span>
-              <span style={{ fontSize: '11px' }}>
+              <span style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--text-light)' }}>
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(31, 41, 55, 0.05)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-light)'
+                }}>
+                  <ShieldCheck size={10} />
+                </div>
                 Zenith Protection
               </span>
             </div>
@@ -407,7 +458,7 @@ const Payment = ({ onBack, onUnlock }) => {
               minHeight: '80vh'
             }}
           >
-            {/* Spinning ring loader */}
+            {/* Spinning ring loader with outline icon and circular background */}
             <div style={{ position: 'relative', width: '100px', height: '100px', marginBottom: '32px' }}>
               <div style={{
                 boxSizing: 'border-box',
@@ -475,16 +526,17 @@ const Payment = ({ onBack, onUnlock }) => {
               minHeight: '85vh'
             }}
           >
-            {/* Animated Celebration Icon */}
+            {/* Animated Celebration Icon with outline icon and circular background */}
             <motion.div
               initial={{ scale: 0.5, rotate: -45 }}
               animate={{ scale: [0.5, 1.2, 1], rotate: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
               style={{
-                width: '90px',
-                height: '90px',
-                borderRadius: '30px',
+                width: '96px',
+                height: '96px',
+                borderRadius: '50%',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                border: '1.5px solid rgba(16, 185, 129, 0.25)',
                 color: 'var(--emerald)',
                 display: 'flex',
                 alignItems: 'center',
@@ -492,7 +544,7 @@ const Payment = ({ onBack, onUnlock }) => {
                 marginBottom: '28px'
               }}
             >
-              <Crown size={48} />
+              <Crown size={44} />
             </motion.div>
 
             <span className="badge" style={{ backgroundColor: 'var(--emerald-light)', color: 'var(--emerald)', textTransform: 'uppercase', fontSize: '10px', fontWeight: 800, padding: '4px 14px', letterSpacing: '0.5px' }}>
