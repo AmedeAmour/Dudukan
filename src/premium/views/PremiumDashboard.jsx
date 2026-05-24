@@ -166,7 +166,27 @@ const PremiumDashboard = () => {
   const globalProgress = totalTarget > 0 ? Math.min(100, Math.round((totalSaved / totalTarget) * 100)) : 0;
 
   // 2. Calculations for monthly needs card
+  // monthlyNeed = somme des besoins mensuels réels (reste / mois restants).
+  // Les projets en retard (deadline dépassée) retournent 0 et sont exclus.
   const monthlyNeed = projects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0);
+
+  // Projets actifs contribuant au besoin mensuel (avec échéance future ou récurrents)
+  const today = new Date();
+  const activeContributingProjects = projects.filter(p => {
+    if (p.is_recurring) return parseFloat(p.target_amount || 0) > 0;
+    if (!p.deadline) return false;
+    const deadline = new Date(p.deadline);
+    const monthsLeft = (deadline.getFullYear() - today.getFullYear()) * 12 + (deadline.getMonth() - today.getMonth());
+    const remaining = parseFloat(p.target_amount || 0) - parseFloat(p.current_amount || 0);
+    return monthsLeft >= 0 && remaining > 0;
+  });
+  const overdueProjects = targetProjects.filter(p => {
+    if (!p.deadline) return false;
+    const deadline = new Date(p.deadline);
+    const monthsLeft = (deadline.getFullYear() - today.getFullYear()) * 12 + (deadline.getMonth() - today.getMonth());
+    const remaining = parseFloat(p.target_amount || 0) - parseFloat(p.current_amount || 0);
+    return monthsLeft < 0 && remaining > 0;
+  });
 
   // 3. Viability Score calculation
   let viability = 100;
@@ -366,7 +386,7 @@ const PremiumDashboard = () => {
         {/* Monthly Needs Card */}
         <div className="premium-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
+            <div style={{ flex: 1 }}>
               <span style={{ 
                 fontFamily: 'var(--font-body)', 
                 fontSize: '11px', 
@@ -378,10 +398,37 @@ const PremiumDashboard = () => {
                 Besoins prévisionnels du mois
               </span>
               <div style={{ marginTop: '6px' }}>
-                <span className="font-data" style={{ fontSize: '32px', color: 'var(--zenith-on-surface)', fontWeight: '800' }}>
-                  {Math.round(monthlyNeed).toLocaleString()} {currencyCode}
-                </span>
+                {monthlyNeed > 0 ? (
+                  <span className="font-data" style={{ fontSize: '32px', color: 'var(--zenith-on-surface)', fontWeight: '800' }}>
+                    {Math.round(monthlyNeed).toLocaleString()} {currencyCode}
+                  </span>
+                ) : (
+                  <span className="font-data" style={{ fontSize: '24px', color: 'var(--zenith-secondary)', fontWeight: '800' }}>
+                    Aucun besoin planifié
+                  </span>
+                )}
               </div>
+              {monthlyNeed > 0 && (
+                <p style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', margin: '6px 0 0 0', lineHeight: '1.4' }}>
+                  Contribution mensuelle recommandée, répartie sur les échéances actives
+                </p>
+              )}
+              {overdueProjects.length > 0 && (
+                <div style={{
+                  marginTop: '8px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  borderRadius: 'var(--radius-pill)',
+                  padding: '3px 10px'
+                }}>
+                  <span style={{ fontSize: '10px', color: '#EF4444', fontWeight: 700 }}>
+                    {overdueProjects.length} projet{overdueProjects.length > 1 ? 's' : ''} en retard exclu{overdueProjects.length > 1 ? 's' : ''}
+                  </span>
+                </div>
+              )}
             </div>
             <div style={{
               width: '40px',
@@ -391,17 +438,20 @@ const PremiumDashboard = () => {
               color: 'var(--zenith-primary-container)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              flexShrink: 0
             }}>
               <Zap size={20} />
             </div>
           </div>
-          <div style={{ marginTop: '16px', borderTop: '1px solid var(--zenith-outline-variant)', paddingTop: '16px', display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}>
+          <div style={{ marginTop: '16px', borderTop: '1px solid var(--zenith-outline-variant)', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>
-              Allocation optimale répartie sur {projects.length} projets
+              {activeContributingProjects.length > 0
+                ? `Réparti sur ${activeContributingProjects.length} projet${activeContributingProjects.length > 1 ? 's' : ''} actif${activeContributingProjects.length > 1 ? 's' : ''}`
+                : 'Aucun projet avec échéance active'}
             </span>
             <div style={{ display: 'flex', gap: '-6px' }}>
-              {projects.slice(0, 3).map((p, idx) => (
+              {activeContributingProjects.slice(0, 3).map((p, idx) => (
                 <div key={idx} style={{
                   width: '20px',
                   height: '20px',

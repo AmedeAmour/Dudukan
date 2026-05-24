@@ -270,6 +270,12 @@ export const PremiumProvider = ({ children }) => {
     const deadline = new Date(project.deadline);
     const monthsLeft = (deadline.getFullYear() - today.getFullYear()) * 12 + (deadline.getMonth() - today.getMonth());
     
+    // Si la date limite est déjà dépassée, le projet est en retard :
+    // on ne l'inclut pas dans le besoin prévisionnel mensuel du dashboard.
+    if (monthsLeft < 0) return 0;
+
+    // Pour un projet dont l'échéance est ce mois-ci ou au-delà,
+    // on divise le reste à financer sur les mois restants (min 1).
     const effectiveMonths = Math.max(1, monthsLeft);
     return remaining / effectiveMonths;
   }, []);

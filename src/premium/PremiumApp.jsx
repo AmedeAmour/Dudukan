@@ -147,10 +147,9 @@ const PremiumAppContent = ({ onSwitchMode }) => {
         let besoinPrevisionnel = 0;
         if (premium && typeof premium.calculateMonthlyNeed === 'function') {
           besoinPrevisionnel = safeProjects.reduce((acc, p) => acc + premium.calculateMonthlyNeed(p), 0);
-        } else {
-          besoinPrevisionnel = resteAFinancer;
         }
-        // Debug log for verification
+        // Note : le besoinPrevisionnel est la somme des besoins mensuels par projet
+        // (reste / mois restants). Il ne correspond pas au reste à financer global.
         console.log('PDF allocation metrics', { totalSavings: freshSavings, totalAllocated, totalTarget, unallocatedSavings, globalProgress, resteAFinancer, besoinPrevisionnel });
 
       // 4. Clean Summary Section
