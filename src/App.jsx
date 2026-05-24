@@ -13,10 +13,11 @@ import BottomNav from './components/BottomNav';
 import NotificationObserver from './components/NotificationObserver';
 import InstallPWA from './components/InstallPWA';
 import PremiumApp from './premium/PremiumApp';
+import Payment from './screens/Payment';
 
 const AppContent = () => {
   const { onboarded, isInitialized, profile } = useFinance();
-  const { session, loading } = useAuth();
+  const { session, loading, user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [appMode, setAppMode] = useState('free');
 
@@ -45,7 +46,12 @@ const AppContent = () => {
 
   // Switching between independent apps
   if (appMode === 'premium') {
-    return <PremiumApp onSwitchMode={setAppMode} />;
+    const isPremiumUser = user?.user_metadata?.is_premium === true;
+    if (isPremiumUser) {
+      return <PremiumApp onSwitchMode={setAppMode} />;
+    } else {
+      return <Payment onBack={() => setAppMode('free')} onUnlock={() => setAppMode('premium')} />;
+    }
   }
 
   const renderScreen = () => {
