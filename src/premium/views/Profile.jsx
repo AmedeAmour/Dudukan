@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { usePremium } from '../context/PremiumContext';
 import { NotificationService } from '../../NotificationService';
-import { 
-  User, 
-  Crown, 
-  Settings, 
-  Sliders, 
-  ShieldCheck, 
-  RefreshCw, 
-  LogOut, 
+import {
+  User,
+  Crown,
+  Settings,
+  Sliders,
+  ShieldCheck,
+  RefreshCw,
+  LogOut,
   MessageSquare,
   Sparkles,
   TrendingUp,
@@ -23,11 +23,11 @@ import {
 } from 'lucide-react';
 
 const Profile = ({ onSwitchMode, onDownloadReport }) => {
-  const { 
-    profile, 
-    projects, 
-    financeSavings, 
-    freeSalary, 
+  const {
+    profile,
+    projects,
+    financeSavings,
+    freeSalary,
     currency,
     reminders,
     addReminder,
@@ -37,7 +37,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
   } = usePremium();
 
   const currencyCode = currency?.code || 'XOF';
-  
+
   // Local state for coaching preferences (persisted to localStorage)
   const [coachingTone, setCoachingTone] = useState(() => {
     return localStorage.getItem('dudukan_coaching_tone') || 'pedagogic';
@@ -138,7 +138,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
 
   return (
     <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>
-      
+
       {/* Header section */}
       <div style={{ marginBottom: '28px' }}>
         <h2 className="font-heading" style={{ fontSize: '28px', color: 'var(--zenith-on-surface)', margin: '0 0 4px 0' }}>
@@ -151,8 +151,8 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
 
 
       {/* Downgrade Action */}
-      <div className="premium-card" style={{ 
-        padding: '20px', 
+      <div className="premium-card" style={{
+        padding: '20px',
         border: '1px solid rgba(239, 68, 68, 0.15)',
         backgroundColor: 'rgba(239, 68, 68, 0.02)',
         marginBottom: '28px'
@@ -164,7 +164,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
         <p style={{ fontSize: '12px', color: 'var(--zenith-on-surface-variant)', margin: '0 0 16px 0', lineHeight: '1.4' }}>
           Le passage en mode gratuit conservera vos projets mais supprimera les fonctionnalités d'allocation automatique séquentielle, de matelas de protection et les rapports de suivi détaillé.
         </p>
-        <button 
+        <button
           onClick={() => onSwitchMode('free')}
           style={{
             width: '100%',
@@ -232,8 +232,8 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
           <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '8px' }}>
             Ton du Coach
           </label>
-          <select 
-            value={coachingTone} 
+          <select
+            value={coachingTone}
             onChange={(e) => setCoachingTone(e.target.value)}
             style={{
               width: '100%',
@@ -257,8 +257,8 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
           <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '8px' }}>
             Stratégie Dominante
           </label>
-          <select 
-            value={dominantStrategy} 
+          <select
+            value={dominantStrategy}
             onChange={(e) => setDominantStrategy(e.target.value)}
             style={{
               width: '100%',
@@ -286,7 +286,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
         </h4>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
+
           {/* Switch 1 */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
@@ -297,8 +297,8 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                 Alerter si l'épargne non allouée descend sous 25%
               </span>
             </div>
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={securityMat}
               onChange={(e) => setSecurityMat(e.target.checked)}
               style={{ width: '36px', height: '20px', cursor: 'pointer' }}
@@ -315,8 +315,8 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                 Diligence de nouveaux conseils à chaque connexion
               </span>
             </div>
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={autoAnalysis}
               onChange={(e) => setAutoAnalysis(e.target.checked)}
               style={{ width: '36px', height: '20px', cursor: 'pointer' }}
@@ -328,13 +328,13 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
 
       {/* Premium Reminders Section */}
       <div className="premium-card" style={{ padding: '20px', marginBottom: '24px' }}>
-        <div 
+        <div
           onClick={() => setExpandedReminders(!expandedReminders)}
           style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
         >
           <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Calendar size={18} color="var(--zenith-primary-container)" />
-            🗓️ Rappels & Notifications
+            Rappels & Notifications
           </h4>
           {expandedReminders ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         </div>
@@ -342,9 +342,9 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
         {expandedReminders && (
           <div style={{ marginTop: '16px' }}>
             {/* Permission status and test button */}
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
               backgroundColor: 'var(--zenith-bg)',
               padding: '12px',
@@ -359,7 +359,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                   Vérifier l'accès navigateur
                 </span>
               </div>
-              <button 
+              <button
                 onClick={handleTestNotification}
                 style={{
                   padding: '6px 12px',
@@ -379,9 +379,9 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
             </div>
 
             {/* Form to add a new reminder */}
-            <form onSubmit={handleCreateReminder} style={{ 
-              backgroundColor: 'var(--zenith-bg)', 
-              padding: '16px', 
+            <form onSubmit={handleCreateReminder} style={{
+              backgroundColor: 'var(--zenith-bg)',
+              padding: '16px',
               borderRadius: 'var(--radius-md)',
               marginBottom: '20px',
               border: '1px solid var(--zenith-outline-variant)'
@@ -395,11 +395,11 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                   <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '4px' }}>
                     Titre du rappel
                   </label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     required
                     value={remForm.title}
-                    onChange={(e) => setRemForm({...remForm, title: e.target.value})}
+                    onChange={(e) => setRemForm({ ...remForm, title: e.target.value })}
                     placeholder="Ex: Réviser le budget Maison"
                     style={{
                       width: '100%',
@@ -417,9 +417,9 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                     <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '4px' }}>
                       Concerne... (Type)
                     </label>
-                    <select 
+                    <select
                       value={remForm.type}
-                      onChange={(e) => setRemForm({...remForm, type: e.target.value})}
+                      onChange={(e) => setRemForm({ ...remForm, type: e.target.value })}
                       style={{
                         width: '100%',
                         padding: '8px',
@@ -441,9 +441,9 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                     <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '4px' }}>
                       Fréquence
                     </label>
-                    <select 
+                    <select
                       value={remForm.frequency}
-                      onChange={(e) => setRemForm({...remForm, frequency: e.target.value})}
+                      onChange={(e) => setRemForm({ ...remForm, frequency: e.target.value })}
                       style={{
                         width: '100%',
                         padding: '8px',
@@ -466,9 +466,9 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                     <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '4px' }}>
                       Projet associé
                     </label>
-                    <select 
+                    <select
                       value={remForm.targetId}
-                      onChange={(e) => setRemForm({...remForm, targetId: e.target.value})}
+                      onChange={(e) => setRemForm({ ...remForm, targetId: e.target.value })}
                       style={{
                         width: '100%',
                         padding: '8px',
@@ -493,11 +493,11 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                       <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '4px' }}>
                         Date
                       </label>
-                      <input 
-                        type="date" 
+                      <input
+                        type="date"
                         required
                         value={remForm.date}
-                        onChange={(e) => setRemForm({...remForm, date: e.target.value})}
+                        onChange={(e) => setRemForm({ ...remForm, date: e.target.value })}
                         style={{
                           width: '100%',
                           padding: '7px 10px',
@@ -515,9 +515,9 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                       <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '4px' }}>
                         Jour
                       </label>
-                      <select 
+                      <select
                         value={remForm.day}
-                        onChange={(e) => setRemForm({...remForm, day: Number(e.target.value)})}
+                        onChange={(e) => setRemForm({ ...remForm, day: Number(e.target.value) })}
                         style={{
                           width: '100%',
                           padding: '8px',
@@ -542,11 +542,11 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                     <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '4px' }}>
                       Heure
                     </label>
-                    <input 
-                      type="time" 
+                    <input
+                      type="time"
                       required
                       value={remForm.time}
-                      onChange={(e) => setRemForm({...remForm, time: e.target.value})}
+                      onChange={(e) => setRemForm({ ...remForm, time: e.target.value })}
                       style={{
                         width: '100%',
                         padding: '7px 10px',
@@ -563,9 +563,9 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                   <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '4px' }}>
                     Note / Message
                   </label>
-                  <textarea 
+                  <textarea
                     value={remForm.description}
-                    onChange={(e) => setRemForm({...remForm, description: e.target.value})}
+                    onChange={(e) => setRemForm({ ...remForm, description: e.target.value })}
                     placeholder="Message qui s'affichera lors du rappel"
                     rows={2}
                     style={{
@@ -580,7 +580,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                   />
                 </div>
 
-                <button 
+                <button
                   type="submit"
                   style={{
                     padding: '10px',
@@ -619,8 +619,8 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                   {reminders.map(rem => {
                     const daysMap = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
                     const freqText = rem.frequency === 'once' ? `Le ${new Date(rem.date).toLocaleDateString()}` :
-                                     rem.frequency === 'weekly' ? `Chaque ${daysMap[rem.day]}` : 'Chaque jour';
-                    
+                      rem.frequency === 'weekly' ? `Chaque ${daysMap[rem.day]}` : 'Chaque jour';
+
                     const badgeColors = {
                       project: { bg: 'rgba(6,182,212,0.1)', text: 'var(--zenith-data-complex)' },
                       milestone: { bg: 'rgba(139,92,246,0.1)', text: 'var(--zenith-data-complex)' },
@@ -632,7 +632,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                     const badge = badgeColors[rem.type] || { bg: 'rgba(100,116,139,0.1)', text: 'gray' };
 
                     return (
-                      <div key={rem.id} style={{ 
+                      <div key={rem.id} style={{
                         border: '1px solid var(--zenith-outline-variant)',
                         borderRadius: 'var(--radius-md)',
                         padding: '12px',
@@ -647,19 +647,19 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                             <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--zenith-on-surface)' }}>
                               {rem.title}
                             </span>
-                            <span style={{ 
-                              fontSize: '9px', 
-                              fontWeight: 700, 
-                              backgroundColor: badge.bg, 
-                              color: badge.text, 
-                              padding: '2px 6px', 
+                            <span style={{
+                              fontSize: '9px',
+                              fontWeight: 700,
+                              backgroundColor: badge.bg,
+                              color: badge.text,
+                              padding: '2px 6px',
                               borderRadius: '4px',
                               textTransform: 'uppercase'
                             }}>
                               {rem.type === 'project' ? 'Projet' :
-                               rem.type === 'milestone' ? 'Étape' :
-                               rem.type === 'deadline' ? 'Échéance' :
-                               rem.type === 'financial' ? 'Finances' : 'Priorité'}
+                                rem.type === 'milestone' ? 'Étape' :
+                                  rem.type === 'deadline' ? 'Échéance' :
+                                    rem.type === 'financial' ? 'Finances' : 'Priorité'}
                             </span>
                           </div>
                           <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
@@ -673,13 +673,13 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={rem.enabled}
                             onChange={() => toggleReminder(rem.id)}
                             style={{ cursor: 'pointer', width: '16px', height: '16px' }}
                           />
-                          <button 
+                          <button
                             onClick={() => deleteReminder(rem.id)}
                             style={{
                               background: 'none',
@@ -717,7 +717,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
               Statut : Protégé par Supabase
             </span>
           </div>
-          <button 
+          <button
             onClick={handleSync}
             disabled={syncing}
             style={{
@@ -741,8 +741,8 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
       </div>
 
       {/* Danger Zone */}
-      <div className="premium-card" style={{ 
-        padding: '20px', 
+      <div className="premium-card" style={{
+        padding: '20px',
         marginBottom: '28px',
         border: '1px solid rgba(239, 68, 68, 0.25)',
         backgroundColor: 'rgba(239, 68, 68, 0.03)'
@@ -754,7 +754,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
         <p style={{ fontSize: '12px', color: 'var(--zenith-on-surface-variant)', margin: '0 0 16px 0', lineHeight: '1.4' }}>
           La réinitialisation premium effacera tous vos projets de vie, jalons, allocations d'épargne et transactions de la version premium. Vos données de la version gratuite resteront intactes.
         </p>
-        <button 
+        <button
           onClick={handleResetPremium}
           style={{
             width: '100%',
