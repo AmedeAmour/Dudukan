@@ -246,7 +246,7 @@ const Settings = ({ onSwitchToPremium }) => {
 
       doc.setTextColor(50, 50, 50);
       if (allTransactions && allTransactions.length > 0) {
-        allTransactions.slice(0, 10).forEach((tx) => {
+        allTransactions.forEach((tx) => {
           if (y > 270) {
             doc.addPage();
             y = 20;
