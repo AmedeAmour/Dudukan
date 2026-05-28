@@ -3,15 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import {
   ArrowLeft,
   BarChart3,
-  Check,
-  ChevronRight,
   CreditCard,
   Layers,
   Lock,
   ShieldCheck,
-  Smartphone,
   Sparkles,
-  Wallet,
   Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,9 +21,6 @@ const Payment = ({
   paymentReturnInfo = null
 }) => {
   const { session } = useAuth();
-  const [selectedMethod, setSelectedMethod] = useState(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [countryCode, setCountryCode] = useState('+225');
   const [paymentStep, setPaymentStep] = useState('selection');
   const [processingStatus, setProcessingStatus] = useState('');
   const [paymentError, setPaymentError] = useState('');
@@ -59,28 +52,7 @@ const Payment = ({
     }
   ];
 
-  const paymentMethods = [
-    { id: 'wave', name: 'Wave', hint: 'Rapide si disponible dans votre pays', color: '#1B9CFC', icon: Wallet },
-    { id: 'orange', name: 'Orange Money', hint: 'Mobile money', color: '#FF793F', icon: Smartphone },
-    { id: 'mtn', name: 'MTN Mobile Money', hint: 'Mobile money', color: '#FFC312', icon: Smartphone },
-    { id: 'moov', name: 'Moov Money', hint: 'Mobile money', color: '#0652DD', icon: Smartphone },
-    { id: 'card', name: 'Carte bancaire', hint: 'Saisie sécurisée chez FedaPay', color: 'var(--navy)', icon: CreditCard }
-  ];
-
-  const countries = [
-    { code: '+225', name: "Côte d'Ivoire" },
-    { code: '+229', name: 'Bénin' },
-    { code: '+221', name: 'Sénégal' },
-    { code: '+223', name: 'Mali' },
-    { code: '+228', name: 'Togo' },
-    { code: '+226', name: 'Burkina Faso' },
-    { code: '+227', name: 'Niger' },
-    { code: '+237', name: 'Cameroun' },
-    { code: '+241', name: 'Gabon' }
-  ];
-
-  const selectedPaymentMethod = paymentMethods.find((method) => method.id === selectedMethod);
-  const normalizedPhoneNumber = phoneNumber.replace(/\D/g, '');
+  const fedapayMethods = ['Wave', 'Orange Money', 'MTN', 'Moov Money', 'Carte bancaire'];
   const returnStatus = paymentReturnInfo?.status;
   const returnNotice = returnStatus
     ? returnStatus === 'approved'
@@ -92,18 +64,8 @@ const Payment = ({
 
   const handlePaymentSubmit = (e) => {
     e.preventDefault();
-    if (!selectedMethod) {
-      setPaymentError('Choisissez un moyen de paiement pour continuer avec FedaPay.');
-      return;
-    }
-
     if (!session?.access_token) {
       setPaymentError('Votre session a expiré. Reconnectez-vous puis réessayez.');
-      return;
-    }
-
-    if (selectedMethod !== 'card' && normalizedPhoneNumber.length < 8) {
-      setPaymentError('Entrez un numéro mobile money valide avant de continuer.');
       return;
     }
 
@@ -117,11 +79,7 @@ const Payment = ({
         Authorization: `Bearer ${session.access_token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        selectedMethod,
-        phoneNumber: normalizedPhoneNumber,
-        countryCode,
-      }),
+      body: JSON.stringify({}),
     })
       .then(async (response) => {
         const data = await response.json();
@@ -486,189 +444,123 @@ const Payment = ({
                 </div>
               )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: selectedMethod ? '16px' : 0 }}>
-                {paymentMethods.map((method) => {
-                  const isSelected = selectedMethod === method.id;
-                  const IconComponent = method.icon;
+              <motion.form
+                onSubmit={handlePaymentSubmit}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+              >
+                <div style={{
+                  padding: '14px',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'rgba(59, 130, 246, 0.08)',
+                  border: '1px solid rgba(59, 130, 246, 0.16)',
+                  color: 'var(--navy)',
+                  fontSize: '12px',
+                  lineHeight: 1.5,
+                  marginBottom: '14px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  gap: '10px',
+                  alignItems: 'flex-start'
+                }}>
+                  <CreditCard size={18} color="var(--accent-blue)" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span>Vous allez quitter Dudukan pour terminer le paiement sur la page officielle et securisee de FedaPay.</span>
+                </div>
 
-                  return (
-                    <button
-                      key={method.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedMethod(method.id);
-                        setPaymentError('');
-                      }}
-                      style={{
-                        width: '100%',
-                        minHeight: '62px',
-                        padding: '12px 14px',
-                        borderRadius: 'var(--radius-md)',
-                        backgroundColor: isSelected ? `${method.color}10` : 'var(--white)',
-                        border: isSelected ? `2px solid ${method.color}` : '1.5px solid rgba(26,43,72,0.08)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        cursor: 'pointer',
-                        boxShadow: isSelected ? 'var(--shadow-medium)' : 'none',
-                        transition: 'all 0.2s ease',
-                        textAlign: 'left'
-                      }}
-                    >
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-                        <span style={{
-                          width: '38px',
-                          height: '38px',
-                          borderRadius: '50%',
-                          backgroundColor: `${method.color}16`,
-                          color: method.color,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0
-                        }}>
-                          <IconComponent size={19} />
-                        </span>
-                        <span style={{ minWidth: 0 }}>
-                          <span className="font-outfit" style={{
-                            display: 'block',
-                            color: 'var(--navy)',
-                            fontSize: '14px',
-                            fontWeight: 800,
-                            lineHeight: 1.2
-                          }}>
-                            {method.name}
-                          </span>
-                          <span style={{
-                            display: 'block',
-                            color: 'var(--text-light)',
-                            fontSize: '11px',
-                            lineHeight: 1.3,
-                            marginTop: '2px'
-                          }}>
-                            {method.hint}
-                          </span>
-                        </span>
-                      </span>
-
-                      {isSelected ? (
-                        <span style={{
-                          width: '24px',
-                          height: '24px',
-                          borderRadius: '50%',
-                          backgroundColor: method.color,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          flexShrink: 0
-                        }}>
-                          <Check size={14} strokeWidth={3} />
-                        </span>
-                      ) : (
-                        <ChevronRight size={18} color="var(--text-light)" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <AnimatePresence>
-                {selectedMethod && (
-                  <motion.form
-                    onSubmit={handlePaymentSubmit}
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                  >
-                    <div style={{
-                      padding: '13px 14px',
-                      borderRadius: 'var(--radius-md)',
-                      background: 'rgba(16, 185, 129, 0.08)',
-                      color: 'var(--navy)',
-                      fontSize: '12px',
-                      lineHeight: 1.5,
-                      marginBottom: '14px',
-                      fontWeight: 700,
-                      display: 'flex',
-                      gap: '10px',
-                      alignItems: 'flex-start'
-                    }}>
-                      <Lock size={16} color="var(--emerald)" style={{ flexShrink: 0, marginTop: 1 }} />
-                      <span>Dudukan ne garde jamais vos informations sensibles. La confirmation se fait chez FedaPay.</span>
-                    </div>
-
-                    {selectedMethod !== 'card' ? (
-                      <div>
-                        <label className="label" style={{ fontWeight: 800, color: 'var(--navy)' }}>
-                          Numéro mobile
-                        </label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '132px 1fr', gap: '10px' }}>
-                          <select
-                            value={countryCode}
-                            onChange={(e) => setCountryCode(e.target.value)}
-                            style={{
-                              width: '100%',
-                              padding: '14px 10px',
-                              borderRadius: 'var(--radius-sm)',
-                              border: '1.5px solid #E5E7EB',
-                              fontFamily: 'Inter, sans-serif',
-                              fontSize: '14px',
-                              backgroundColor: 'white',
-                              color: 'var(--navy)'
-                            }}
-                          >
-                            {countries.map((country) => (
-                              <option key={country.code} value={country.code}>
-                                {country.code} {country.name}
-                              </option>
-                            ))}
-                          </select>
-                          <input
-                            type="tel"
-                            placeholder="Ex: 0707070707"
-                            value={phoneNumber}
-                            onChange={(e) => {
-                              setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 15));
-                              setPaymentError('');
-                            }}
-                          />
-                        </div>
-                        <p style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '8px', lineHeight: 1.45 }}>
-                          Entrez le numéro qui recevra ou confirmera le paiement mobile money.
-                        </p>
-                      </div>
-                    ) : (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '12px',
-                        padding: '14px',
-                        border: '1.5px solid #E5E7EB',
-                        borderRadius: 'var(--radius-md)',
+                <div style={{
+                  border: '1.5px solid rgba(26,43,72,0.08)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '14px',
+                  background: 'var(--white)',
+                  marginBottom: '14px'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: '14px',
+                    alignItems: 'center',
+                    marginBottom: '12px'
+                  }}>
+                    <div>
+                      <span style={{
+                        display: 'block',
                         color: 'var(--text-light)',
-                        fontSize: '13px',
-                        lineHeight: 1.5,
-                        marginBottom: '2px'
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        marginBottom: '3px'
                       }}>
-                        <CreditCard size={22} color="var(--navy)" style={{ flexShrink: 0 }} />
-                        <span>La saisie de la carte se fera uniquement sur la page sécurisée FedaPay.</span>
-                      </div>
-                    )}
+                        Montant a payer
+                      </span>
+                      <strong className="font-outfit" style={{
+                        color: 'var(--navy)',
+                        fontSize: '24px',
+                        lineHeight: 1,
+                        fontWeight: 900
+                      }}>
+                        9 900 XOF
+                      </strong>
+                    </div>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 10px',
+                      borderRadius: '999px',
+                      background: 'rgba(16, 185, 129, 0.1)',
+                      color: 'var(--emerald)',
+                      fontSize: '11px',
+                      fontWeight: 900,
+                      whiteSpace: 'nowrap'
+                    }}>
+                      <Lock size={13} /> FedaPay
+                    </span>
+                  </div>
 
-                    <button
-                      type="submit"
-                      className="btn-primary"
-                      style={{
-                        marginTop: '18px',
-                        backgroundColor: selectedPaymentMethod?.color || 'var(--navy)'
-                      }}
-                    >
-                      <Lock size={18} /> Payer avec FedaPay - 9 900 XOF
-                    </button>
-                  </motion.form>
-                )}
-              </AnimatePresence>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+                    {fedapayMethods.map((method) => (
+                      <span key={method} style={{
+                        padding: '7px 9px',
+                        borderRadius: '999px',
+                        background: 'rgba(26,43,72,0.04)',
+                        color: 'var(--text-light)',
+                        fontSize: '11px',
+                        fontWeight: 800
+                      }}>
+                        {method}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{
+                  padding: '13px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  color: 'var(--navy)',
+                  fontSize: '12px',
+                  lineHeight: 1.5,
+                  marginBottom: '16px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  gap: '10px',
+                  alignItems: 'flex-start'
+                }}>
+                  <Lock size={16} color="var(--emerald)" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span>Dudukan ne garde jamais vos informations sensibles. Le choix du moyen de paiement et la confirmation se font chez FedaPay.</span>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{
+                    marginTop: '2px',
+                    backgroundColor: 'var(--accent-blue)'
+                  }}
+                >
+                  <Lock size={18} /> Continuer sur FedaPay - 9 900 XOF
+                </button>
+              </motion.form>
             </section>
 
             <div style={{

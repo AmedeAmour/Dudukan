@@ -175,17 +175,22 @@ export default async function handler(req, res) {
     console.error('FedaPay checkout error:', error);
     const isFedapayConfigurationError = /Missing FEDAPAY_SECRET_KEY/.test(error.message || '');
     const isSupabaseConfigurationError = /Missing Supabase server environment variables/.test(error.message || '');
+    const isFedapayAuthenticationError = /authentification|authentication|unauthorized|invalid api/i.test(error.message || '');
     const isConfigurationError = isFedapayConfigurationError || isSupabaseConfigurationError;
 
-    return sendJson(res, isConfigurationError ? 503 : 500, {
-      error: isConfigurationError
-        ? "Le paiement est presque prêt, mais la configuration serveur n'est pas encore complète."
-        : "Impossible d'initialiser le paiement. Veuillez réessayer dans un instant.",
-      code: isSupabaseConfigurationError
-        ? 'MISSING_SUPABASE_SERVICE_ROLE_KEY'
-        : isFedapayConfigurationError
-          ? 'MISSING_FEDAPAY_SECRET_KEY'
-          : 'CHECKOUT_ERROR',
+    return sendJson(res, isConfigurationError || isFedapayAuthenticationError ? 503 : 500, {
+      error: isFedapayAuthenticationError
+        ? "La cle FedaPay du serveur n'est pas acceptee. Verifiez la cle secrete et l'environnement FedaPay dans Vercel."
+        : isConfigurationError
+          ? "Le paiement est presque pret, mais la configuration serveur n'est pas encore complete."
+          : "Impossible d'initialiser le paiement. Veuillez reessayer dans un instant.",
+      code: isFedapayAuthenticationError
+        ? 'FEDAPAY_AUTHENTICATION_ERROR'
+        : isSupabaseConfigurationError
+          ? 'MISSING_SUPABASE_SERVICE_ROLE_KEY'
+          : isFedapayConfigurationError
+            ? 'MISSING_FEDAPAY_SECRET_KEY'
+            : 'CHECKOUT_ERROR',
     });
   }
 }
