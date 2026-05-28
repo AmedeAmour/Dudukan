@@ -13,14 +13,14 @@ import Auth from './screens/Auth';
 import BottomNav from './components/BottomNav';
 import NotificationObserver from './components/NotificationObserver';
 import InstallPWA from './components/InstallPWA';
+import Portal from './screens/Portal';
 import PremiumApp from './premium/PremiumApp';
 import Payment from './screens/Payment';
 
 const AppContent = () => {
-  const { onboarded, isInitialized, profile } = useFinance();
+  const { onboarded, isInitialized, appMode, setAppMode } = useFinance();
   const { session, loading, user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [appMode, setAppMode] = useState('free');
   const [hasPremiumAccess, setHasPremiumAccess] = useState(false);
   const [premiumAccessLoading, setPremiumAccessLoading] = useState(false);
   const [paymentReturnInfo, setPaymentReturnInfo] = useState(null);
@@ -53,12 +53,6 @@ const AppContent = () => {
   }, [user]);
 
   useEffect(() => {
-    if (profile?.app_mode) {
-      setAppMode(profile.app_mode);
-    }
-  }, [profile]);
-
-  useEffect(() => {
     refreshPremiumAccess();
   }, [refreshPremiumAccess]);
 
@@ -75,22 +69,37 @@ const AppContent = () => {
     } else if (isPlusPreviewEnabled) {
       setAppMode('premium');
     }
-  }, [refreshPremiumAccess, isPlusPreviewEnabled]);
+  }, [refreshPremiumAccess, isPlusPreviewEnabled, setAppMode]);
 
   const enablePlusPreview = useCallback(() => {
     if (!canUsePlusPreview) return;
     localStorage.setItem('dudukan_plus_preview', 'true');
     setIsPlusPreviewEnabled(true);
     setAppMode('premium');
-  }, [canUsePlusPreview]);
+  }, [canUsePlusPreview, setAppMode]);
 
-  // Scroll to top when the active view changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activeTab]);
 
+  useEffect(() => {
+    setActiveTab('dashboard');
+  }, [appMode]);
+
   if (loading || !isInitialized || premiumAccessLoading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-main)', color: 'var(--navy)', fontWeight: '600' }}>Chargement de vos données...</div>;
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        background: 'var(--bg-main)',
+        color: 'var(--navy)',
+        fontWeight: '600'
+      }}>
+        Chargement de vos donnees...
+      </div>
+    );
   }
 
   if (!session) {
@@ -101,22 +110,25 @@ const AppContent = () => {
     return <Onboarding />;
   }
 
-  // Switching between independent apps
+  if (!appMode) {
+    return <Portal />;
+  }
+
   if (appMode === 'premium') {
     if (hasPremiumAccess || isPlusPreviewEnabled) {
       return <PremiumApp onSwitchMode={setAppMode} />;
-    } else {
-      return (
-        <Payment
-          onBack={() => setAppMode('free')}
-          onUnlock={() => setAppMode('premium')}
-          onRefreshAccess={refreshPremiumAccess}
-          canPreviewPlus={canUsePlusPreview}
-          onPreviewPlus={enablePlusPreview}
-          paymentReturnInfo={paymentReturnInfo}
-        />
-      );
     }
+
+    return (
+      <Payment
+        onBack={() => setAppMode('free')}
+        onUnlock={() => setAppMode('premium')}
+        onRefreshAccess={refreshPremiumAccess}
+        canPreviewPlus={canUsePlusPreview}
+        onPreviewPlus={enablePlusPreview}
+        paymentReturnInfo={paymentReturnInfo}
+      />
+    );
   }
 
   const renderScreen = () => {

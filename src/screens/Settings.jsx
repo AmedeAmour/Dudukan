@@ -5,7 +5,7 @@ import { supabase } from '../supabaseClient';
 import { 
   Trash2, LogOut, ChevronRight, Calculator, Bell, 
   Shield, Plus, Camera, User, Download, Coins, 
-  ChevronDown, Check
+  ChevronDown, Check, LayoutGrid
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationService } from '../NotificationService';
@@ -20,7 +20,8 @@ const Settings = ({ onSwitchToPremium }) => {
     allTransactions = [], startNewPeriod = () => {},
     setNextMonthSalary = () => {}, resetData = () => {}, setCurrency = () => {},
     notificationSchedule = [], setNotificationSchedule = () => {},
-    categories = []
+    categories = [], setAppMode = () => {},
+    allocationMode, setAllocationMode
   } = finance || {};
 
   const { user = null, signOut = () => {}, updateProfile = () => {} } = auth || {};
@@ -522,6 +523,7 @@ const Settings = ({ onSwitchToPremium }) => {
       <h3 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)', letterSpacing: '0.05em', marginBottom: '12px', marginTop: '32px', marginLeft: '4px' }}>ACTIONS & SÉCURITÉ</h3>
       <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
         {[
+          { icon: LayoutGrid, label: 'Changer de mode (Portail)', color: 'var(--navy)', onClick: () => setAppMode(null) },
           { icon: Plus, label: 'Démarrer mon nouveau mois', color: 'var(--accent-orange)', onClick: startNewPeriod },
           { icon: Download, label: 'Télécharger le rapport (PDF)', color: 'var(--emerald)', onClick: handleDownloadReport },
           { icon: Bell, label: 'Tester les notifications', color: 'var(--accent-blue)', onClick: async () => {

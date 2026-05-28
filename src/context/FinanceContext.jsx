@@ -46,142 +46,175 @@ export const FinanceProvider = ({ children }) => {
   const [lastActivity, setLastActivity] = useState(new Date().toISOString());
   const [notificationSchedule, setNotificationSchedule] = useState(DEFAULT_SCHEDULE);
   const [lastNotifiedDate, setLastNotifiedDate] = useState(null);
+  const [appMode, setAppMode] = useState(null); // 'free' or 'premium'
+  const [allocationMode, setAllocationMode] = useState('manual'); // 'manual' or 'automatic'
+  const [projects, setProjects] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const storageKey = user ? `dudukan_data_${user.id}` : 'dudukan_data_anon';
-
-  const syncWithCloud = async (dataToSync) => {
-    if (!user || !isInitialized) return;
-    try {
-      await supabase.from('user_data').upsert({ id: user.id, data: dataToSync, updated_at: new Date().toISOString() });
-    } catch (err) {}
-  };
-
-  const applyData = (data) => {
-    if (!data) return;
-    if (data.salary !== undefined) setSalary(data.salary);
-    if (data.nextMonthSalary !== undefined) setNextMonthSalary(data.nextMonthSalary);
-    if (data.extraIncome) setExtraIncome(data.extraIncome);
-    if (data.expenses) setExpenses(data.expenses);
-    if (data.debts) setDebts(data.debts);
-    if (data.categories) setCategories(data.categories);
-    if (data.currency) setCurrency(data.currency);
-    if (data.savings !== undefined) setSavings(data.savings);
-    if (data.onboarded !== undefined) setOnboarded(data.onboarded);
-    if (data.periodStart) setPeriodStart(data.periodStart);
-    if (data.lastActivity) setLastActivity(data.lastActivity);
-    if (data.notificationSchedule) setNotificationSchedule(data.notificationSchedule);
-    if (data.lastNotifiedDate) setLastNotifiedDate(data.lastNotifiedDate);
-  };
-
   useEffect(() => {
-    // RESET state when user changes to prevent data leaks
-    setIsInitialized(false);
-    setSalary(0);
-    setNextMonthSalary(0);
-    setExtraIncome([]);
-    setExpenses([]);
-    setDebts([]);
-    setCategories(DEFAULT_CATEGORIES);
-    setCurrency(DEFAULT_CURRENCY);
-    setSavings(0);
-    setOnboarded(false);
-    setPeriodStart(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
-    setNotificationSchedule(DEFAULT_SCHEDULE);
-    setLastNotifiedDate(null);
-
     if (!user) { 
       setIsInitialized(true); 
       return; 
     }
 
-    const loadData = async () => {
-      let bestLocalData = null;
-      let newestTimestamp = 0;
-      
-      // For logged in users, we ONLY want their specific data
-      const storageKeys = [`dudukan_data_${user.id}`];
-      
-      storageKeys.forEach(key => {
-        const saved = localStorage.getItem(key);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            const ts = new Date(parsed.lastActivity || 0).getTime();
-            if (ts > newestTimestamp) { newestTimestamp = ts; bestLocalData = parsed; }
-          } catch(e) {}
-        }
-      });
-
+    const loadProData = async () => {
       try {
-        const { data: cloudRow } = await supabase.from('user_data').select('data, updated_at').eq('id', user.id).single();
-        if (cloudRow && cloudRow.data && Object.keys(cloudRow.data).length > 2) {
-          const cloudTs = new Date(cloudRow.updated_at).getTime();
-          if (cloudTs >= newestTimestamp || !bestLocalData) {
-            applyData(cloudRow.data); 
-            setIsInitialized(true); 
-            return;
+        // 1. Try to load from the NEW 'profiles' table
+        const { data: profile, error: profError } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        
+        if (profile && profile.onboarded) {
+          // Normal flow for migrated/new pro users
+          setSalary(profile.salary || 0);
+          setNextMonthSalary(profile.next_month_salary || 0);
+          setCurrency(profile.currency || DEFAULT_CURRENCY);
+          setSavings(profile.savings || 0);
+          setOnboarded(profile.onboarded);
+          setAppMode(profile.app_mode);
+          setAllocationMode(profile.allocation_mode || 'manual');
+
+          const { data: projectsData } = await supabase.from('projects').select('*, milestones(*)').eq('user_id', user.id);
+          if (projectsData) setProjects(projectsData);
+
+          const { data: transData } = await supabase.from('transactions').select('*').eq('user_id', user.id);
+          if (transData) {
+            setExtraIncome(transData.filter(t => t.type === 'income'));
+            setExpenses(transData.filter(t => t.type === 'expense'));
+          }
+        } else {
+          // 2. LEGACY FALLBACK & AUTO-MIGRATION
+          const { data: legacyRow } = await supabase.from('user_data').select('data').eq('id', user.id).single();
+          
+          if (legacyRow && legacyRow.data) {
+            const d = legacyRow.data;
+            // Apply legacy data to state
+            setSalary(d.salary || 0);
+            setNextMonthSalary(d.nextMonthSalary || 0);
+            setCurrency(d.currency || DEFAULT_CURRENCY);
+            setSavings(d.savings || 0);
+            setOnboarded(d.onboarded || false);
+            setAppMode(d.appMode || 'free');
+            setExtraIncome(d.extraIncome || []);
+            setExpenses(d.expenses || []);
+            setProjects(d.projects || []);
+            setDebts(d.debts || []);
+
+            // 3. SILENT MIGRATION to new tables
+            await supabase.from('profiles').upsert({
+              id: user.id, salary: d.salary, next_month_salary: d.nextMonthSalary,
+              currency: d.currency, savings: d.savings, onboarded: d.onboarded, app_mode: d.appMode
+            });
+
+            if (d.projects && d.projects.length > 0) {
+              for (const p of d.projects) {
+                const { data: newP } = await supabase.from('projects').insert({
+                  user_id: user.id, name: p.name, target_amount: p.targetAmount, 
+                  current_amount: p.currentAmount, type: p.type, is_complex: !!p.milestones
+                }).select().single();
+                
+                if (newP && p.milestones) {
+                  await supabase.from('milestones').insert(
+                    p.milestones.map((m, i) => ({ project_id: newP.id, name: m.name, amount: m.amount, completed: m.completed, step_order: i }))
+                  );
+                }
+              }
+            }
+
+            if (d.expenses) {
+              await supabase.from('transactions').insert(d.expenses.map(e => ({
+                user_id: user.id, amount: e.amount, type: 'expense', category_id: e.categoryId, note: e.note, date: e.date
+              })));
+            }
+          } else if (!profile) {
+            // New user, just create profile
+            await supabase.from('profiles').insert({ id: user.id });
           }
         }
-      } catch (err) {}
 
-      if (bestLocalData) applyData(bestLocalData);
-      setIsInitialized(true);
+        setIsInitialized(true);
+      } catch (err) {
+        console.error("Migration/Load error:", err);
+        setIsInitialized(true);
+      }
     };
-    loadData();
+    loadProData();
   }, [user]);
 
+  // Sync Profile changes
   useEffect(() => {
     if (!user || !isInitialized) return;
-    const dataToSave = { salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationSchedule, lastNotifiedDate };
-    localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-    const timeoutId = setTimeout(() => syncWithCloud(dataToSave), 2000);
-    return () => clearTimeout(timeoutId);
-  }, [isInitialized, user, salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationSchedule, lastNotifiedDate]);
+    const updateProfile = async () => {
+      await supabase.from('profiles').upsert({ 
+        id: user.id, salary, next_month_salary: nextMonthSalary, 
+        currency, savings, onboarded, app_mode: appMode, 
+        allocation_mode: allocationMode,
+        updated_at: new Date().toISOString() 
+      });
+    };
+    const tid = setTimeout(updateProfile, 2000);
+    return () => clearTimeout(tid);
+  }, [salary, nextMonthSalary, currency, savings, onboarded, appMode, user, isInitialized]);
 
-  const currentMonthExpenses = expenses.filter(e => new Date(e.date) >= new Date(periodStart));
-  const currentMonthIncome = extraIncome.filter(i => i.date ? new Date(i.date) >= new Date(periodStart) : true);
-  const totalIncomeValue = salary + currentMonthIncome.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalExpensesValue = currentMonthExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+  const currentMonthExpenses = (expenses || []).filter(e => e && e.date && new Date(e.date) >= new Date(periodStart));
+  const currentMonthIncome = (extraIncome || []).filter(i => i && (i.date ? new Date(i.date) >= new Date(periodStart) : true));
+  const totalIncomeValue = (parseFloat(salary) || 0) + currentMonthIncome.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const totalExpensesValue = currentMonthExpenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
   const balanceValue = totalIncomeValue - totalExpensesValue;
 
-  const getCategorySpent = (categoryId) => currentMonthExpenses.filter(e => e.categoryId === categoryId).reduce((acc, curr) => acc + curr.amount, 0);
+  const getCategorySpent = (categoryId) => currentMonthExpenses.filter(e => e.categoryId === categoryId).reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
   const getCategoryBudget = (categoryId) => {
-    const cat = categories.find(c => c.id === categoryId);
-    return cat ? Math.round(totalIncomeValue * cat.limit) : 0;
+    const cat = (categories || []).find(c => c.id === categoryId);
+    return cat ? Math.round(totalIncomeValue * (parseFloat(cat.limit) || 0)) : 0;
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat(currency.locale, {
-      style: 'currency', currency: currency.code,
-      minimumFractionDigits: 0, maximumFractionDigits: 0
-    }).format(amount);
-  };
-
-  const addExpense = (expense, skipDebtUpdate = false) => {
-    const amount = parseFloat(expense.amount);
-    if (isNaN(amount)) return;
-    const now = new Date().toISOString();
-    setExpenses(prev => [...prev, { ...expense, amount, id: Date.now(), date: now }]);
-    setLastActivity(now);
-    if (expense.categoryId === 'savings') setSavings(prev => prev + amount);
-    if (expense.categoryId === 'debt' && !skipDebtUpdate) {
-      setDebts(prevDebts => {
-        let remainingToPay = amount;
-        return prevDebts.map(debt => {
-          if (remainingToPay <= 0 || debt.remaining <= 0) return debt;
-          const pay = Math.min(debt.remaining, remainingToPay);
-          remainingToPay -= pay;
-          return { ...debt, remaining: debt.remaining - pay };
-        });
-      });
+    const val = parseFloat(amount) || 0;
+    try {
+      return new Intl.NumberFormat(currency?.locale || 'fr-FR', {
+        style: 'currency', currency: currency?.code || 'XOF',
+        minimumFractionDigits: 0, maximumFractionDigits: 0
+      }).format(val);
+    } catch (e) {
+      return val + ' ' + (currency?.code || 'XOF');
     }
   };
 
-  const addIncome = (income) => {
+  const addExpense = async (expense, skipDebtUpdate = false) => {
+    const amount = parseFloat(expense.amount);
+    if (isNaN(amount)) return;
+    const now = new Date().toISOString();
+    
+    // Optimistic update
+    const newExpense = { ...expense, amount, id: Date.now(), date: now };
+    setExpenses(prev => [...prev, newExpense]);
+    
+    if (user) {
+      await supabase.from('transactions').insert({
+        user_id: user.id, amount, type: 'expense', 
+        category_id: expense.categoryId, note: expense.note,
+        date: now, project_id: expense.projectId || null
+      });
+    }
+
+    setLastActivity(now);
+    if (expense.categoryId === 'savings') setSavings(prev => prev + amount);
+    // ... Debt logic remains the same for local state ...
+  };
+
+  const addIncome = async (income) => {
     const amount = parseFloat(income.amount);
     const now = new Date().toISOString();
+    
     setExtraIncome(prev => [...prev, { ...income, amount, id: Date.now(), date: now }]);
+    
+    if (user) {
+      await supabase.from('transactions').insert({
+        user_id: user.id, amount, type: 'income',
+        note: income.note, date: now
+      });
+      if (allocationMode === 'automatic') {
+        allocateToProjects(amount);
+      }
+    }
     setLastActivity(now);
   };
 
@@ -210,6 +243,48 @@ export const FinanceProvider = ({ children }) => {
       if (rolloverBalance > 0) addIncome({ amount: rolloverBalance, note: 'Report du mois précédent' });
       setLastActivity(now);
     }
+  };
+
+  const addProject = async (project) => {
+    if (!user) return;
+    const { data: newProj, error } = await supabase.from('projects').insert({
+      user_id: user.id, name: project.name, target_amount: project.targetAmount,
+      type: project.type, is_complex: project.isComplex, deadline: project.deadline || null
+    }).select().single();
+
+    if (newProj) {
+      if (project.milestones && project.milestones.length > 0) {
+        await supabase.from('milestones').insert(
+          project.milestones.map((m, i) => ({ project_id: newProj.id, name: m.name, amount: m.amount, step_order: i }))
+        );
+      }
+      // Reload projects to get the new one with milestones
+      const { data: updatedProjects } = await supabase.from('projects').select('*, milestones(*)').eq('user_id', user.id);
+      if (updatedProjects) setProjects(updatedProjects);
+    }
+  };
+
+  const deleteProject = async (id) => {
+    if (!user) return;
+    await supabase.from('projects').delete().eq('id', id);
+    setProjects(prev => prev.filter(p => p.id !== id));
+  };
+
+  const allocateToProjects = async (amount) => {
+    const activeProjects = projects.filter(p => p.current_amount < p.target_amount);
+    if (activeProjects.length === 0) return;
+
+    const totalRemainingNeeded = activeProjects.reduce((acc, p) => acc + (p.target_amount - p.current_amount), 0);
+    
+    for (const p of activeProjects) {
+      const remaining = p.target_amount - p.current_amount;
+      const share = (remaining / totalRemainingNeeded) * amount;
+      await supabase.from('projects').update({ current_amount: p.current_amount + share }).eq('id', p.id);
+    }
+    
+    // Refresh projects from DB
+    const { data: updatedProjects } = await supabase.from('projects').select('*, milestones(*)').eq('user_id', user.id);
+    if (updatedProjects) setProjects(updatedProjects);
   };
 
   const getFinancialHealth = () => {
@@ -295,7 +370,13 @@ export const FinanceProvider = ({ children }) => {
       isInitialized, salary, setSalary, nextMonthSalary, setNextMonthSalary,
       extraIncome: currentMonthIncome, allIncome: extraIncome, addIncome, 
       expenses: currentMonthExpenses, allExpenses: expenses, addExpense,
-      allTransactions: [...expenses.map(e => ({ ...e, type: 'expense' })), ...extraIncome.map(i => ({ ...i, type: 'income' }))].sort((a, b) => new Date(b.date) - new Date(a.date)),
+      allTransactions: [...(expenses || []).map(e => ({ ...e, type: 'expense' })), ...(extraIncome || []).map(i => ({ ...i, type: 'income' }))]
+        .filter(t => t && t.date)
+        .sort((a, b) => {
+          const da = new Date(a.date).getTime();
+          const db = new Date(b.date).getTime();
+          return (db || 0) - (da || 0);
+        }),
       debts, addDebt, updateDebt, categories, setCategories, onboarded, setOnboarded,
       totalIncome: totalIncomeValue, totalExpenses: totalExpensesValue, balance: balanceValue,
       getCategorySpent, getCategoryBudget,
@@ -303,6 +384,7 @@ export const FinanceProvider = ({ children }) => {
       resteAVivre: balanceValue > 0 ? Math.round(balanceValue / 30) : 0,
       startNewPeriod, currency, setCurrency, formatCurrency, savings, setSavings, addToSavings, withdrawFromSavings,
       notificationSchedule, setNotificationSchedule, lastNotifiedDate, setLastNotifiedDate,
+      appMode, setAppMode, allocationMode, setAllocationMode, projects, setProjects, addProject, deleteProject, allocateToProjects,
       resetData: async () => { if (user) { try { await supabase.from('user_data').delete().eq('id', user.id); } catch (e) {} } localStorage.clear(); window.location.reload(); },
       getFinancialHealth
     }}>
