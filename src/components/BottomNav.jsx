@@ -11,6 +11,7 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
     { id: 'expenses', label: 'Dépenses', icon: Plus },
     { id: 'savings', label: 'Épargne', icon: PiggyBank },
     { id: 'debts', label: 'Dettes', icon: CreditCard },
+    { id: 'settings', label: 'RÃ©glages', icon: SettingsIcon },
   ];
 
   const premiumItems = [
