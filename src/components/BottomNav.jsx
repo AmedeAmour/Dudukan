@@ -4,14 +4,13 @@ import { useFinance } from '../context/FinanceContext';
 
 const BottomNav = ({ activeTab, setActiveTab }) => {
   const { appMode } = useFinance();
-  
+
   const freeItems = [
     { id: 'dashboard', label: 'Accueil', icon: Home },
     { id: 'budget', label: 'Budget', icon: PieChart },
     { id: 'expenses', label: 'Dépenses', icon: Plus },
     { id: 'savings', label: 'Épargne', icon: PiggyBank },
     { id: 'debts', label: 'Dettes', icon: CreditCard },
-    { id: 'settings', label: 'RÃ©glages', icon: SettingsIcon },
   ];
 
   const premiumItems = [
@@ -28,8 +27,8 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
     <nav className="bottom-nav">
       {navItems.map((item) => {
         const isExpenses = item.id === 'expenses';
-        const Icon = isExpenses 
-          ? (activeTab === 'expenses' ? X : Plus) 
+        const Icon = isExpenses
+          ? (activeTab === 'expenses' ? X : Plus)
           : item.icon;
 
         return (
