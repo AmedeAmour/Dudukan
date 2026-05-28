@@ -1,121 +1,162 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
-  ArrowLeft, Check, Crown, Smartphone, CreditCard,
-  Lock, Sparkles, ShieldCheck, Zap, Layers, BarChart3, ChevronRight, Wallet
+  ArrowLeft,
+  BarChart3,
+  Check,
+  ChevronRight,
+  CreditCard,
+  Layers,
+  Lock,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  Wallet,
+  Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Payment = ({ onBack, onUnlock }) => {
-  const { updateProfile } = useAuth();
-  const [selectedMethod, setSelectedMethod] = useState(null); // 'orange', 'wave', 'mtn', 'moov', 'card'
+const Payment = ({
+  onBack,
+  onUnlock,
+  onRefreshAccess,
+  canPreviewPlus = false,
+  onPreviewPlus,
+  paymentReturnInfo = null
+}) => {
+  const { session } = useAuth();
+  const [selectedMethod, setSelectedMethod] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [countryCode, setCountryCode] = useState('+225'); // Default Côte d'Ivoire
-  const [cardName, setCardName] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvv, setCardCvv] = useState('');
-  const [paymentStep, setPaymentStep] = useState('selection'); // 'selection', 'processing', 'success'
+  const [countryCode, setCountryCode] = useState('+225');
+  const [paymentStep, setPaymentStep] = useState('selection');
   const [processingStatus, setProcessingStatus] = useState('');
+  const [paymentError, setPaymentError] = useState('');
 
   const premiumFeatures = [
     {
-      icon: Crown,
-      title: "Architecture Premium",
-      desc: "Gestion de projets complexes avec étapes illimitées et jalons.",
-      color: "var(--accent-orange)"
+      icon: ShieldCheck,
+      title: 'Coach clair',
+      desc: 'Un tableau de bord simple pour suivre maison, terrain, mariage, enfants, business ou dettes.',
+      color: 'var(--accent-blue)'
     },
     {
       icon: Zap,
-      title: "Calculateur intelligent",
-      desc: "Besoins prévisionnels réels calculés mensuellement pour chaque objectif.",
-      color: "var(--accent-blue)"
-    },
-    {
-      icon: BarChart3,
-      title: "Score de Viabilité",
-      desc: "Système prédictif évaluant la réussite de votre stratégie financière.",
-      color: "var(--emerald)"
+      title: 'Effort du mois',
+      desc: 'Dudukan estime combien mettre de côté selon vos objectifs, vos délais et votre rythme.',
+      color: 'var(--emerald)'
     },
     {
       icon: Layers,
-      title: "Répartition intelligente",
-      desc: "Distribution automatique de votre épargne selon la priorité des projets.",
-      color: "var(--accent-pink)"
+      title: 'Répartition guidée',
+      desc: 'Votre épargne va vers les projets les plus urgents ou les plus importants.',
+      color: 'var(--accent-pink)'
     },
     {
-      icon: ShieldCheck,
-      title: "Rapports Stratégiques PDF",
-      desc: "Téléchargements de bilans de vie d'une qualité esthétique exceptionnelle.",
-      color: "var(--navy)"
+      icon: BarChart3,
+      title: 'Score du plan',
+      desc: "Un repère facile à lire pour savoir si ça avance bien ou s'il faut ajuster doucement.",
+      color: 'var(--accent-orange)'
     }
   ];
 
   const paymentMethods = [
-    { id: 'wave', name: 'Wave', color: '#1B9CFC', icon: Wallet },
-    { id: 'orange', name: 'Orange Money', color: '#FF793F', icon: Smartphone },
-    { id: 'mtn', name: 'MTN Mobile Money', color: '#FFC312', icon: Smartphone },
-    { id: 'moov', name: 'Moov Money', color: '#0652DD', icon: Smartphone },
-    { id: 'card', name: 'Carte Bancaire', color: 'var(--navy)', icon: CreditCard }
+    { id: 'wave', name: 'Wave', hint: 'Rapide si disponible dans votre pays', color: '#1B9CFC', icon: Wallet },
+    { id: 'orange', name: 'Orange Money', hint: 'Mobile money', color: '#FF793F', icon: Smartphone },
+    { id: 'mtn', name: 'MTN Mobile Money', hint: 'Mobile money', color: '#FFC312', icon: Smartphone },
+    { id: 'moov', name: 'Moov Money', hint: 'Mobile money', color: '#0652DD', icon: Smartphone },
+    { id: 'card', name: 'Carte bancaire', hint: 'Saisie sécurisée chez FedaPay', color: 'var(--navy)', icon: CreditCard }
   ];
 
   const countries = [
-    { code: '+225', name: 'Côte d\'Ivoire 🇨🇮' },
-    { code: '+221', name: 'Sénégal 🇸🇳' },
-    { code: '+223', name: 'Mali 🇲🇱' },
-    { code: '+226', name: 'Burkina Faso 🇧🇫' },
-    { code: '+229', name: 'Bénin 🇧🇯' },
-    { code: '+228', name: 'Togo 🇹🇬' },
-    { code: '+237', name: 'Cameroun 🇨🇲' }
+    { code: '+225', name: "Côte d'Ivoire" },
+    { code: '+229', name: 'Bénin' },
+    { code: '+221', name: 'Sénégal' },
+    { code: '+223', name: 'Mali' },
+    { code: '+228', name: 'Togo' },
+    { code: '+226', name: 'Burkina Faso' },
+    { code: '+227', name: 'Niger' },
+    { code: '+237', name: 'Cameroun' },
+    { code: '+241', name: 'Gabon' }
   ];
+
+  const selectedPaymentMethod = paymentMethods.find((method) => method.id === selectedMethod);
+  const returnStatus = paymentReturnInfo?.status;
+  const returnNotice = returnStatus
+    ? returnStatus === 'approved'
+      ? 'Paiement reçu. Activation de Dudukan Plus en cours, ça peut prendre quelques secondes.'
+      : returnStatus === 'canceled' || returnStatus === 'declined'
+        ? "Le paiement n'a pas été terminé. Vous pouvez réessayer tranquillement."
+        : 'Paiement lancé. Nous attendons la confirmation sécurisée de FedaPay.'
+    : '';
 
   const handlePaymentSubmit = (e) => {
     e.preventDefault();
-    if (!selectedMethod) return;
+    if (!selectedMethod) {
+      setPaymentError('Choisissez un moyen de paiement pour continuer avec FedaPay.');
+      return;
+    }
+
+    if (!session?.access_token) {
+      setPaymentError('Votre session a expiré. Reconnectez-vous puis réessayez.');
+      return;
+    }
 
     setPaymentStep('processing');
+    setPaymentError('');
+    setProcessingStatus('Création de votre paiement sécurisé FedaPay...');
 
-    // Simulate mobile money payment flow steps
-    const steps = [
-      "Initialisation de la transaction sécurisée...",
-      "Génération de la demande de prélèvement...",
-      "Requête envoyée à votre opérateur mobile...",
-      "En attente de votre confirmation (saisissez votre code secret sur votre téléphone)...",
-      "Paiement reçu et approuvé par le système !"
-    ];
-
-    let currentStepIdx = 0;
-    setProcessingStatus(steps[0]);
-
-    const interval = setInterval(async () => {
-      currentStepIdx++;
-      if (currentStepIdx < steps.length) {
-        setProcessingStatus(steps[currentStepIdx]);
-      } else {
-        clearInterval(interval);
-        try {
-          // Permanently update user metadata in Supabase to grant premium lifetime access
-          const { error } = await updateProfile({ is_premium: true });
-          if (error) throw error;
-
-          setPaymentStep('success');
-        } catch (err) {
-          alert("Erreur lors de l'activation : " + err.message);
-          setPaymentStep('selection');
+    fetch('/api/fedapay/create-checkout', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        selectedMethod,
+        phoneNumber,
+        countryCode,
+      }),
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || "Impossible d'initialiser le paiement.");
         }
-      }
-    }, 2000);
+
+        if (data.alreadyPremium) {
+          setPaymentStep('success');
+          return;
+        }
+
+        if (!data.checkoutUrl) {
+          throw new Error('Lien de paiement FedaPay introuvable.');
+        }
+
+        setProcessingStatus('Redirection vers la page de paiement FedaPay...');
+        window.location.href = data.checkoutUrl;
+      })
+      .catch((err) => {
+        setPaymentError(err.message || "Erreur lors de l'initialisation du paiement.");
+        setPaymentStep('selection');
+      });
   };
 
-  const handleFinish = () => {
-    if (onUnlock) onUnlock();
+  const handleFinish = async () => {
+    const hasAccess = onRefreshAccess ? await onRefreshAccess() : true;
+    if (hasAccess && onUnlock) onUnlock();
+    if (!hasAccess) {
+      setPaymentError("Le paiement n'est pas encore confirmé. Réessayez dans quelques secondes.");
+      setPaymentStep('selection');
+    }
   };
 
   return (
-    <div className="app-container" style={{ padding: '24px 20px 40px', backgroundColor: 'var(--bg-main)' }}>
+    <div className="app-container" style={{
+      padding: '18px 18px 40px',
+      background:
+        'linear-gradient(180deg, rgba(59,130,246,0.08) 0%, rgba(248,249,250,0) 240px), var(--bg-main)'
+    }}>
       <AnimatePresence mode="wait">
-
-        {/* Step 1: Feature Overview & Payment Selection */}
         {paymentStep === 'selection' && (
           <motion.div
             key="selection"
@@ -123,331 +164,543 @@ const Payment = ({ onBack, onUnlock }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
           >
-            {/* Header / Back button with outline icon and circular background */}
             <button
               onClick={onBack}
               style={{
                 background: 'none',
                 border: 'none',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '10px',
                 color: 'var(--navy)',
-                marginBottom: '24px',
+                marginBottom: '18px',
                 cursor: 'pointer',
-                fontWeight: '700',
-                fontFamily: 'var(--font-headings)'
+                fontWeight: '800',
+                fontFamily: 'Outfit, sans-serif'
               }}
             >
-              <div style={{
-                width: '32px',
-                height: '32px',
+              <span style={{
+                width: '34px',
+                height: '34px',
                 borderRadius: '50%',
                 backgroundColor: 'var(--white)',
-                border: '1.5px solid rgba(0, 0, 0, 0.08)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--navy)',
-                boxShadow: 'var(--shadow-soft)'
-              }}>
-                <ArrowLeft size={16} strokeWidth={2.5} />
-              </div>
-              Retour
-            </button>
-
-            {/* Main Title Hero with outline icon and circular background */}
-            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-              <div style={{
+                border: '1px solid rgba(26,43,72,0.08)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '64px',
-                height: '64px',
-                borderRadius: '50%',
-                backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                border: '1.5px solid rgba(212, 175, 55, 0.25)',
-                color: '#D4AF37',
-                marginBottom: '16px'
+                boxShadow: 'var(--shadow-soft)'
               }}>
-                <Crown size={28} />
-              </div>
-              <h1 className="font-outfit" style={{ fontSize: '28px', fontWeight: '800', color: 'var(--navy)', marginBottom: '8px' }}>
-                Accès Premium Dudukan
-              </h1>
-              <p style={{ color: 'var(--text-light)', fontSize: '15px', lineHeight: '1.4' }}>
-                Libérez la puissance de vos finances de vie avec l'architecture Premium.
-              </p>
-            </div>
+                <ArrowLeft size={17} strokeWidth={2.5} />
+              </span>
+              Retour
+            </button>
 
-            {/* Premium Features List with outline icons and circular backgrounds */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
-              {premiumFeatures.map((feat, idx) => {
+            <section className="card" style={{
+              padding: '24px',
+              marginBottom: '18px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #1A2B48 0%, #263D63 100%)',
+              boxShadow: '0 16px 32px rgba(26, 43, 72, 0.22)',
+              overflow: 'hidden',
+              position: 'relative',
+              color: 'white'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-28px',
+                right: '-18px',
+                width: '112px',
+                height: '112px',
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.12)'
+              }} />
+
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '7px',
+                  color: '#DBEAFE',
+                  fontSize: '12px',
+                  fontWeight: 900,
+                  marginBottom: '12px'
+                }}>
+                  <ShieldCheck size={15} />
+                  Dudukan Plus à vie
+                </div>
+
+                <h1 className="font-outfit" style={{
+                  color: 'white',
+                  fontSize: '28px',
+                  lineHeight: 1.05,
+                  fontWeight: 900,
+                  marginBottom: '10px'
+                }}>
+                  Passez au niveau supérieur
+                </h1>
+
+                <p style={{
+                  color: 'rgba(255,255,255,0.86)',
+                  fontSize: '14px',
+                  lineHeight: 1.55,
+                  margin: '0 0 18px',
+                  maxWidth: '360px',
+                  fontWeight: 600
+                }}>
+                  Planification intelligente, projets complexes et suivi guidé pour garder le cap.
+                </p>
+
+                <div style={{
+                  background: 'rgba(234,179,8,0.18)',
+                  border: '1px solid rgba(253,230,138,0.34)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '16px',
+                  color: 'white',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    marginBottom: '12px'
+                  }}>
+                    <span style={{
+                      color: 'rgba(255,255,255,0.72)',
+                      fontSize: '12px',
+                      fontWeight: 800
+                    }}>
+                      Prix normal
+                    </span>
+                    <span className="font-outfit" style={{
+                      color: 'rgba(255,255,255,0.56)',
+                      fontSize: '18px',
+                      fontWeight: 800,
+                      textDecoration: 'line-through',
+                      textDecorationThickness: '2px'
+                    }}>
+                      59 900 XOF
+                    </span>
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    justifyContent: 'space-between',
+                    gap: '14px',
+                    flexWrap: 'wrap'
+                  }}>
+                    <div>
+                      <span style={{
+                        display: 'block',
+                        color: '#FDE68A',
+                        fontSize: '12px',
+                        fontWeight: 900,
+                        marginBottom: '4px'
+                      }}>
+                        Offre de lancement
+                      </span>
+                      <strong className="font-outfit" style={{
+                        display: 'block',
+                        color: '#FFFFFF',
+                        fontSize: '36px',
+                        lineHeight: 1,
+                        letterSpacing: '0',
+                        fontWeight: 900,
+                        textShadow: '0 2px 8px rgba(0,0,0,0.18)'
+                      }}>
+                        9 900 XOF
+                      </strong>
+                    </div>
+
+                    <div style={{
+                      background: 'rgba(255,255,255,0.9)',
+                      color: '#1A2B48',
+                      border: '1px solid rgba(255,255,255,0.5)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '9px 10px',
+                      textAlign: 'right',
+                      boxShadow: '0 8px 18px rgba(0,0,0,0.12)'
+                    }}>
+                      <span style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#B45309' }}>
+                        Vous économisez
+                      </span>
+                      <strong className="font-outfit" style={{ display: 'block', fontSize: '18px', lineHeight: 1.1, color: '#1A2B48' }}>
+                        50 000 XOF
+                      </strong>
+                    </div>
+                  </div>
+
+                  <p style={{
+                    color: 'rgba(255,255,255,0.72)',
+                    fontSize: '12px',
+                    lineHeight: 1.45,
+                    margin: '12px 0 0',
+                    fontWeight: 700
+                  }}>
+                    Paiement unique à vie. Aucun abonnement mensuel.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '10px',
+              marginBottom: '18px'
+            }}>
+              {premiumFeatures.map((feat) => {
                 const IconComponent = feat.icon;
                 return (
-                  <div key={idx} className="card" style={{ display: 'flex', gap: '16px', padding: '16px 20px', margin: 0, alignItems: 'center' }}>
+                  <div key={feat.title} className="card" style={{
+                    margin: 0,
+                    padding: '14px',
+                    borderRadius: 'var(--radius-md)',
+                    minHeight: '138px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px'
+                  }}>
                     <div style={{
-                      width: '40px',
-                      height: '40px',
+                      width: '36px',
+                      height: '36px',
                       borderRadius: '50%',
                       backgroundColor: `${feat.color}15`,
-                      border: `1.5px solid ${feat.color}25`,
                       color: feat.color,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0
                     }}>
-                      <IconComponent size={20} />
+                      <IconComponent size={18} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <h4 className="font-outfit" style={{ fontSize: '15px', fontWeight: '700', color: 'var(--navy)', marginBottom: '2px' }}>
+                    <div>
+                      <h3 className="font-outfit" style={{
+                        fontSize: '14px',
+                        lineHeight: 1.15,
+                        fontWeight: 800,
+                        color: 'var(--navy)',
+                        marginBottom: '5px'
+                      }}>
                         {feat.title}
-                      </h4>
-                      <p style={{ fontSize: '12px', color: 'var(--text-light)', lineHeight: '1.4' }}>
+                      </h3>
+                      <p style={{
+                        fontSize: '11px',
+                        lineHeight: 1.45,
+                        color: 'var(--text-light)'
+                      }}>
                         {feat.desc}
                       </p>
                     </div>
                   </div>
                 );
               })}
-            </div>
+            </section>
 
-            {/* Single Lifetime Pricing Info */}
-            <div className="card" style={{
-              background: 'linear-gradient(135deg, #1A2B48 0%, #2D3E5E 100%)',
-              color: 'white',
-              padding: '24px',
-              marginBottom: '32px',
-              textAlign: 'center',
-              border: 'none'
-            }}>
-              <span className="badge" style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)', color: '#D4AF37', textTransform: 'uppercase', fontSize: '10px', fontWeight: 800, padding: '4px 12px', letterSpacing: '1px' }}>
-                Offre unique & à vie
-              </span>
-              <h2 className="font-outfit" style={{ color: 'white', fontSize: '38px', fontWeight: '800', margin: '12px 0 2px' }}>
-                9 900 XOF
-              </h2>
-              <p style={{ fontSize: '12px', opacity: 0.8, color: 'white', marginBottom: '0' }}>
-                Pas d'abonnement récurrent. Payez une seule fois, profitez pour toujours.
-              </p>
-            </div>
-
-            {/* Payment Method Selector with outline icons and circular backgrounds */}
-            <h3 className="font-outfit" style={{ fontSize: '16px', fontWeight: '700', color: 'var(--navy)', marginBottom: '16px' }}>
-              Choisissez votre moyen de paiement
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-              {paymentMethods.map(method => {
-                const isSelected = selectedMethod === method.id;
-                return (
-                  <button
-                    key={method.id}
-                    onClick={() => setSelectedMethod(method.id)}
-                    style={{
-                      width: '100%',
-                      padding: '16px 20px',
-                      borderRadius: 'var(--radius-md)',
-                      backgroundColor: 'var(--white)',
-                      border: isSelected ? `2.5px solid ${method.color}` : '1.5px solid rgba(0, 0, 0, 0.06)',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      boxShadow: isSelected ? 'var(--shadow-medium)' : 'var(--shadow-soft)',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        backgroundColor: `${method.color}15`,
-                        border: `1.5px solid ${method.color}25`,
-                        color: method.color,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <method.icon size={20} />
-                      </div>
-                      <span className="font-outfit" style={{ fontWeight: '700', fontSize: '15px', color: 'var(--navy)' }}>
-                        {method.name}
-                      </span>
-                    </div>
-                    {isSelected ? (
-                      <div style={{
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        backgroundColor: method.color,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white'
-                      }}>
-                        <Check size={14} strokeWidth={3} />
-                      </div>
-                    ) : (
-                      <ChevronRight size={18} color="var(--text-light)" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Dynamic payment form */}
-            <AnimatePresence>
-              {selectedMethod && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  style={{ overflow: 'hidden' }}
+            {canPreviewPlus && (
+              <section className="card" style={{
+                padding: '15px',
+                marginBottom: '18px',
+                border: '1.5px dashed rgba(59, 130, 246, 0.35)',
+                background: 'rgba(59, 130, 246, 0.06)',
+                borderRadius: 'var(--radius-md)'
+              }}>
+                <p style={{
+                  margin: '0 0 12px',
+                  color: 'var(--navy)',
+                  fontSize: '13px',
+                  lineHeight: 1.5,
+                  fontWeight: 700
+                }}>
+                  Aperçu local : regardez Dudukan Plus sans paiement pendant la préparation de FedaPay.
+                </p>
+                <button
+                  type="button"
+                  onClick={onPreviewPlus}
+                  className="btn-secondary"
+                  style={{
+                    width: '100%',
+                    border: 'none',
+                    background: 'var(--accent-blue)',
+                    color: 'white',
+                    justifyContent: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
                 >
-                  <form onSubmit={handlePaymentSubmit} className="card" style={{ padding: '24px', margin: '12px 0 32px' }}>
+                  <Sparkles size={18} /> Voir Dudukan Plus maintenant
+                </button>
+              </section>
+            )}
+
+            <section className="card" style={{ padding: '18px', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ marginBottom: '14px' }}>
+                <h2 className="font-outfit" style={{
+                  fontSize: '18px',
+                  fontWeight: 900,
+                  color: 'var(--navy)',
+                  marginBottom: '4px'
+                }}>
+                  Paiement avec FedaPay
+                </h2>
+                <p style={{ color: 'var(--text-light)', fontSize: '13px', lineHeight: 1.5 }}>
+                  Choisissez votre moyen préféré. Le paiement se termine sur la page sécurisée FedaPay.
+                </p>
+              </div>
+
+              {paymentError && (
+                <div style={{
+                  padding: '12px 14px',
+                  background: 'var(--accent-red-light)',
+                  color: 'var(--accent-red)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  marginBottom: '14px'
+                }}>
+                  {paymentError}
+                </div>
+              )}
+
+              {returnNotice && !paymentError && (
+                <div style={{
+                  padding: '12px 14px',
+                  background: 'rgba(59, 130, 246, 0.08)',
+                  color: 'var(--navy)',
+                  border: '1px solid rgba(59, 130, 246, 0.16)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  lineHeight: 1.45,
+                  marginBottom: '14px'
+                }}>
+                  {returnNotice}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: selectedMethod ? '16px' : 0 }}>
+                {paymentMethods.map((method) => {
+                  const isSelected = selectedMethod === method.id;
+                  const IconComponent = method.icon;
+
+                  return (
+                    <button
+                      key={method.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedMethod(method.id);
+                        setPaymentError('');
+                      }}
+                      style={{
+                        width: '100%',
+                        minHeight: '62px',
+                        padding: '12px 14px',
+                        borderRadius: 'var(--radius-md)',
+                        backgroundColor: isSelected ? `${method.color}10` : 'var(--white)',
+                        border: isSelected ? `2px solid ${method.color}` : '1.5px solid rgba(26,43,72,0.08)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        boxShadow: isSelected ? 'var(--shadow-medium)' : 'none',
+                        transition: 'all 0.2s ease',
+                        textAlign: 'left'
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                        <span style={{
+                          width: '38px',
+                          height: '38px',
+                          borderRadius: '50%',
+                          backgroundColor: `${method.color}16`,
+                          color: method.color,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <IconComponent size={19} />
+                        </span>
+                        <span style={{ minWidth: 0 }}>
+                          <span className="font-outfit" style={{
+                            display: 'block',
+                            color: 'var(--navy)',
+                            fontSize: '14px',
+                            fontWeight: 800,
+                            lineHeight: 1.2
+                          }}>
+                            {method.name}
+                          </span>
+                          <span style={{
+                            display: 'block',
+                            color: 'var(--text-light)',
+                            fontSize: '11px',
+                            lineHeight: 1.3,
+                            marginTop: '2px'
+                          }}>
+                            {method.hint}
+                          </span>
+                        </span>
+                      </span>
+
+                      {isSelected ? (
+                        <span style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          backgroundColor: method.color,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          flexShrink: 0
+                        }}>
+                          <Check size={14} strokeWidth={3} />
+                        </span>
+                      ) : (
+                        <ChevronRight size={18} color="var(--text-light)" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <AnimatePresence>
+                {selectedMethod && (
+                  <motion.form
+                    onSubmit={handlePaymentSubmit}
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                  >
+                    <div style={{
+                      padding: '13px 14px',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'rgba(16, 185, 129, 0.08)',
+                      color: 'var(--navy)',
+                      fontSize: '12px',
+                      lineHeight: 1.5,
+                      marginBottom: '14px',
+                      fontWeight: 700,
+                      display: 'flex',
+                      gap: '10px',
+                      alignItems: 'flex-start'
+                    }}>
+                      <Lock size={16} color="var(--emerald)" style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span>Dudukan ne garde jamais vos informations sensibles. La confirmation se fait chez FedaPay.</span>
+                    </div>
+
                     {selectedMethod !== 'card' ? (
                       <div>
-                        <label className="label" style={{ fontWeight: 700, color: 'var(--navy)' }}>
-                          Numéro de téléphone mobile
+                        <label className="label" style={{ fontWeight: 800, color: 'var(--navy)' }}>
+                          Numéro mobile, facultatif
                         </label>
-                        <div style={{ display: 'flex', gap: '10px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '132px 1fr', gap: '10px' }}>
                           <select
                             value={countryCode}
                             onChange={(e) => setCountryCode(e.target.value)}
                             style={{
-                              width: '130px',
+                              width: '100%',
                               padding: '14px 10px',
                               borderRadius: 'var(--radius-sm)',
                               border: '1.5px solid #E5E7EB',
-                              fontFamily: 'Inter',
+                              fontFamily: 'Inter, sans-serif',
                               fontSize: '14px',
-                              backgroundColor: 'white'
+                              backgroundColor: 'white',
+                              color: 'var(--navy)'
                             }}
                           >
-                            {countries.map(c => <option key={c.code} value={c.code}>{c.code} {c.name.split(' ')[0]}</option>)}
+                            {countries.map((country) => (
+                              <option key={country.code} value={country.code}>
+                                {country.code} {country.name}
+                              </option>
+                            ))}
                           </select>
                           <input
-                            required
                             type="tel"
                             placeholder="Ex: 0707070707"
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value.replace(/\s/g, ''))}
-                            style={{ flex: 1 }}
                           />
                         </div>
-                        <p style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '8px', lineHeight: '1.4' }}>
-                          Vous recevrez une demande d'autorisation de prélèvement sur ce numéro après avoir cliqué sur valider.
+                        <p style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '8px', lineHeight: 1.45 }}>
+                          Vous pourrez compléter ou confirmer le numéro sur la page FedaPay si nécessaire.
                         </p>
                       </div>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div>
-                          <label className="label" style={{ fontWeight: 700, color: 'var(--navy)' }}>Nom sur la carte</label>
-                          <input
-                            required
-                            type="text"
-                            placeholder="Ex: Kouamé Koffi"
-                            value={cardName}
-                            onChange={(e) => setCardName(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="label" style={{ fontWeight: 700, color: 'var(--navy)' }}>Numéro de carte</label>
-                          <input
-                            required
-                            type="text"
-                            placeholder="xxxx xxxx xxxx xxxx"
-                            value={cardNumber}
-                            onChange={(e) => setCardNumber(e.target.value.replace(/[^\d]/g, '').substring(0, 16))}
-                          />
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          <div style={{ flex: 1 }}>
-                            <label className="label" style={{ fontWeight: 700, color: 'var(--navy)' }}>Expiration</label>
-                            <input
-                              required
-                              type="text"
-                              placeholder="MM/AA"
-                              value={cardExpiry}
-                              onChange={(e) => setCardExpiry(e.target.value.substring(0, 5))}
-                            />
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <label className="label" style={{ fontWeight: 700, color: 'var(--navy)' }}>CVV</label>
-                            <input
-                              required
-                              type="password"
-                              placeholder="123"
-                              value={cardCvv}
-                              onChange={(e) => setCardCvv(e.target.value.replace(/[^\d]/g, '').substring(0, 3))}
-                            />
-                          </div>
-                        </div>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '12px',
+                        padding: '14px',
+                        border: '1.5px solid #E5E7EB',
+                        borderRadius: 'var(--radius-md)',
+                        color: 'var(--text-light)',
+                        fontSize: '13px',
+                        lineHeight: 1.5,
+                        marginBottom: '2px'
+                      }}>
+                        <CreditCard size={22} color="var(--navy)" style={{ flexShrink: 0 }} />
+                        <span>La saisie de la carte se fera uniquement sur la page sécurisée FedaPay.</span>
                       </div>
                     )}
 
-                    {/* Pay Button */}
                     <button
                       type="submit"
                       className="btn-primary"
                       style={{
-                        marginTop: '24px',
-                        backgroundColor: paymentMethods.find(m => m.id === selectedMethod)?.color || 'var(--navy)'
+                        marginTop: '18px',
+                        backgroundColor: selectedPaymentMethod?.color || 'var(--navy)'
                       }}
                     >
-                      <Lock size={18} /> Confirmer et Payer 9 900 XOF
+                      <Lock size={18} /> Payer avec FedaPay - 9 900 XOF
                     </button>
-                  </form>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  </motion.form>
+                )}
+              </AnimatePresence>
+            </section>
 
-            {/* Footer trust badges with outline icons and circular backgrounds */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', alignItems: 'center', opacity: 0.7, marginTop: '24px' }}>
-              <span style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--text-light)' }}>
-                <div style={{
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(31, 41, 55, 0.05)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--text-light)'
-                }}>
-                  <Lock size={10} />
-                </div>
-                Transaction Cryptée
-              </span>
-              <span style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--text-light)' }}>
-                <div style={{
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(31, 41, 55, 0.05)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--text-light)'
-                }}>
-                  <ShieldCheck size={10} />
-                </div>
-                Protection Dudukan
-              </span>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '10px',
+              marginTop: '14px'
+            }}>
+              {[
+                { icon: Lock, label: 'Paiement chiffré' },
+                { icon: ShieldCheck, label: 'Accès après confirmation' }
+              ].map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <div key={item.label} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '7px',
+                    padding: '10px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'rgba(26,43,72,0.04)',
+                    color: 'var(--text-light)',
+                    fontSize: '11px',
+                    fontWeight: 800
+                  }}>
+                    <IconComponent size={13} />
+                    {item.label}
+                  </div>
+                );
+              })}
             </div>
           </motion.div>
         )}
 
-        {/* Step 2: Interactive Payment Processing Simulator */}
         {paymentStep === 'processing' && (
           <motion.div
             key="processing"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.05 }}
+            exit={{ opacity: 0, scale: 1.04 }}
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -458,29 +711,24 @@ const Payment = ({ onBack, onUnlock }) => {
               minHeight: '80vh'
             }}
           >
-            {/* Spinning ring loader with outline icon and circular background */}
-            <div style={{ position: 'relative', width: '100px', height: '100px', marginBottom: '32px' }}>
+            <div style={{ position: 'relative', width: '104px', height: '104px', marginBottom: '32px' }}>
               <div style={{
-                boxSizing: 'border-box',
                 position: 'absolute',
-                width: '100px',
-                height: '100px',
-                border: '6px solid rgba(26, 43, 72, 0.1)',
+                inset: 0,
+                border: '7px solid rgba(26, 43, 72, 0.08)',
                 borderRadius: '50%'
-              }}></div>
+              }} />
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                transition={{ repeat: Infinity, duration: 1.4, ease: 'linear' }}
                 style={{
-                  boxSizing: 'border-box',
                   position: 'absolute',
-                  width: '100px',
-                  height: '100px',
-                  border: '6px solid transparent',
-                  borderTop: '6px solid var(--navy)',
+                  inset: 0,
+                  border: '7px solid transparent',
+                  borderTop: '7px solid var(--accent-blue)',
                   borderRadius: '50%'
                 }}
-              ></motion.div>
+              />
               <div style={{
                 position: 'absolute',
                 inset: 0,
@@ -489,28 +737,34 @@ const Payment = ({ onBack, onUnlock }) => {
                 justifyContent: 'center',
                 color: 'var(--navy)'
               }}>
-                <Smartphone size={36} />
+                <ShieldCheck size={36} />
               </div>
             </div>
 
-            <h2 className="font-outfit" style={{ fontSize: '20px', fontWeight: '800', color: 'var(--navy)', marginBottom: '12px' }}>
-              Paiement en cours
+            <h2 className="font-outfit" style={{ fontSize: '22px', fontWeight: 900, color: 'var(--navy)', marginBottom: '12px' }}>
+              Préparation du paiement
             </h2>
-
-            <p style={{ color: 'var(--text-light)', fontSize: '14px', maxWidth: '300px', margin: '0 auto', lineHeight: '1.6' }}>
+            <p style={{ color: 'var(--text-light)', fontSize: '14px', maxWidth: '310px', margin: '0 auto', lineHeight: 1.6 }}>
               {processingStatus}
             </p>
-
-            <div style={{ marginTop: '40px', padding: '12px 20px', backgroundColor: 'rgba(26, 43, 72, 0.04)', borderRadius: 'var(--radius-sm)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--emerald)', display: 'inline-block' }}></span>
-              <span style={{ fontSize: '11px', color: 'var(--text-light)', fontWeight: 600 }}>
-                Sécurisé par Dudukan Pay
-              </span>
+            <div style={{
+              marginTop: '34px',
+              padding: '12px 16px',
+              backgroundColor: 'rgba(16, 185, 129, 0.08)',
+              borderRadius: 'var(--radius-sm)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: 'var(--text-light)',
+              fontSize: '12px',
+              fontWeight: 800
+            }}>
+              <Lock size={14} color="var(--emerald)" />
+              Sécurisé par FedaPay
             </div>
           </motion.div>
         )}
 
-        {/* Step 3: Payment Success / Activations Animation */}
         {paymentStep === 'success' && (
           <motion.div
             key="success"
@@ -526,11 +780,10 @@ const Payment = ({ onBack, onUnlock }) => {
               minHeight: '85vh'
             }}
           >
-            {/* Animated Celebration Icon with outline icon and circular background */}
             <motion.div
-              initial={{ scale: 0.5, rotate: -45 }}
-              animate={{ scale: [0.5, 1.2, 1], rotate: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
+              initial={{ scale: 0.5, rotate: -30 }}
+              animate={{ scale: [0.5, 1.15, 1], rotate: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
               style={{
                 width: '96px',
                 height: '96px',
@@ -544,19 +797,27 @@ const Payment = ({ onBack, onUnlock }) => {
                 marginBottom: '28px'
               }}
             >
-              <Crown size={44} />
+              <ShieldCheck size={44} />
             </motion.div>
 
-            <span className="badge" style={{ backgroundColor: 'var(--emerald-light)', color: 'var(--emerald)', textTransform: 'uppercase', fontSize: '10px', fontWeight: 800, padding: '4px 14px', letterSpacing: '0.5px' }}>
-              Abonnement Activé à Vie
+            <span className="badge" style={{
+              backgroundColor: 'var(--emerald-light)',
+              color: 'var(--emerald)',
+              textTransform: 'uppercase',
+              fontSize: '10px',
+              fontWeight: 800,
+              padding: '4px 14px',
+              letterSpacing: '0'
+            }}>
+              Accès activé à vie
             </span>
 
-             <h1 className="font-outfit" style={{ fontSize: '32px', fontWeight: '800', color: 'var(--navy)', marginTop: '16px', marginBottom: '12px' }}>
-              Bienvenue sur Dudukan Premium !
+            <h1 className="font-outfit" style={{ fontSize: '32px', fontWeight: 900, color: 'var(--navy)', marginTop: '16px', marginBottom: '12px' }}>
+              Bienvenue sur Dudukan Plus !
             </h1>
 
-            <p style={{ color: 'var(--text-light)', fontSize: '15px', maxWidth: '340px', margin: '0 auto 36px', lineHeight: '1.5' }}>
-              Félicitations ! Vous disposez désormais de tous les outils stratégiques et prédictifs premium pour planifier vos projets de vie.
+            <p style={{ color: 'var(--text-light)', fontSize: '15px', maxWidth: '340px', margin: '0 auto 36px', lineHeight: 1.55 }}>
+              C'est bon. Vous pouvez maintenant planifier vos projets avec un coach plus clair, plus complet et plus rassurant.
             </p>
 
             <button
@@ -569,11 +830,10 @@ const Payment = ({ onBack, onUnlock }) => {
                 maxWidth: '300px'
               }}
             >
-              Découvrir Dudukan Premium <Sparkles size={18} />
+              Découvrir Dudukan Plus <Sparkles size={18} />
             </button>
           </motion.div>
         )}
-
       </AnimatePresence>
     </div>
   );

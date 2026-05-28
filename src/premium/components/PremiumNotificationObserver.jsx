@@ -44,7 +44,7 @@ const PremiumNotificationObserver = () => {
         if (shouldNotify) {
           NotificationService.sendNotification(
             reminder.title,
-            reminder.description || "Rappel Dudukan Premium"
+            reminder.description || "Rappel Dudukan Plus"
           );
           setLastNotifiedTimes(prev => ({ ...prev, [notifiedKey]: true }));
         }

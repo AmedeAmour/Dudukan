@@ -1,0 +1,184 @@
+import { createSupabaseAdmin, getUserFromRequest } from '../_utils/supabaseAdmin.js';
+import { readJsonBody, sendJson } from '../_utils/http.js';
+
+const PLAN = {
+  code: 'lifetime_9900_xof',
+  amount: 9900,
+  currency: 'XOF',
+};
+
+const APP_CODE = 'dudukan';
+
+const COUNTRY_ISO_BY_DIAL_CODE = {
+  '+225': 'ci',
+  '+229': 'bj',
+  '+221': 'sn',
+  '+223': 'ml',
+  '+228': 'tg',
+  '+226': 'bf',
+  '+227': 'ne',
+  '+237': 'cm',
+  '+241': 'ga',
+};
+
+const PAYMENT_METHOD_LABELS = {
+  wave: 'Wave',
+  orange: 'Orange Money',
+  mtn: 'MTN Mobile Money',
+  moov: 'Moov Money',
+  card: 'Carte bancaire',
+};
+
+const getFedaPayBaseUrl = () => {
+  const env = process.env.FEDAPAY_ENVIRONMENT || 'sandbox';
+  return env === 'live' ? 'https://api.fedapay.com/v1' : 'https://sandbox-api.fedapay.com/v1';
+};
+
+const splitName = (fullName = '') => {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  return {
+    firstname: parts[0] || 'Client',
+    lastname: parts.slice(1).join(' ') || 'Dudukan',
+  };
+};
+
+const normalizePhoneNumber = (phoneNumber = '') => phoneNumber.replace(/[^\d+]/g, '').trim();
+
+const buildCustomer = (user, body, firstname, lastname) => {
+  const countryIso = COUNTRY_ISO_BY_DIAL_CODE[body?.countryCode];
+  const phoneNumber = normalizePhoneNumber(body?.phoneNumber);
+  const customer = {
+    firstname,
+    lastname,
+    email: user.email,
+  };
+
+  if (phoneNumber && countryIso) {
+    customer.phone_number = {
+      number: phoneNumber,
+      country: countryIso,
+    };
+  }
+
+  return customer;
+};
+
+const fedapayRequest = async (path, options = {}) => {
+  const apiKey = process.env.FEDAPAY_SECRET_KEY;
+  if (!apiKey) throw new Error('Missing FEDAPAY_SECRET_KEY.');
+
+  const response = await fetch(`${getFedaPayBaseUrl()}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload?.message || payload?.error || 'FedaPay request failed.');
+  }
+
+  return payload;
+};
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return sendJson(res, 405, { error: 'Method not allowed.' });
+  }
+
+  try {
+    const supabase = createSupabaseAdmin();
+    const { user, error: userError } = await getUserFromRequest(req, supabase);
+    if (userError || !user) {
+      return sendJson(res, 401, { error: 'Session invalide. Reconnectez-vous puis réessayez.' });
+    }
+
+    const { body } = await readJsonBody(req);
+    const origin = req.headers.origin || process.env.APP_URL || `https://${req.headers.host}`;
+    const returnUrl = process.env.FEDAPAY_RETURN_URL || `${origin}/?payment=success`;
+    const fullName = user.user_metadata?.full_name || user.email || '';
+    const { firstname, lastname } = splitName(fullName);
+    const selectedMethod = body?.selectedMethod || null;
+    const merchantReference = `DUDUKAN-${Date.now()}-${user.id.slice(0, 8)}`;
+
+    const { data: existingApproved, error: approvedError } = await supabase
+      .from('premium_purchases')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('status', 'approved')
+      .eq('plan_code', PLAN.code)
+      .maybeSingle();
+
+    if (approvedError) throw approvedError;
+    if (existingApproved) {
+      return sendJson(res, 200, { alreadyPremium: true });
+    }
+
+    const transaction = await fedapayRequest('/transactions', {
+      method: 'POST',
+      body: JSON.stringify({
+        description: 'Dudukan Plus - acces a vie',
+        amount: PLAN.amount,
+        currency: { iso: PLAN.currency },
+        callback_url: returnUrl,
+        merchant_reference: merchantReference,
+        custom_metadata: {
+          app_code: APP_CODE,
+          user_id: user.id,
+          plan_code: PLAN.code,
+          product_name: 'Dudukan Plus',
+          return_url: returnUrl,
+          payment_method_hint: selectedMethod,
+          payment_method_label: PAYMENT_METHOD_LABELS[selectedMethod] || null,
+        },
+        customer: buildCustomer(user, body, firstname, lastname),
+      }),
+    });
+
+    const fedapayId = String(transaction.id);
+    const token = await fedapayRequest(`/transactions/${fedapayId}/token`, {
+      method: 'POST',
+    });
+
+    const { error: insertError } = await supabase.from('premium_purchases').upsert({
+      user_id: user.id,
+      provider: 'fedapay',
+      provider_transaction_id: fedapayId,
+      provider_reference: transaction.reference || null,
+      amount: PLAN.amount,
+      currency: PLAN.currency,
+      status: transaction.status || 'pending',
+      plan_code: PLAN.code,
+      checkout_url: token.url,
+      raw_event: {
+        transaction,
+        token: { token: token.token },
+        merchant_reference: merchantReference,
+        selected_method: selectedMethod,
+      },
+      updated_at: new Date().toISOString(),
+    }, {
+      onConflict: 'provider_transaction_id',
+    });
+
+    if (insertError) throw insertError;
+
+    return sendJson(res, 200, {
+      checkoutUrl: token.url,
+      transactionId: fedapayId,
+      reference: transaction.reference || null,
+    });
+  } catch (error) {
+    console.error('FedaPay checkout error:', error);
+    const isConfigurationError = /Missing (FEDAPAY_SECRET_KEY|Supabase server environment variables)/.test(error.message || '');
+
+    return sendJson(res, isConfigurationError ? 503 : 500, {
+      error: isConfigurationError
+        ? "Le paiement FedaPay n'est pas encore activé sur ce déploiement."
+        : "Impossible d'initialiser le paiement. Veuillez réessayer dans un instant.",
+    });
+  }
+}

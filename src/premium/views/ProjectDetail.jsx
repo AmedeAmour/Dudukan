@@ -385,7 +385,7 @@ const ProjectDetail = ({ project, onBack }) => {
                 fontFamily: 'var(--font-body)',
                 fontSize: '14px',
                 outline: 'none',
-                backgroundColor: 'white',
+                backgroundColor: 'var(--zenith-surface)',
                 boxSizing: 'border-box'
               }}
             >
@@ -412,7 +412,7 @@ const ProjectDetail = ({ project, onBack }) => {
                   fontFamily: 'var(--font-body)',
                   fontSize: '14px',
                   outline: 'none',
-                  backgroundColor: 'white',
+                  backgroundColor: 'var(--zenith-surface)',
                   boxSizing: 'border-box'
                 }}
               >
@@ -477,7 +477,7 @@ const ProjectDetail = ({ project, onBack }) => {
                   <div 
                     key={idx}
                     style={{
-                      backgroundColor: '#F8FAFC',
+                      backgroundColor: 'var(--zenith-surface-muted)',
                       border: '1px solid var(--zenith-outline-variant)',
                       borderRadius: 'var(--radius-md)',
                       padding: '16px',
@@ -523,7 +523,7 @@ const ProjectDetail = ({ project, onBack }) => {
                           fontFamily: 'var(--font-body)',
                           fontSize: '13px',
                           outline: 'none',
-                          backgroundColor: 'white'
+                          backgroundColor: 'var(--zenith-surface)'
                         }}
                       />
                       <input 
@@ -540,7 +540,7 @@ const ProjectDetail = ({ project, onBack }) => {
                           fontFamily: 'var(--font-body)',
                           fontSize: '13px',
                           outline: 'none',
-                          backgroundColor: 'white'
+                          backgroundColor: 'var(--zenith-surface)'
                         }}
                       />
                     </div>
@@ -714,7 +714,7 @@ const ProjectDetail = ({ project, onBack }) => {
         {/* Manual Allocation Form for Simple Projects */}
         {!project.is_complex && current < target && (
           <div style={{
-            backgroundColor: '#F8FAFC',
+            backgroundColor: 'var(--zenith-surface-muted)',
             padding: '16px',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--zenith-outline-variant)',
@@ -744,7 +744,7 @@ const ProjectDetail = ({ project, onBack }) => {
                   fontFamily: 'var(--font-data)',
                   fontSize: '13px',
                   outline: 'none',
-                  backgroundColor: 'white'
+                  backgroundColor: 'var(--zenith-surface)'
                 }}
               />
               <button
@@ -770,7 +770,7 @@ const ProjectDetail = ({ project, onBack }) => {
 
         {/* Circular Feasibility */}
         <div style={{
-          backgroundColor: '#F8FAFC',
+          backgroundColor: 'var(--zenith-surface-muted)',
           border: '1px solid var(--zenith-outline-variant)',
           borderRadius: 'var(--radius-lg)',
           padding: '24px',
@@ -913,7 +913,7 @@ const ProjectDetail = ({ project, onBack }) => {
                     {milestone.state === 'active' && (
                       <div style={{ marginTop: '16px' }}>
                         <div style={{
-                          backgroundColor: '#F8FAFC',
+                          backgroundColor: 'var(--zenith-surface-muted)',
                           padding: '12px',
                           borderRadius: 'var(--radius-md)',
                           border: '1px solid var(--zenith-outline-variant)',
@@ -985,7 +985,7 @@ const ProjectDetail = ({ project, onBack }) => {
         <div style={{ display: 'flex', gap: '12px' }}>
           <div style={{
             flex: 1,
-            backgroundColor: '#F8FAFC',
+            backgroundColor: 'var(--zenith-surface-muted)',
             padding: '16px',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--zenith-outline-variant)'
@@ -999,7 +999,7 @@ const ProjectDetail = ({ project, onBack }) => {
 
           <div style={{
             flex: 1,
-            backgroundColor: '#F8FAFC',
+            backgroundColor: 'var(--zenith-surface-muted)',
             padding: '16px',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--zenith-outline-variant)'

@@ -246,7 +246,7 @@ export const PremiumProvider = ({ children }) => {
       generateAlertsAndPriorities(loadedProjects, profileData);
 
     } catch (error) {
-      console.error('Error loading Premium Zenith data:', error);
+      console.error('Error loading Dudukan Plus data:', error);
     } finally {
       setLoading(false);
     }
@@ -334,7 +334,7 @@ export const PremiumProvider = ({ children }) => {
   }, []);
 
   // Helper to compile alerts (including the "Ready to Realize" status)
-  const generateAlertsAndPriorities = (loadedProjects, userProfile) => {
+  function generateAlertsAndPriorities(loadedProjects, userProfile) {
     const newAlerts = [];
     const newPriorities = [];
 
@@ -445,7 +445,7 @@ export const PremiumProvider = ({ children }) => {
     if (loadedProjects.length === 0) {
       insights.push({
         type: 'info',
-        text: "Votre espace de planification premium est opérationnel. Définissons ensemble vos premiers projets de vie afin de donner un cap clair à vos efforts d'épargne."
+        text: "Votre espace Dudukan Plus est opérationnel. Définissons ensemble vos premiers projets de vie afin de donner un cap clair à vos efforts d'épargne."
       });
     } else {
       // 2. Safety Buffer / Unallocated Savings
@@ -545,13 +545,13 @@ export const PremiumProvider = ({ children }) => {
       if (completedMilestones > 0) {
         insights.push({
           type: 'success',
-          text: `Vous avez validé ${completedMilestones} étape(s) clé(s) sur vos projets complexes. Chaque jalon franchi est une avancée positive qui consolide la viabilité de votre plan de vie.`
+          text: `Vous avez validé ${completedMilestones} étape(s) clé(s) sur vos projets complexes. Chaque jalon franchi renforce votre plan et vous rapproche concrètement du résultat.`
         });
       }
     }
 
     setCoachInsights(insights);
-  };
+  }
 
   // Perform priority action
   const executePriorityAction = async (priority) => {

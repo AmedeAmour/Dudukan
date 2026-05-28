@@ -212,19 +212,19 @@ const PremiumDashboard = () => {
       return {
         color: 'var(--zenith-secondary)', 
         title: 'Plan en bonne voie',
-        desc: "Votre stratégie d'épargne actuelle permet d'atteindre vos objectifs avec 6 mois d'avance."
+        desc: "Votre plan avance bien. Continuez vos versements réguliers et gardez une petite marge pour les imprévus."
       };
     } else if (viability >= 50) {
       return {
         color: 'var(--zenith-status-warning)', 
         title: 'Optimisation possible',
-        desc: "Quelques ajustements mineurs aideraient à stabiliser les délais de vos projets prioritaires."
+        desc: "Le plan tient, mais quelques ajustements peuvent rendre les délais plus confortables."
       };
     } else {
       return {
         color: 'var(--zenith-status-alert)', 
         title: 'Ajustement requis',
-        desc: "Votre épargne mensuelle est insuffisante pour couvrir vos jalons. Augmentez vos entrants ou repoussez certaines échéances."
+        desc: "Le plan demande un rééquilibrage. On peut réduire la pression en ajustant les montants ou les dates."
       };
     }
   };
@@ -245,7 +245,7 @@ const PremiumDashboard = () => {
       case 'info':
         return { text: 'Stabilité', style: { backgroundColor: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6', border: '1px solid rgba(59, 130, 246, 0.3)' } };
       default:
-        return { text: 'Équilibre', style: { backgroundColor: 'rgba(212, 175, 55, 0.15)', color: '#D4AF37', border: '1px solid rgba(212, 175, 55, 0.3)' } };
+        return { text: 'Équilibre', style: { backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', border: '1px solid rgba(245, 158, 11, 0.3)' } };
     }
   };
 
@@ -253,18 +253,23 @@ const PremiumDashboard = () => {
     <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>
       
       {/* Hello Header */}
-      <div style={{ marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-          <span className="premium-badge premium-badge-gold" style={{ fontSize: '9px', display: 'inline-block' }}>
-            Accès Premium Actif
-          </span>
+      <div className="premium-hero-panel">
+        <div className="premium-hero-content">
+          <div className="premium-hero-badge">
+            <Sparkles size={13} />
+            Dudukan Plus actif
+          </div>
+          <h2 className="font-heading">
+            Bonjour, {userName}
+          </h2>
+          <p>
+            On suit vos projets pas à pas, avec des repères simples pour savoir quoi faire sans vous perdre dans les chiffres.
+          </p>
         </div>
-        <h2 className="font-heading" style={{ fontSize: '30px', color: 'var(--zenith-on-surface)', margin: 0 }}>
-          Bonjour, {userName}
-        </h2>
-        <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', margin: '4px 0 0 0', lineHeight: '1.4' }}>
-          Voici l'état actuel de votre trajectoire de vie. Dudukan veille sur la viabilité de votre patrimoine.
-        </p>
+        <div className="premium-hero-metric">
+          <span>{viability}%</span>
+          <small>score du plan</small>
+        </div>
       </div>
 
       {/* Smart Daily Summary Card */}
@@ -291,7 +296,7 @@ const PremiumDashboard = () => {
             color: 'var(--zenith-secondary)',
             fontWeight: 800
           }}>
-            Résumé Intelligent
+            Point du jour
           </p>
           <p style={{ 
             fontSize: '12px', 
@@ -299,7 +304,7 @@ const PremiumDashboard = () => {
             color: 'var(--zenith-on-surface)',
             lineHeight: '1.5'
           }}>
-            Vous avez financé <strong>{globalProgress}%</strong> de vos projets ({totalSaved.toLocaleString()} {currencyCode} sur {totalTarget.toLocaleString()} {currencyCode}). Avec une viabilité estimée à <strong>{viability}%</strong>, {gaugeConfig.desc.charAt(0).toLowerCase() + gaugeConfig.desc.slice(1)}
+            Vous avez déjà sécurisé <strong>{globalProgress}%</strong> de vos projets ({totalSaved.toLocaleString()} {currencyCode} sur {totalTarget.toLocaleString()} {currencyCode}). Score du plan : <strong>{viability}%</strong>. {gaugeConfig.desc}
           </p>
         </div>
       </div>
@@ -321,7 +326,7 @@ const PremiumDashboard = () => {
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
               }}>
-                Progression Globale
+                Progression globale
               </span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
                 <span className="font-data" style={{ fontSize: '32px', color: 'var(--zenith-primary)', fontWeight: '800' }}>
@@ -349,7 +354,7 @@ const PremiumDashboard = () => {
           <div style={{ marginTop: '20px' }}>
             <div style={{ 
               width: '100%', 
-              backgroundColor: '#F1F5F9', 
+              backgroundColor: 'var(--zenith-track)', 
               borderRadius: 'var(--radius-pill)', 
               height: '8px', 
               marginBottom: '10px',
@@ -389,7 +394,7 @@ const PremiumDashboard = () => {
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
               }}>
-                Besoins prévisionnels du mois
+                Effort conseillé ce mois
               </span>
               <div style={{ marginTop: '6px' }}>
                 {monthlyForecastNeed > 0 ? (
@@ -462,7 +467,7 @@ const PremiumDashboard = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '1.5px solid white',
+                  border: '1.5px solid var(--zenith-surface)',
                   marginLeft: idx > 0 ? '-6px' : '0'
                 }}>
                   {p.name.substring(0, 1).toUpperCase()}
@@ -739,7 +744,7 @@ const PremiumDashboard = () => {
               return (
                 <div key={p.id} style={{
                   padding: '16px',
-                  backgroundColor: '#F8FAFC',
+                  backgroundColor: 'var(--zenith-surface-muted)',
                   border: '1px solid var(--zenith-outline-variant)',
                   borderRadius: 'var(--radius-lg)'
                 }}>
@@ -788,7 +793,7 @@ const PremiumDashboard = () => {
 
                   {/* Steps details for complex projects */}
                   {p.is_complex && p.steps && p.steps.length > 0 && (
-                    <div style={{ marginTop: '12px', backgroundColor: 'white', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--zenith-outline-variant)' }}>
+                    <div style={{ marginTop: '12px', backgroundColor: 'var(--zenith-surface)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--zenith-outline-variant)' }}>
                       <h5 className="font-heading" style={{ fontSize: '11px', color: 'var(--zenith-on-surface)', margin: '0 0 10px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Détail des étapes :
                       </h5>
@@ -861,7 +866,7 @@ const PremiumDashboard = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Sparkles size={20} color="var(--zenith-secondary)" />
               <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
-                Accompagnement Stratégique
+                Coach Dudukan Plus
               </h3>
             </div>
           </div>

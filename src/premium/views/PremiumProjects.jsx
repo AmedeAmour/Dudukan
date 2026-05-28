@@ -88,7 +88,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
 
       {/* Global Feasibility Card */}
       <div className="premium-card" style={{
-        backgroundColor: '#F8FAFC',
+        backgroundColor: 'var(--zenith-surface-muted)',
         padding: '20px',
         display: 'flex',
         alignItems: 'center',
@@ -319,7 +319,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
                   <div style={{
                     height: '8px',
                     width: '100%',
-                    backgroundColor: '#F1F5F9',
+                    backgroundColor: 'var(--zenith-track)',
                     borderRadius: 'var(--radius-pill)',
                     overflow: 'hidden'
                   }}>
@@ -338,7 +338,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
                   display: 'grid', 
                   gridTemplateColumns: '1fr 1fr', 
                   gap: '12px', 
-                  backgroundColor: '#F8FAFC',
+                  backgroundColor: 'var(--zenith-surface-muted)',
                   padding: '12px 14px',
                   borderRadius: 'var(--radius-md)',
                   marginBottom: '16px',

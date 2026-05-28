@@ -51,7 +51,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       // Define colors used for cards and accents
-      const goldColor = [212, 175, 55]; // Zenith Gold
+      const goldColor = [245, 158, 11]; // Dudukan orange accent
       const navyColor = [18, 30, 49]; // Dark Navy
       // Debug log to verify data availability
       console.log('PDF generation context:', { financeSavings, projects, currency });
@@ -103,18 +103,18 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      doc.text(clean("Bilan financier stratégique premium"), 45, 28);
+      doc.text(clean("Bilan financier stratégique Dudukan Plus"), 45, 28);
 
       // 3. Right side header info
       doc.setFontSize(20);
-      doc.text("RAPPORT PREMIUM", 195, 25, { align: 'right' });
+      doc.text("RAPPORT PLUS", 195, 25, { align: 'right' });
 
       doc.setFontSize(9);
       const today = new Date().toLocaleDateString('fr-FR');
       doc.text(`Généré le : ${today}`, 195, 33, { align: 'right' });
 
       // Client Name
-      const clientName = user?.user_metadata?.full_name || 'Membre Premium';
+      const clientName = user?.user_metadata?.full_name || 'Membre Dudukan Plus';
       doc.text(`Client : ${clean(clientName)}`, 195, 38, { align: 'right' });
 
       // ----- Synthèse globale -----
@@ -271,7 +271,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
         ...ptx,
         date: ptx.date || ptx.created_at,
         categoryId: ptx.type,
-        note: ptx.note || ptx.description || ptx.title || `Opération Premium (${ptx.type})`
+        note: ptx.note || ptx.description || ptx.title || `Opération Dudukan Plus (${ptx.type})`
       }));
       
       // Sort by date descending
@@ -332,8 +332,8 @@ const PremiumAppContent = ({ onSwitchMode }) => {
       }
       
       // Save PDF
-      doc.save(`Bilan_Premium_Dudukan_${new Date().toISOString().split('T')[0]}.pdf`);
-      alert('Rapport PDF Premium minimal généré avec succès !');
+      doc.save(`Bilan_Dudukan_Plus_${new Date().toISOString().split('T')[0]}.pdf`);
+      alert('Rapport PDF Dudukan Plus généré avec succès !');
     } catch (err) {
       console.error('Erreur PDF', err);
       alert('Erreur lors de la génération du rapport PDF : ' + (err && err.message ? err.message : err));
@@ -349,6 +349,10 @@ const PremiumAppContent = ({ onSwitchMode }) => {
       root.classList.remove('dark-mode');
     }
     localStorage.setItem('premium_theme', theme);
+
+    return () => {
+      root.classList.remove('dark-mode');
+    };
   }, [theme]);
 
   // Scroll to top when the active view changes (Premium App only)
@@ -420,7 +424,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 
   return (
     <div className="premium-app-shell">
-      <PremiumTopBar title={getScreenTitle()} onBellClick={handleBellClick} onToggleTheme={handleThemeToggle} onDownloadReport={handleDownloadReport} />
+      <PremiumTopBar title={getScreenTitle()} onBellClick={handleBellClick} theme={theme} onToggleTheme={handleThemeToggle} onDownloadReport={handleDownloadReport} />
       <PremiumNotificationObserver />
 
       <main style={{ flex: 1, paddingBottom: '96px', overflowY: 'auto' }}>
@@ -445,7 +449,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
                   width: '36px',
                   height: '36px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                  backgroundColor: 'rgba(245, 158, 11, 0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -454,7 +458,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
                   <Sparkles size={18} color="var(--zenith-accent-gold)" strokeWidth={1.5} />
                 </div>
                 <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
-                  Actions Dudukan Premium
+                  Actions Dudukan Plus
                 </h3>
               </div>
               <button 
@@ -480,14 +484,14 @@ const PremiumAppContent = ({ onSwitchMode }) => {
                   padding: '16px',
                   width: '100%',
                   border: '1px solid var(--zenith-outline-variant)',
-                  backgroundColor: 'white',
+                  backgroundColor: 'var(--zenith-surface)',
                   borderRadius: 'var(--radius-lg)',
                   cursor: 'pointer',
                   textAlign: 'left',
                   transition: 'background-color 0.2s'
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--zenith-bg)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--zenith-surface)'}
               >
                 <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(6, 182, 212, 0.1)', color: 'var(--zenith-data-complex)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Plus size={18} />
@@ -511,14 +515,14 @@ const PremiumAppContent = ({ onSwitchMode }) => {
                   padding: '16px',
                   width: '100%',
                   border: '1px solid var(--zenith-outline-variant)',
-                  backgroundColor: 'white',
+                  backgroundColor: 'var(--zenith-surface)',
                   borderRadius: 'var(--radius-lg)',
                   cursor: 'pointer',
                   textAlign: 'left',
                   transition: 'background-color 0.2s'
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--zenith-bg)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--zenith-surface)'}
               >
                 <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--zenith-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Wallet size={18} />
@@ -542,16 +546,16 @@ const PremiumAppContent = ({ onSwitchMode }) => {
                   padding: '16px',
                   width: '100%',
                   border: '1px solid var(--zenith-outline-variant)',
-                  backgroundColor: 'white',
+                  backgroundColor: 'var(--zenith-surface)',
                   borderRadius: 'var(--radius-lg)',
                   cursor: 'pointer',
                   textAlign: 'left',
                   transition: 'background-color 0.2s'
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--zenith-bg)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--zenith-surface)'}
               >
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(212, 175, 55, 0.1)', color: '#B59410', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(245, 158, 11, 0.12)', color: '#B45309', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Settings size={18} />
                 </div>
                 <div>

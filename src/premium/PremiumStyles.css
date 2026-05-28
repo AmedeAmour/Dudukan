@@ -1,16 +1,18 @@
-/* Dudukan Premium - Elegant Design System & High-End UI */
+/* Dudukan Plus - Elegant Design System & High-End UI */
 :root {
-  /* Premium Dark Blue & Soft Gold Theme */
-  --zenith-primary: #0B192C;          /* Slate Dark Blue */
-  --zenith-primary-container: #1E3E62;/* Royal Deep Blue */
-  --zenith-accent-gold: #D4AF37;       /* Soft Champagne Gold */
-  --zenith-accent-gold-light: #F3E5AB; /* Light Gold Accent */
-  --zenith-secondary: #10B981;        /* Rich Emerald Success */
+  /* Dudukan free palette, refined for Plus */
+  --zenith-primary: #1A2B48;
+  --zenith-primary-container: #3B82F6;
+  --zenith-accent-gold: #F59E0B;
+  --zenith-accent-gold-light: #FEF3C7;
+  --zenith-secondary: #10B981;
   --zenith-secondary-container: #D1FAE5;
   
-  --zenith-bg: #F4F6F9;                /* Smooth Light Neutral */
+  --zenith-bg: #F8F9FA;
   --zenith-white: #FFFFFF;
   --zenith-surface: #FFFFFF;
+  --zenith-surface-muted: #F8FAFC;
+  --zenith-track: #EEF2F7;
   
   /* Text & Border Contrasts */
   --zenith-on-surface: #1E293B;       /* Charcoal Blue */
@@ -25,8 +27,8 @@
   --zenith-on-error-container: #991B1B;
   
   /* Project Type Colors */
-  --zenith-data-recurring: #8B5CF6;
-  --zenith-data-complex: #06B6D4;
+  --zenith-data-recurring: #EC4899;
+  --zenith-data-complex: #3B82F6;
 
   /* Typography Fonts */
   --font-headings: 'Manrope', sans-serif;
@@ -49,7 +51,9 @@
 
 /* Base Mobile App Shell */
 .premium-app-shell {
-  background-color: var(--zenith-bg);
+  background:
+    linear-gradient(180deg, rgba(59, 130, 246, 0.07) 0%, rgba(248, 249, 250, 0) 260px),
+    var(--zenith-bg);
   min-height: 100vh;
   color: var(--zenith-on-surface);
   font-family: var(--font-body);
@@ -75,15 +79,94 @@
 
 /* Premium TopAppBar */
 .premium-topbar {
-  background-color: var(--zenith-white);
-  border-bottom: 1px solid var(--zenith-outline-variant);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.72);
   position: sticky;
   top: 0;
   z-index: 40;
-  padding: 18px 24px;
+  padding: 14px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.premium-topbar-identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.premium-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--zenith-primary-container), var(--zenith-primary));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25), 0 10px 24px rgba(11,25,44,0.12);
+  flex-shrink: 0;
+}
+
+.premium-topbar-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--zenith-primary-container);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.premium-topbar-title {
+  font-size: 17px;
+  color: var(--zenith-on-surface);
+  margin: 3px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 210px;
+}
+
+.premium-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.premium-icon-button {
+  width: 38px;
+  height: 38px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--zenith-on-surface);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.premium-icon-button:hover {
+  background: rgba(30, 62, 98, 0.06);
+  border-color: rgba(30, 62, 98, 0.08);
+}
+
+.premium-icon-button:active {
+  transform: scale(0.94);
+}
+
+.premium-icon-button-strong {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--zenith-primary-container);
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 /* Premium Bottom Navigation bar with Centered FAB layout */
@@ -156,7 +239,7 @@
   height: 60px;
   border-radius: var(--radius-pill);
   background: linear-gradient(135deg, var(--zenith-primary-container) 0%, var(--zenith-primary) 100%);
-  color: var(--zenith-accent-gold);
+  color: white;
   border: 4px solid var(--zenith-bg);
   box-shadow: 0 8px 24px rgba(30, 62, 98, 0.35);
   display: flex;
@@ -180,7 +263,7 @@
 .premium-card {
   background-color: var(--zenith-white);
   border: 1px solid var(--zenith-outline-variant);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   box-shadow: var(--zenith-shadow-soft);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
@@ -194,7 +277,7 @@
 .premium-card-dark {
   background: linear-gradient(135deg, var(--zenith-primary) 0%, #1e293b 100%);
   color: var(--zenith-white);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: var(--zenith-shadow-md);
 }
@@ -204,7 +287,103 @@
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
+}
+
+.premium-hero-panel {
+  position: relative;
+  overflow: hidden;
+  min-height: 174px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at 88% 14%, rgba(245, 158, 11, 0.22), transparent 28%),
+    linear-gradient(135deg, #1A2B48 0%, #3B82F6 68%, #10B981 125%);
+  color: white;
+  box-shadow: var(--zenith-shadow-lg);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.premium-hero-panel::after {
+  content: '';
+  position: absolute;
+  inset: auto -30px -50px auto;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+}
+
+.premium-hero-content {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.premium-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  margin-bottom: 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.16);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.premium-hero-panel h2 {
+  color: white;
+  font-size: 30px;
+  line-height: 1.04;
+  margin: 0;
+}
+
+.premium-hero-panel p {
+  max-width: 290px;
+  color: rgba(255,255,255,0.76);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 10px 0 0;
+}
+
+.premium-hero-metric {
+  position: relative;
+  z-index: 1;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.premium-hero-metric span {
+  color: #FFFFFF;
+  font-family: var(--font-data);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.premium-hero-metric small {
+  margin-top: 5px;
+  color: rgba(255,255,255,0.7);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 /* Badge Layouts */
@@ -218,9 +397,9 @@
 }
 
 .premium-badge-gold {
-  background-color: rgba(212, 175, 55, 0.12);
-  color: #B59410;
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #B45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .premium-badge-success {
@@ -287,21 +466,23 @@ input, textarea {
    DARK MODE OVERRIDES
 ----------------------------------- */
 :root.dark-mode {
-  --zenith-primary: #0F172A;          /* Deeper Slate */
-  --zenith-primary-container: #1E293B;/* Dark Container */
-  --zenith-accent-gold: #D4AF37;       /* Soft Champagne Gold - kept */
-  --zenith-accent-gold-light: #B59410; /* Darker Gold Accent */
-  --zenith-secondary: #059669;        /* Deeper Emerald */
-  --zenith-secondary-container: #064E3B; /* Dark Emerald Container */
+  --zenith-primary: #60A5FA;
+  --zenith-primary-container: #3B82F6;
+  --zenith-accent-gold: #F59E0B;
+  --zenith-accent-gold-light: #FDE68A;
+  --zenith-secondary: #34D399;
+  --zenith-secondary-container: #064E3B;
   
-  --zenith-bg: #090E17;                /* Deep Space Background */
-  --zenith-white: #121826;             /* Raised Surface / Card background */
-  --zenith-surface: #1E293B;           /* Surface variations */
+  --zenith-bg: #08111F;
+  --zenith-white: #121826;
+  --zenith-surface: #182235;
+  --zenith-surface-muted: #0F172A;
+  --zenith-track: #263247;
   
   /* Text & Border Contrasts */
   --zenith-on-surface: #F8FAFC;       /* Off-White Text */
-  --zenith-on-surface-variant: #94A3B8;/* Muted Light Gray */
-  --zenith-outline-variant: #334155;  /* Dark Border */
+  --zenith-on-surface-variant: #CBD5E1;
+  --zenith-outline-variant: #334155;
   
   /* Shadows */
   --zenith-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.4);
@@ -320,16 +501,70 @@ body, .premium-app-shell, .premium-topbar, .premium-bottomnav-container, .premiu
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+:root.dark-mode body {
+  background-color: #050B14;
+  color: var(--zenith-on-surface);
+}
+
+:root.dark-mode .premium-app-shell {
+  background:
+    linear-gradient(180deg, rgba(59, 130, 246, 0.12) 0%, rgba(8, 17, 31, 0) 280px),
+    var(--zenith-bg);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.45);
+}
+
+:root.dark-mode .premium-topbar {
+  background: rgba(18, 24, 38, 0.86);
+  border-bottom-color: rgba(51, 65, 85, 0.72);
+}
+
+:root.dark-mode .premium-topbar-kicker {
+  color: #93C5FD;
+}
+
+:root.dark-mode .premium-nav-item.active {
+  background-color: rgba(59, 130, 246, 0.16);
+  color: #BFDBFE;
+}
+
+:root.dark-mode .premium-icon-button:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.08);
+}
+
+:root.dark-mode .premium-icon-button-strong {
+  background: rgba(59, 130, 246, 0.18);
+  color: #93C5FD;
+}
+
 :root.dark-mode .premium-badge-gold {
-  background-color: rgba(212, 175, 55, 0.15);
-  color: #D4AF37;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  background-color: rgba(245, 158, 11, 0.16);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 :root.dark-mode .premium-badge-success {
   background-color: rgba(16, 185, 129, 0.15);
   color: #10B981;
   border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+:root.dark-mode input,
+:root.dark-mode textarea,
+:root.dark-mode select {
+  background-color: var(--zenith-surface);
+  border-color: var(--zenith-outline-variant);
+  color: var(--zenith-on-surface);
+}
+
+:root.dark-mode input::placeholder,
+:root.dark-mode textarea::placeholder {
+  color: var(--zenith-on-surface-variant);
+}
+
+:root.dark-mode option {
+  background-color: var(--zenith-surface);
+  color: var(--zenith-on-surface);
 }
 
 :root.dark-mode .action-sheet-overlay {

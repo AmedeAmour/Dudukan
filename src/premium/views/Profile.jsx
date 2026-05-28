@@ -1,18 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { usePremium } from '../context/PremiumContext';
 import { NotificationService } from '../../NotificationService';
 import {
-  User,
-  Crown,
-  Settings,
   Sliders,
   ShieldCheck,
   RefreshCw,
   LogOut,
   MessageSquare,
-  Sparkles,
   TrendingUp,
-  Zap,
   Calendar,
   Bell,
   Trash2,
@@ -22,9 +17,8 @@ import {
   AlertTriangle
 } from 'lucide-react';
 
-const Profile = ({ onSwitchMode, onDownloadReport }) => {
+const Profile = ({ onSwitchMode }) => {
   const {
-    profile,
     projects,
     financeSavings,
     freeSalary,
@@ -94,7 +88,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
   const handleTestNotification = async () => {
     const granted = await NotificationService.requestPermission();
     if (granted) {
-      NotificationService.sendNotification('Test Notification', 'Ceci est une notification de test depuis Dudukan Premium.');
+      NotificationService.sendNotification('Test Notification', 'Ceci est une notification de test depuis Dudukan Plus.');
       alert('Notification de test envoyée !');
     } else {
       alert('Permission de notification refusée.');
@@ -407,7 +401,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                       border: '1px solid var(--zenith-outline-variant)',
                       borderRadius: 'var(--radius-sm)',
                       fontSize: '12px',
-                      backgroundColor: 'white'
+                      backgroundColor: 'var(--zenith-surface)'
                     }}
                   />
                 </div>
@@ -426,7 +420,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                         border: '1px solid var(--zenith-outline-variant)',
                         borderRadius: 'var(--radius-sm)',
                         fontSize: '12px',
-                        backgroundColor: 'white'
+                        backgroundColor: 'var(--zenith-surface)'
                       }}
                     >
                       <option value="project">Un projet</option>
@@ -450,7 +444,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                         border: '1px solid var(--zenith-outline-variant)',
                         borderRadius: 'var(--radius-sm)',
                         fontSize: '12px',
-                        backgroundColor: 'white'
+                        backgroundColor: 'var(--zenith-surface)'
                       }}
                     >
                       <option value="once">Une seule fois</option>
@@ -475,7 +469,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                         border: '1px solid var(--zenith-outline-variant)',
                         borderRadius: 'var(--radius-sm)',
                         fontSize: '12px',
-                        backgroundColor: 'white'
+                        backgroundColor: 'var(--zenith-surface)'
                       }}
                     >
                       <option value="">Sélectionner un projet...</option>
@@ -504,7 +498,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                           border: '1px solid var(--zenith-outline-variant)',
                           borderRadius: 'var(--radius-sm)',
                           fontSize: '12px',
-                          backgroundColor: 'white'
+                          backgroundColor: 'var(--zenith-surface)'
                         }}
                       />
                     </div>
@@ -524,7 +518,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                           border: '1px solid var(--zenith-outline-variant)',
                           borderRadius: 'var(--radius-sm)',
                           fontSize: '12px',
-                          backgroundColor: 'white'
+                          backgroundColor: 'var(--zenith-surface)'
                         }}
                       >
                         <option value={1}>Lundi</option>
@@ -553,7 +547,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                         border: '1px solid var(--zenith-outline-variant)',
                         borderRadius: 'var(--radius-sm)',
                         fontSize: '12px',
-                        backgroundColor: 'white'
+                        backgroundColor: 'var(--zenith-surface)'
                       }}
                     />
                   </div>
@@ -574,7 +568,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                       border: '1px solid var(--zenith-outline-variant)',
                       borderRadius: 'var(--radius-sm)',
                       fontSize: '12px',
-                      backgroundColor: 'white',
+                      backgroundColor: 'var(--zenith-surface)',
                       resize: 'none'
                     }}
                   />
@@ -636,7 +630,7 @@ const Profile = ({ onSwitchMode, onDownloadReport }) => {
                         border: '1px solid var(--zenith-outline-variant)',
                         borderRadius: 'var(--radius-md)',
                         padding: '12px',
-                        backgroundColor: rem.enabled ? 'white' : 'var(--zenith-bg)',
+                        backgroundColor: rem.enabled ? 'var(--zenith-surface)' : 'var(--zenith-bg)',
                         opacity: rem.enabled ? 1 : 0.6,
                         display: 'flex',
                         justifyContent: 'space-between',

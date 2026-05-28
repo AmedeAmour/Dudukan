@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, User, Moon, Sun, Download } from 'lucide-react';
+import { Bell, User, Moon, Sun, Download, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const PremiumTopBar = ({ title = "Financial Assistant", onBellClick, theme, onToggleTheme, onDownloadReport }) => {
@@ -8,17 +8,8 @@ const PremiumTopBar = ({ title = "Financial Assistant", onBellClick, theme, onTo
 
   return (
     <header className="premium-topbar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '50%',
-          overflow: 'hidden',
-          backgroundColor: 'var(--zenith-outline-variant)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
+      <div className="premium-topbar-identity">
+        <div className="premium-avatar">
           {avatarUrl ? (
             <img 
               src={avatarUrl} 
@@ -26,66 +17,38 @@ const PremiumTopBar = ({ title = "Financial Assistant", onBellClick, theme, onTo
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
           ) : (
-            <User size={20} color="var(--zenith-white)" />
+            <User size={20} />
           )}
         </div>
-        <h1 className="font-heading" style={{
-          fontSize: '18px',
-          color: 'var(--zenith-on-surface)',
-          margin: 0
-        }}>
-          {title}
-        </h1>
+        <div>
+          <div className="premium-topbar-kicker">
+            <ShieldCheck size={12} />
+            Dudukan Plus
+          </div>
+          <h1 className="font-heading premium-topbar-title">
+            {title}
+          </h1>
+        </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="premium-topbar-actions">
         <button 
           onClick={onToggleTheme}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '8px',
-            borderRadius: '50%',
-            cursor: 'pointer',
-            color: 'var(--zenith-on-surface)',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(26, 79, 139, 0.05)'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="premium-icon-button"
+          aria-label={theme === 'dark' ? 'Activer le thème clair' : 'Activer le thème sombre'}
         >
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
         <button 
           onClick={onBellClick}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '8px',
-            borderRadius: '50%',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--zenith-on-surface)',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(26, 79, 139, 0.05)'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="premium-icon-button"
+          aria-label="Tester les notifications"
         >
           <Bell size={20} />
         </button>
         <button
           onClick={onDownloadReport}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '8px',
-            borderRadius: '50%',
-            cursor: 'pointer',
-            color: 'var(--zenith-on-surface)',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(26, 79, 139, 0.05)'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="premium-icon-button premium-icon-button-strong"
+          aria-label="Télécharger le rapport Dudukan Plus"
         >
           <Download size={20} />
         </button>

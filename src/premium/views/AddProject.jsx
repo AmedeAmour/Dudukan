@@ -125,7 +125,7 @@ const AddProject = ({ onBack }) => {
         Planifier un Projet
       </h2>
       <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--zenith-on-surface-variant)', marginBottom: '32px' }}>
-        Donnez vie à vos ambitions avec l'architecture Zenith.
+        Donnez forme à vos projets, à votre rythme, avec un plan clair.
       </p>
 
       {/* Type Selector (Simple, Complex, Recurring) */}
@@ -250,7 +250,7 @@ const AddProject = ({ onBack }) => {
               fontFamily: 'var(--font-body)',
               fontSize: '14px',
               outline: 'none',
-              backgroundColor: 'white',
+              backgroundColor: 'var(--zenith-surface)',
               boxSizing: 'border-box'
             }}
           >
@@ -277,7 +277,7 @@ const AddProject = ({ onBack }) => {
                 fontFamily: 'var(--font-body)',
                 fontSize: '14px',
                 outline: 'none',
-                backgroundColor: 'white',
+                backgroundColor: 'var(--zenith-surface)',
                 boxSizing: 'border-box'
               }}
             >
@@ -342,7 +342,7 @@ const AddProject = ({ onBack }) => {
                 <div 
                   key={idx}
                   style={{
-                    backgroundColor: '#F8FAFC',
+                    backgroundColor: 'var(--zenith-surface-muted)',
                     border: '1px solid var(--zenith-outline-variant)',
                     borderRadius: 'var(--radius-md)',
                     padding: '16px',
@@ -379,7 +379,7 @@ const AddProject = ({ onBack }) => {
                         borderRadius: 'var(--radius-sm)',
                         fontSize: '13px',
                         outline: 'none',
-                        backgroundColor: 'white'
+                        backgroundColor: 'var(--zenith-surface)'
                       }}
                     />
                     <input 
@@ -396,7 +396,7 @@ const AddProject = ({ onBack }) => {
                         fontFamily: 'var(--font-data)',
                         fontSize: '13px',
                         outline: 'none',
-                        backgroundColor: 'white'
+                        backgroundColor: 'var(--zenith-surface)'
                       }}
                     />
                   </div>
@@ -441,7 +441,7 @@ const AddProject = ({ onBack }) => {
             transition: 'opacity 0.2s'
           }}
         >
-          {loading ? 'Planification en cours...' : 'Créer mon Projet Zenith'}
+          {loading ? 'Planification en cours...' : 'Créer mon projet'}
         </button>
 
       </form>

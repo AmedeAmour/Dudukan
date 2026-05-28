@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseUrl = import.meta.env.URL_SUPABASE_VITE || import.meta.env.VITE_SUPABASE_URL;
 // Trying both ANON_KEY and PUBLISHABLE_KEY based on what was in the .env
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 

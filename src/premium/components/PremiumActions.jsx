@@ -13,7 +13,7 @@ export const PremiumActions = ({ onDownloadReport }) => {
   const handleTestNotification = async () => {
     const granted = await NotificationService.requestPermission();
     if (granted) {
-      NotificationService.sendNotification('Test Notification', 'Ceci est une notification de test depuis Dudukan Premium.');
+      NotificationService.sendNotification('Test Notification', 'Ceci est une notification de test depuis Dudukan Plus.');
       alert('Notification de test envoyée !');
     } else {
       alert('Permission de notification refusée.');

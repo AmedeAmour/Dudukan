@@ -309,7 +309,7 @@ const PremiumFunding = () => {
           borderRadius: 'var(--radius-pill)',
           overflow: 'hidden',
           display: 'flex',
-          backgroundColor: '#F1F5F9',
+          backgroundColor: 'var(--zenith-track)',
           marginBottom: '16px'
         }}>
           {totalAllocatedToProjects > 0 && (
@@ -387,7 +387,7 @@ const PremiumFunding = () => {
 
       {/* Strategic Advisor Panel */}
       <div className="premium-card" style={{
-        backgroundColor: '#F8FAFC',
+        backgroundColor: 'var(--zenith-surface-muted)',
         padding: '20px',
         display: 'flex',
         gap: '16px',
@@ -398,7 +398,7 @@ const PremiumFunding = () => {
           width: '40px',
           height: '40px',
           borderRadius: '50%',
-          backgroundColor: 'rgba(212, 175, 55, 0.1)',
+          backgroundColor: 'rgba(245, 158, 11, 0.12)',
           color: 'var(--zenith-accent-gold)',
           display: 'flex',
           alignItems: 'center',
@@ -462,7 +462,7 @@ const PremiumFunding = () => {
                 <div style={{
                   height: '6px',
                   width: '100%',
-                  backgroundColor: '#ECEFF1',
+                  backgroundColor: 'var(--zenith-track)',
                   borderRadius: 'var(--radius-pill)',
                   overflow: 'hidden',
                   display: 'flex'
@@ -511,7 +511,7 @@ const PremiumFunding = () => {
                 <div style={{
                   height: '6px',
                   width: '100%',
-                  backgroundColor: '#ECEFF1',
+                  backgroundColor: 'var(--zenith-track)',
                   borderRadius: 'var(--radius-pill)',
                   overflow: 'hidden',
                   display: 'flex'
