@@ -92,10 +92,10 @@ const Onboarding = () => {
           <div style={{ marginBottom: '24px' }}>
             <label className="label">Votre monnaie</label>
             <select 
-              value={currency?.code || 'XOF'}
+              value={currency.code}
               onChange={(e) => {
                 const selected = currencies.find(c => c.code === e.target.value);
-                if (selected) setCurrency(selected);
+                setCurrency(selected);
               }}
               style={{ 
                 width: '100%', 
@@ -124,7 +124,7 @@ const Onboarding = () => {
                 style={{ fontSize: '24px', fontWeight: 'bold', padding: '20px', paddingRight: '80px' }}
               />
               <span style={{ position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', fontWeight: 'bold', color: 'var(--navy)' }}>
-                {currency?.code || 'XOF'}
+                {currency.code}
               </span>
             </div>
             <p style={{ color: 'var(--text-light)', fontSize: '12px', marginTop: '8px' }}>

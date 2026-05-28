@@ -4,29 +4,9 @@ import { PieChart, Plus, Info, Utensils, Car, Home, CreditCard, PiggyBank, Alert
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Budget = () => {
-  const { salary, categories, setCategories, getCategorySpent, getCategoryBudget, formatCurrency, balance, appMode, projects } = useFinance();
+  const { salary, categories, setCategories, getCategorySpent, getCategoryBudget, formatCurrency, balance } = useFinance();
   const [showModal, setShowModal] = useState(false);
   
-  // Premium specific logic: Strategic Plan
-  const getStrategicPlan = () => {
-    return projects.map(p => {
-      const remaining = p.targetAmount - p.currentAmount;
-      if (remaining <= 0) return { ...p, monthlyNeed: 0, status: 'completed' };
-      
-      const deadline = p.deadline ? new Date(p.deadline) : null;
-      const today = new Date();
-      if (!deadline || deadline <= today) return { ...p, monthlyNeed: remaining, status: 'urgent' };
-      
-      const monthsLeft = (deadline.getFullYear() - today.getFullYear()) * 12 + (deadline.getMonth() - today.getMonth());
-      const monthlyNeed = monthsLeft > 0 ? remaining / monthsLeft : remaining;
-      
-      return { ...p, monthlyNeed, monthsLeft, status: monthlyNeed > salary * 0.5 ? 'hard' : 'feasible' };
-    });
-  };
-
-  const plan = appMode === 'premium' ? getStrategicPlan() : [];
-  const totalMonthlyNeed = plan.reduce((acc, p) => acc + p.monthlyNeed, 0);
-
   // Form state
   const [newName, setNewName] = useState('');
   const [newLimit, setNewLimit] = useState('');
@@ -42,24 +22,36 @@ const Budget = () => {
   const handleAddCategory = (e) => {
     e.preventDefault();
     if (!newName || !newLimit) return;
+
     const newCat = {
       id: `${newName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
-      name: newName, icon: newIcon, color: newColor, limit: parseFloat(newLimit) / 100
+      name: newName,
+      icon: newIcon,
+      color: newColor,
+      limit: parseFloat(newLimit) / 100
     };
+
     setCategories([...categories, newCat]);
     setShowModal(false);
-    setNewName(''); setNewLimit('');
+    setNewName('');
+    setNewLimit('');
   };
 
   const iconOptions = [
-    { name: 'Utensils', icon: Utensils }, { name: 'Car', icon: Car }, { name: 'Home', icon: Home },
-    { name: 'CreditCard', icon: CreditCard }, { name: 'PiggyBank', icon: PiggyBank },
-    { name: 'AlertCircle', icon: AlertCircle }, { name: 'User', icon: User }
+    { name: 'Utensils', icon: Utensils },
+    { name: 'Car', icon: Car },
+    { name: 'Home', icon: Home },
+    { name: 'CreditCard', icon: CreditCard },
+    { name: 'PiggyBank', icon: PiggyBank },
+    { name: 'AlertCircle', icon: AlertCircle },
+    { name: 'User', icon: User }
   ];
 
   const colorOptions = [
-    { name: 'Bleu', value: '--accent-blue' }, { name: 'Vert', value: '--emerald' },
-    { name: 'Orange', value: '--accent-orange' }, { name: 'Rouge', value: '--accent-red' },
+    { name: 'Bleu', value: '--accent-blue' },
+    { name: 'Vert', value: '--emerald' },
+    { name: 'Orange', value: '--accent-orange' },
+    { name: 'Rouge', value: '--accent-red' },
     { name: 'Navy', value: '--navy' }
   ];
 
@@ -70,117 +62,121 @@ const Budget = () => {
       style={{ padding: '24px 20px' }}
     >
       <header style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px' }}>{appMode === 'premium' ? 'Plan Stratégique' : 'Planification'}</h1>
-        <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>
-          {appMode === 'premium' ? 'Comment atteindre vos objectifs de vie' : 'Répartition suggérée de vos revenus'}
-        </p>
+        <h1 style={{ fontSize: '24px' }}>Planification</h1>
+        <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Répartition suggérée de vos revenus</p>
       </header>
 
-      <div className="card" style={{ background: appMode === 'premium' ? 'var(--navy)' : 'var(--emerald)', color: 'white', border: 'none' }}>
+      <div className="card" style={{ background: 'var(--emerald)', color: 'white', border: 'none' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <p style={{ opacity: 0.9, fontSize: '14px' }}>{appMode === 'premium' ? 'Besoin mensuel total' : 'Solde disponible'}</p>
-            <h2 style={{ color: 'white', fontSize: '28px' }}>{formatCurrency(appMode === 'premium' ? totalMonthlyNeed : balance)}</h2>
+            <p style={{ opacity: 0.9, fontSize: '14px' }}>Solde disponible</p>
+            <h2 style={{ color: 'white', fontSize: '28px' }}>{formatCurrency(balance)}</h2>
           </div>
           <PieChart size={40} style={{ opacity: 0.3 }} />
         </div>
       </div>
 
       <div style={{ marginTop: '24px' }}>
-        {appMode === 'premium' ? (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '18px' }}>Plan de financement</h3>
-            </div>
-            
-            {plan.length === 0 ? (
-              <div className="card" style={{ textAlign: 'center', padding: '40px 20px' }}>
-                <p style={{ color: 'var(--text-light)' }}>Aucun projet actif à planifier.</p>
-              </div>
-            ) : (
-              plan.map(p => (
-                <div key={p.id} className="card" style={{ marginBottom: '12px', borderLeft: `4px solid ${p.status === 'urgent' ? 'var(--accent-red)' : p.status === 'hard' ? 'var(--accent-orange)' : 'var(--emerald)'}` }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                    <div>
-                      <h4 style={{ fontWeight: '700' }}>{p.name}</h4>
-                      <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>
-                        {p.monthsLeft > 0 ? `Échéance dans ${p.monthsLeft} mois` : 'Échéance dépassée'}
-                      </p>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontWeight: '700', color: 'var(--navy)' }}>{formatCurrency(p.monthlyNeed)} / mois</p>
-                      <span style={{ fontSize: '10px', fontWeight: '700', color: p.status === 'urgent' ? 'var(--accent-red)' : p.status === 'hard' ? 'var(--accent-orange)' : 'var(--emerald)' }}>
-                        {p.status === 'urgent' ? 'URGENT' : p.status === 'hard' ? 'DIFFICILE' : 'RÉALISABLE'}
-                      </span>
-                    </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '18px' }}>Répartition par catégories</h3>
+          <button 
+            onClick={() => setShowModal(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--navy)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '10px', fontSize: '13px', cursor: 'pointer' }}
+          >
+            <Plus size={16} /> Ajouter
+          </button>
+        </div>
+
+        {categories.map((cat) => {
+          const budget = getCategoryBudget(cat.id);
+          const spent = getCategorySpent(cat.id);
+          const percent = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
+          const color = `var(${cat.color})`;
+
+          const today = new Date().getDate();
+          const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+          const monthProgress = (today / daysInMonth) * 100;
+          const isSpendingTooFast = percent > monthProgress + 10; // 10% tolerance
+
+          const iconMap = {
+            Utensils: Utensils,
+            Car: Car,
+            Home: Home,
+            CreditCard: CreditCard,
+            PiggyBank: PiggyBank,
+            AlertCircle: AlertCircle,
+            User: User
+          };
+          const IconComponent = iconMap[cat.icon] || Info;
+
+          const isInvestmentCat = cat.id === 'debt' || cat.id === 'savings';
+          const remaining = budget - spent;
+          const isOver = spent > budget;
+          
+          return (
+            <div key={cat.id} className="card" style={{ marginBottom: '12px', border: isSpendingTooFast && !isOver ? '1px solid var(--accent-orange-light)' : 'none' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color }}>
+                    <IconComponent size={20} />
                   </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <Info size={14} color="var(--text-light)" />
-                    <p style={{ fontSize: '11px', color: 'var(--text-light)' }}>
-                      {p.status === 'hard' 
-                        ? "Ce projet nécessite plus de 50% de vos revenus. Envisagez d'allonger le délai." 
-                        : "Continuez ainsi pour atteindre votre objectif à temps."}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <p style={{ fontWeight: '600' }}>{cat.name}</p>
+                      {isSpendingTooFast && !isOver && (
+                        <span style={{ fontSize: '9px', background: 'var(--accent-orange-light)', color: 'var(--accent-orange)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                          RISQUE
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+                      Budget: {formatCurrency(budget)}
                     </p>
                   </div>
                 </div>
-              ))
-            )}
-          </>
-        ) : (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '18px' }}>Répartition par catégories</h3>
-              <button 
-                onClick={() => setShowModal(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--navy)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '10px', fontSize: '13px', cursor: 'pointer' }}
-              >
-                <Plus size={16} /> Ajouter
-              </button>
-            </div>
-
-            {categories.map((cat) => {
-              const budget = getCategoryBudget(cat.id);
-              const spent = getCategorySpent(cat.id);
-              const percent = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
-              const color = `var(${cat.color})`;
-              const IconComponent = { Utensils, Car, Home, CreditCard, PiggyBank, AlertCircle, User }[cat.icon] || Info;
-              const isInvestmentCat = cat.id === 'debt' || cat.id === 'savings';
-              const remaining = budget - spent;
-              const isOver = spent > budget;
-              
-              return (
-                <div key={cat.id} className="card" style={{ marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color }}>
-                        <IconComponent size={20} />
-                      </div>
-                      <div>
-                        <p style={{ fontWeight: '600' }}>{cat.name}</p>
-                        <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>Budget: {formatCurrency(budget)}</p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span className={`badge ${percent >= 100 ? (isInvestmentCat ? 'badge-emerald' : 'badge-red') : 'badge-emerald'}`}>
-                        {percent}%
-                      </span>
-                      <button onClick={() => handleDeleteCategory(cat.id)} style={{ background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer' }}>
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="progress-bar-container">
-                    <div className="progress-bar-fill" style={{ width: `${percent}%`, background: color }} />
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
-                    <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>Utilisé: {formatCurrency(spent)}</p>
-                    <p style={{ fontSize: '12px', fontWeight: '600' }}>{formatCurrency(remaining)} restants</p>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className={`badge ${percent >= 100 ? (isInvestmentCat ? 'badge-emerald' : 'badge-red') : percent > 50 ? 'badge-orange' : 'badge-emerald'}`}>
+                    {percent}%
+                  </span>
+                  <button 
+                    onClick={() => handleDeleteCategory(cat.id)}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer', padding: '4px', display: 'flex' }}
+                    title="Supprimer la catégorie"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-              );
-            })}
-          </>
-        )}
+              </div>
+              
+              <div className="progress-bar-container">
+                <div 
+                  className="progress-bar-fill" 
+                  style={{ 
+                    width: `${percent}%`, 
+                    background: percent >= 100 ? (isInvestmentCat ? 'var(--emerald)' : 'var(--accent-red)') : percent > 80 ? 'var(--accent-orange)' : color 
+                  }}
+                />
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>Utilisé: {formatCurrency(spent)}</p>
+                <p style={{ 
+                  fontSize: '12px', 
+                  fontWeight: '600', 
+                  color: isOver ? (isInvestmentCat ? 'var(--emerald)' : 'var(--accent-red)') : percent > 80 ? 'var(--accent-orange)' : 'var(--text-main)' 
+                }}>
+                  {isOver && isInvestmentCat ? `+${formatCurrency(Math.abs(remaining))}` : formatCurrency(remaining)} restants
+                </p>
+              </div>
+
+              {isSpendingTooFast && !isOver && (
+                <p style={{ fontSize: '11px', color: 'var(--accent-orange)', marginTop: '8px', fontStyle: 'italic' }}>
+                  Vous dépensez plus vite que prévu pour ce mois. Ralentissez pour tenir jusqu'à la fin !
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="card" style={{ marginTop: '24px', border: '1px dashed var(--text-light)', background: 'none' }}>

@@ -1,11 +1,8 @@
 import React from 'react';
-import { Home, PieChart, Plus, X, CreditCard, Settings as SettingsIcon, PiggyBank, BarChart3 } from 'lucide-react';
-import { useFinance } from '../context/FinanceContext';
+import { Home, PieChart, Plus, X, CreditCard, Settings as SettingsIcon, PiggyBank } from 'lucide-react';
 
 const BottomNav = ({ activeTab, setActiveTab }) => {
-  const { appMode } = useFinance();
-
-  const freeItems = [
+  const navItems = [
     { id: 'dashboard', label: 'Accueil', icon: Home },
     { id: 'budget', label: 'Budget', icon: PieChart },
     { id: 'expenses', label: 'Dépenses', icon: Plus },
@@ -13,22 +10,12 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
     { id: 'debts', label: 'Dettes', icon: CreditCard },
   ];
 
-  const premiumItems = [
-    { id: 'dashboard', label: 'Projets', icon: Home },
-    { id: 'budget', label: 'Ressources', icon: PieChart },
-    { id: 'expenses', label: 'Financer', icon: Plus },
-    { id: 'analytics', label: 'Analyses', icon: BarChart3 },
-    { id: 'settings', label: 'Réglages', icon: SettingsIcon },
-  ];
-
-  const navItems = appMode === 'premium' ? premiumItems : freeItems;
-
   return (
     <nav className="bottom-nav">
       {navItems.map((item) => {
         const isExpenses = item.id === 'expenses';
-        const Icon = isExpenses
-          ? (activeTab === 'expenses' ? X : Plus)
+        const Icon = isExpenses 
+          ? (activeTab === 'expenses' ? X : Plus) 
           : item.icon;
 
         return (
