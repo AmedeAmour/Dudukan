@@ -94,6 +94,29 @@ const fedapayRequest = async (path, options = {}) => {
   return payload;
 };
 
+const extractTransaction = (payload) => {
+  return payload?.id
+    ? payload
+    : payload?.transaction
+      || payload?.data?.transaction
+      || payload?.data
+      || payload?.entity
+      || payload?.['v1/transaction']
+      || payload?.['v1_transaction']
+      || null;
+};
+
+const extractToken = (payload) => {
+  return payload?.url
+    ? payload
+    : payload?.token
+      ? payload
+      : payload?.data
+        || payload?.['v1/token']
+        || payload?.['v1_token']
+        || null;
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { error: 'Method not allowed.' });
@@ -127,7 +150,7 @@ export default async function handler(req, res) {
       return sendJson(res, 200, { alreadyPremium: true });
     }
 
-    const transaction = await fedapayRequest('/transactions', {
+    const transactionPayload = await fedapayRequest('/transactions', {
       method: 'POST',
       body: JSON.stringify({
         description: 'Dudukan Plus - acces a vie',
@@ -147,11 +170,21 @@ export default async function handler(req, res) {
         customer: buildCustomer(user, body, firstname, lastname),
       }),
     });
+    const transaction = extractTransaction(transactionPayload);
+
+    if (!transaction?.id) {
+      throw new Error('FedaPay transaction id missing.');
+    }
 
     const fedapayId = String(transaction.id);
-    const token = await fedapayRequest(`/transactions/${fedapayId}/token`, {
+    const tokenPayload = await fedapayRequest(`/transactions/${fedapayId}/token`, {
       method: 'POST',
     });
+    const token = extractToken(tokenPayload);
+
+    if (!token?.url) {
+      throw new Error('FedaPay checkout url missing.');
+    }
 
     const { error: insertError } = await supabase.from('premium_purchases').upsert({
       user_id: user.id,
@@ -164,8 +197,8 @@ export default async function handler(req, res) {
       plan_code: PLAN.code,
       checkout_url: token.url,
       raw_event: {
-        transaction,
-        token: { token: token.token },
+        transaction: transactionPayload,
+        token: tokenPayload,
         merchant_reference: merchantReference,
         selected_method: selectedMethod,
       },
