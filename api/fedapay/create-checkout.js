@@ -30,8 +30,18 @@ const PAYMENT_METHOD_LABELS = {
 };
 
 const getFedaPayBaseUrl = () => {
-  const env = process.env.FEDAPAY_ENVIRONMENT || 'sandbox';
-  return env === 'live' ? 'https://api.fedapay.com/v1' : 'https://sandbox-api.fedapay.com/v1';
+  return getFedaPayEnvironment() === 'live' ? 'https://api.fedapay.com/v1' : 'https://sandbox-api.fedapay.com/v1';
+};
+
+const getFedaPayEnvironment = () => {
+  return process.env.FEDAPAY_ENVIRONMENT === 'live' ? 'live' : 'sandbox';
+};
+
+const getFedaPaySecretKey = () => {
+  const env = getFedaPayEnvironment();
+  return env === 'live'
+    ? process.env.FEDAPAY_LIVE_SECRET_KEY || process.env.FEDAPAY_SECRET_KEY
+    : process.env.FEDAPAY_SANDBOX_SECRET_KEY || process.env.FEDAPAY_SECRET_KEY;
 };
 
 const splitName = (fullName = '') => {
@@ -64,8 +74,8 @@ const buildCustomer = (user, body, firstname, lastname) => {
 };
 
 const fedapayRequest = async (path, options = {}) => {
-  const apiKey = process.env.FEDAPAY_SECRET_KEY;
-  if (!apiKey) throw new Error('Missing FEDAPAY_SECRET_KEY.');
+  const apiKey = getFedaPaySecretKey();
+  if (!apiKey) throw new Error(`Missing FedaPay ${getFedaPayEnvironment()} secret key.`);
 
   const response = await fetch(`${getFedaPayBaseUrl()}${path}`, {
     ...options,
@@ -173,7 +183,7 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('FedaPay checkout error:', error);
-    const isFedapayConfigurationError = /Missing FEDAPAY_SECRET_KEY/.test(error.message || '');
+    const isFedapayConfigurationError = /Missing FedaPay .* secret key|Missing FEDAPAY_SECRET_KEY/.test(error.message || '');
     const isSupabaseConfigurationError = /Missing Supabase server environment variables/.test(error.message || '');
     const isFedapayAuthenticationError = /authentification|authentication|unauthorized|invalid api/i.test(error.message || '');
     const isConfigurationError = isFedapayConfigurationError || isSupabaseConfigurationError;

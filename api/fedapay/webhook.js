@@ -17,8 +17,19 @@ const timingSafeEqual = (a, b) => {
   return left.length === right.length && crypto.timingSafeEqual(left, right);
 };
 
+const getFedaPayEnvironment = () => {
+  return process.env.FEDAPAY_ENVIRONMENT === 'live' ? 'live' : 'sandbox';
+};
+
+const getFedaPayWebhookSecret = () => {
+  const env = getFedaPayEnvironment();
+  return env === 'live'
+    ? process.env.FEDAPAY_LIVE_WEBHOOK_SECRET || process.env.FEDAPAY_WEBHOOK_SECRET
+    : process.env.FEDAPAY_SANDBOX_WEBHOOK_SECRET || process.env.FEDAPAY_WEBHOOK_SECRET;
+};
+
 const verifySignatureIfConfigured = (rawBody, signature) => {
-  const secret = process.env.FEDAPAY_WEBHOOK_SECRET;
+  const secret = getFedaPayWebhookSecret();
   if (!secret) return true;
   if (!signature) return false;
 

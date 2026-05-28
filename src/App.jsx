@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './screens/Dashboard';
@@ -14,12 +14,34 @@ import NotificationObserver from './components/NotificationObserver';
 import InstallPWA from './components/InstallPWA';
 import PremiumApp from './premium/PremiumApp';
 import Payment from './screens/Payment';
+import { supabase } from './supabaseClient';
 
 const AppContent = () => {
   const { onboarded, isInitialized, profile } = useFinance();
   const { session, loading, user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [appMode, setAppMode] = useState('free');
+  const [hasPremiumAccess, setHasPremiumAccess] = useState(false);
+  const [premiumAccessLoading, setPremiumAccessLoading] = useState(false);
+  const [paymentReturnInfo, setPaymentReturnInfo] = useState(null);
+
+  const refreshPremiumAccess = useCallback(async () => {
+    if (!user?.id) {
+      setHasPremiumAccess(false);
+      return false;
+    }
+
+    const hasLegacyAccess = user?.user_metadata?.is_premium === true;
+    try {
+      const { data, error } = await supabase.rpc('has_premium_access', { target_user_id: user.id });
+      const hasAccess = (!error && data === true) || hasLegacyAccess;
+      setHasPremiumAccess(hasAccess);
+      return hasAccess;
+    } catch (error) {
+      setHasPremiumAccess(hasLegacyAccess);
+      return hasLegacyAccess;
+    }
+  }, [user]);
 
   useEffect(() => {
     if (profile?.app_mode) {
@@ -27,12 +49,47 @@ const AppContent = () => {
     }
   }, [profile]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkAccess = async () => {
+      if (!user?.id) {
+        setHasPremiumAccess(false);
+        return;
+      }
+
+      setPremiumAccessLoading(true);
+      const hasAccess = await refreshPremiumAccess();
+      if (!cancelled) {
+        setHasPremiumAccess(hasAccess);
+        setPremiumAccessLoading(false);
+      }
+    };
+
+    checkAccess();
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshPremiumAccess, user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get('payment') || params.get('status');
+    const transactionId = params.get('transaction_id') || params.get('id');
+
+    if (!paymentStatus) return;
+
+    setPaymentReturnInfo({ status: paymentStatus, transactionId });
+    setAppMode('premium');
+    refreshPremiumAccess();
+  }, [refreshPremiumAccess]);
+
   // Scroll to top when the active view changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activeTab]);
 
-  if (loading || !isInitialized) {
+  if (loading || !isInitialized || premiumAccessLoading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-main)', color: 'var(--navy)', fontWeight: '600' }}>Chargement de vos données...</div>;
   }
 
@@ -46,11 +103,18 @@ const AppContent = () => {
 
   // Switching between independent apps
   if (appMode === 'premium') {
-    const isPremiumUser = user?.user_metadata?.is_premium === true;
+    const isPremiumUser = hasPremiumAccess || user?.user_metadata?.is_premium === true;
     if (isPremiumUser) {
       return <PremiumApp onSwitchMode={setAppMode} />;
     } else {
-      return <Payment onBack={() => setAppMode('free')} onUnlock={() => setAppMode('premium')} />;
+      return (
+        <Payment
+          onBack={() => setAppMode('free')}
+          onUnlock={() => setAppMode('premium')}
+          onRefreshAccess={refreshPremiumAccess}
+          paymentReturnInfo={paymentReturnInfo}
+        />
+      );
     }
   }
 
