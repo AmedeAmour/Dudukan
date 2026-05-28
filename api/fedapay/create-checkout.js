@@ -173,12 +173,19 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('FedaPay checkout error:', error);
-    const isConfigurationError = /Missing (FEDAPAY_SECRET_KEY|Supabase server environment variables)/.test(error.message || '');
+    const isFedapayConfigurationError = /Missing FEDAPAY_SECRET_KEY/.test(error.message || '');
+    const isSupabaseConfigurationError = /Missing Supabase server environment variables/.test(error.message || '');
+    const isConfigurationError = isFedapayConfigurationError || isSupabaseConfigurationError;
 
     return sendJson(res, isConfigurationError ? 503 : 500, {
       error: isConfigurationError
-        ? "Le paiement FedaPay n'est pas encore activé sur ce déploiement."
+        ? "Le paiement est presque prêt, mais la configuration serveur n'est pas encore complète."
         : "Impossible d'initialiser le paiement. Veuillez réessayer dans un instant.",
+      code: isSupabaseConfigurationError
+        ? 'MISSING_SUPABASE_SERVICE_ROLE_KEY'
+        : isFedapayConfigurationError
+          ? 'MISSING_FEDAPAY_SECRET_KEY'
+          : 'CHECKOUT_ERROR',
     });
   }
 }

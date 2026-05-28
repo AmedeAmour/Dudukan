@@ -80,6 +80,7 @@ const Payment = ({
   ];
 
   const selectedPaymentMethod = paymentMethods.find((method) => method.id === selectedMethod);
+  const normalizedPhoneNumber = phoneNumber.replace(/\D/g, '');
   const returnStatus = paymentReturnInfo?.status;
   const returnNotice = returnStatus
     ? returnStatus === 'approved'
@@ -101,6 +102,11 @@ const Payment = ({
       return;
     }
 
+    if (selectedMethod !== 'card' && normalizedPhoneNumber.length < 8) {
+      setPaymentError('Entrez un numéro mobile money valide avant de continuer.');
+      return;
+    }
+
     setPaymentStep('processing');
     setPaymentError('');
     setProcessingStatus('Création de votre paiement sécurisé FedaPay...');
@@ -113,7 +119,7 @@ const Payment = ({
       },
       body: JSON.stringify({
         selectedMethod,
-        phoneNumber,
+        phoneNumber: normalizedPhoneNumber,
         countryCode,
       }),
     })
@@ -595,7 +601,7 @@ const Payment = ({
                     {selectedMethod !== 'card' ? (
                       <div>
                         <label className="label" style={{ fontWeight: 800, color: 'var(--navy)' }}>
-                          Numéro mobile, facultatif
+                          Numéro mobile
                         </label>
                         <div style={{ display: 'grid', gridTemplateColumns: '132px 1fr', gap: '10px' }}>
                           <select
@@ -622,11 +628,14 @@ const Payment = ({
                             type="tel"
                             placeholder="Ex: 0707070707"
                             value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value.replace(/\s/g, ''))}
+                            onChange={(e) => {
+                              setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 15));
+                              setPaymentError('');
+                            }}
                           />
                         </div>
                         <p style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '8px', lineHeight: 1.45 }}>
-                          Vous pourrez compléter ou confirmer le numéro sur la page FedaPay si nécessaire.
+                          Entrez le numéro qui recevra ou confirmera le paiement mobile money.
                         </p>
                       </div>
                     ) : (
