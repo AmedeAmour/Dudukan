@@ -72,8 +72,38 @@ const Payment = ({
 
     setPaymentStep('processing');
     setPaymentError('');
-    setProcessingStatus('Redirection vers la page officielle Dudukan Plus sur FedaPay...');
-    window.location.href = fedapayPaymentPageUrl;
+    setProcessingStatus('Création de votre paiement sécurisé FedaPay...');
+
+    fetch('/api/fedapay/create-checkout', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || "Impossible d'initialiser le paiement.");
+        }
+
+        if (data.alreadyPremium) {
+          setPaymentStep('success');
+          return;
+        }
+
+        if (!data.checkoutUrl) {
+          throw new Error('Lien de paiement FedaPay introuvable.');
+        }
+
+        setProcessingStatus('Redirection vers la page de paiement FedaPay...');
+        window.location.href = data.checkoutUrl;
+      })
+      .catch((err) => {
+        setPaymentError(err.message || "Erreur lors de l'initialisation du paiement.");
+        setPaymentStep('selection');
+      });
   };
 
   const handleFinish = async () => {
@@ -436,7 +466,7 @@ const Payment = ({
                   alignItems: 'flex-start'
                 }}>
                   <CreditCard size={18} color="var(--accent-blue)" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>Vous allez quitter Dudukan pour terminer le paiement sur la page officielle Dudukan Plus de FedaPay. Renseignez le meme email que votre compte Dudukan.</span>
+                  <span>Vous allez quitter Dudukan pour terminer le paiement sur la page officielle et securisee de FedaPay.</span>
                 </div>
 
                 <div style={{
@@ -531,6 +561,22 @@ const Payment = ({
                 >
                   <Lock size={18} /> Continuer sur FedaPay - 9 900 XOF
                 </button>
+                <a
+                  href={fedapayPaymentPageUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: 'block',
+                    marginTop: '12px',
+                    color: 'var(--text-light)',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    textAlign: 'center',
+                    textDecoration: 'none'
+                  }}
+                >
+                  Lien QR de secours
+                </a>
               </motion.form>
             </section>
 
