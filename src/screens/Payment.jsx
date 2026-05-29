@@ -24,6 +24,7 @@ const Payment = ({
   const [paymentStep, setPaymentStep] = useState('selection');
   const [processingStatus, setProcessingStatus] = useState('');
   const [paymentError, setPaymentError] = useState('');
+  const fedapayPaymentPageUrl = 'https://me.fedapay.com/dudukan-plus';
 
   const premiumFeatures = [
     {
@@ -71,38 +72,8 @@ const Payment = ({
 
     setPaymentStep('processing');
     setPaymentError('');
-    setProcessingStatus('Création de votre paiement sécurisé FedaPay...');
-
-    fetch('/api/fedapay/create-checkout', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({}),
-    })
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data?.error || "Impossible d'initialiser le paiement.");
-        }
-
-        if (data.alreadyPremium) {
-          setPaymentStep('success');
-          return;
-        }
-
-        if (!data.checkoutUrl) {
-          throw new Error('Lien de paiement FedaPay introuvable.');
-        }
-
-        setProcessingStatus('Redirection vers la page de paiement FedaPay...');
-        window.location.href = data.checkoutUrl;
-      })
-      .catch((err) => {
-        setPaymentError(err.message || "Erreur lors de l'initialisation du paiement.");
-        setPaymentStep('selection');
-      });
+    setProcessingStatus('Redirection vers la page officielle Dudukan Plus sur FedaPay...');
+    window.location.href = fedapayPaymentPageUrl;
   };
 
   const handleFinish = async () => {
@@ -465,7 +436,7 @@ const Payment = ({
                   alignItems: 'flex-start'
                 }}>
                   <CreditCard size={18} color="var(--accent-blue)" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>Vous allez quitter Dudukan pour terminer le paiement sur la page officielle et securisee de FedaPay.</span>
+                  <span>Vous allez quitter Dudukan pour terminer le paiement sur la page officielle Dudukan Plus de FedaPay. Renseignez le meme email que votre compte Dudukan.</span>
                 </div>
 
                 <div style={{
