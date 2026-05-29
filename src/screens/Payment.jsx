@@ -24,7 +24,6 @@ const Payment = ({
   const [paymentStep, setPaymentStep] = useState('selection');
   const [processingStatus, setProcessingStatus] = useState('');
   const [paymentError, setPaymentError] = useState('');
-  const fedapayPaymentPageUrl = 'https://me.fedapay.com/dudukan-plus';
 
   const premiumFeatures = [
     {
@@ -60,7 +59,7 @@ const Payment = ({
       ? 'Paiement reçu. Activation de Dudukan Plus en cours, ça peut prendre quelques secondes.'
       : returnStatus === 'canceled' || returnStatus === 'declined'
         ? "Le paiement n'a pas été terminé. Vous pouvez réessayer tranquillement."
-        : 'Paiement lancé. Nous attendons la confirmation sécurisée de FedaPay.'
+        : 'Paiement lancé. Nous attendons la confirmation sécurisée.'
     : '';
 
   const handlePaymentSubmit = (e) => {
@@ -72,7 +71,7 @@ const Payment = ({
 
     setPaymentStep('processing');
     setPaymentError('');
-    setProcessingStatus('Création de votre paiement sécurisé FedaPay...');
+    setProcessingStatus('Création de votre paiement sécurisé...');
 
     fetch('/api/fedapay/create-checkout', {
       method: 'POST',
@@ -94,10 +93,10 @@ const Payment = ({
         }
 
         if (!data.checkoutUrl) {
-          throw new Error('Lien de paiement FedaPay introuvable.');
+          throw new Error('Lien de paiement introuvable.');
         }
 
-        setProcessingStatus('Redirection vers la page de paiement FedaPay...');
+        setProcessingStatus('Redirection vers la page de paiement sécurisée...');
         window.location.href = data.checkoutUrl;
       })
       .catch((err) => {
@@ -378,7 +377,7 @@ const Payment = ({
                   lineHeight: 1.5,
                   fontWeight: 700
                 }}>
-                  Aperçu local : regardez Dudukan Plus sans paiement pendant la préparation de FedaPay.
+                  Aperçu local : regardez Dudukan Plus sans paiement pendant la préparation du paiement.
                 </p>
                 <button
                   type="button"
@@ -408,10 +407,10 @@ const Payment = ({
                   color: 'var(--navy)',
                   marginBottom: '4px'
                 }}>
-                  Paiement avec FedaPay
+                  Paiement Dudukan Plus
                 </h2>
                 <p style={{ color: 'var(--text-light)', fontSize: '13px', lineHeight: 1.5 }}>
-                  Choisissez votre moyen préféré. Le paiement se termine sur la page sécurisée FedaPay.
+                  Choisissez votre moyen préféré. Le paiement se termine sur une page sécurisée.
                 </p>
               </div>
 
@@ -466,7 +465,7 @@ const Payment = ({
                   alignItems: 'flex-start'
                 }}>
                   <CreditCard size={18} color="var(--accent-blue)" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>Vous allez quitter Dudukan pour terminer le paiement sur la page officielle et securisee de FedaPay.</span>
+                  <span>Vous allez quitter Dudukan quelques instants pour terminer le paiement sur une page officielle et securisee.</span>
                 </div>
 
                 <div style={{
@@ -514,7 +513,7 @@ const Payment = ({
                       fontWeight: 900,
                       whiteSpace: 'nowrap'
                     }}>
-                      <Lock size={13} /> FedaPay
+                      <Lock size={13} /> Sécurisé
                     </span>
                   </div>
 
@@ -548,7 +547,7 @@ const Payment = ({
                   alignItems: 'flex-start'
                 }}>
                   <Lock size={16} color="var(--emerald)" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>Dudukan ne garde jamais vos informations sensibles. Le choix du moyen de paiement et la confirmation se font chez FedaPay.</span>
+                  <span>Dudukan ne garde jamais vos informations sensibles. Le choix du moyen de paiement et la confirmation se font sur une page de paiement sécurisée.</span>
                 </div>
 
                 <button
@@ -559,24 +558,8 @@ const Payment = ({
                     backgroundColor: 'var(--accent-blue)'
                   }}
                 >
-                  <Lock size={18} /> Continuer sur FedaPay - 9 900 XOF
+                  <Lock size={18} /> Continuer le paiement - 9 900 XOF
                 </button>
-                <a
-                  href={fedapayPaymentPageUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    display: 'block',
-                    marginTop: '12px',
-                    color: 'var(--text-light)',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    textAlign: 'center',
-                    textDecoration: 'none'
-                  }}
-                >
-                  Lien QR de secours
-                </a>
               </motion.form>
             </section>
 
@@ -678,7 +661,7 @@ const Payment = ({
               fontWeight: 800
             }}>
               <Lock size={14} color="var(--emerald)" />
-              Sécurisé par FedaPay
+              Paiement sécurisé
             </div>
           </motion.div>
         )}
