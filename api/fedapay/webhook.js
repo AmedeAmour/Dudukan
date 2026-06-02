@@ -1,12 +1,7 @@
 import crypto from 'node:crypto';
 import { createSupabaseAdmin } from '../_utils/supabaseAdmin.js';
 import { readJsonBody, sendJson } from '../_utils/http.js';
-
-const PLAN = {
-  code: 'lifetime_9900_xof',
-  amount: 9900,
-  currency: 'XOF',
-};
+import { DEFAULT_PLUS_PLAN, getPlusPlan } from '../_utils/plusPlan.js';
 
 const APP_CODE = 'dudukan';
 const MERCHANT_REFERENCE_PREFIX = 'DUDUKAN-';
@@ -69,7 +64,7 @@ const collectStrings = (value, strings = [], seen = new Set()) => {
 const isDudukanPaymentPageTransaction = (transaction, event) => {
   const haystack = normalizeText(collectStrings({ transaction, event }).join(' '));
   return haystack.includes(PAYMENT_PAGE_REFERENCE)
-    || (haystack.includes('dudukan plus') && haystack.includes('9900'));
+    || haystack.includes('dudukan plus');
 };
 
 const isDudukanTransaction = (transaction, metadata) => {
@@ -126,8 +121,8 @@ const findUserIdByEmail = async (supabase, email) => {
 
 const normalizeCurrency = (currency) => {
   const value = typeof currency === 'string' ? currency : currency?.iso;
-  const normalized = String(value || PLAN.currency).toUpperCase();
-  return normalized === 'CFA' || normalized === 'FCFA' ? PLAN.currency : normalized;
+  const normalized = String(value || DEFAULT_PLUS_PLAN.currency).toUpperCase();
+  return normalized === 'CFA' || normalized === 'FCFA' ? DEFAULT_PLUS_PLAN.currency : normalized;
 };
 
 export default async function handler(req, res) {
@@ -159,14 +154,14 @@ export default async function handler(req, res) {
       return sendJson(res, 200, { received: true, ignored: 'not_dudukan_transaction' });
     }
 
-    const amount = Number(transaction?.amount || PLAN.amount);
+    const supabase = createSupabaseAdmin();
+    const plan = await getPlusPlan(supabase);
+    const amount = Number(transaction?.amount || plan.amount);
     const currency = normalizeCurrency(transaction?.currency);
     const isApproved = eventName === 'transaction.approved' || status === 'approved';
-    const isExpectedPlan = amount === PLAN.amount
-      && currency === PLAN.currency
-      && (metadata.plan_code === PLAN.code || isPaymentPageTransaction);
-
-    const supabase = createSupabaseAdmin();
+    const isExpectedPlan = amount === plan.amount
+      && currency === plan.currency
+      && (metadata.plan_code === plan.code || isPaymentPageTransaction);
 
     if (!userId && isPaymentPageTransaction) {
       const email = extractEmail({ transaction, body });
@@ -186,7 +181,7 @@ export default async function handler(req, res) {
         amount,
         currency,
         status,
-        plan_code: metadata.plan_code || PLAN.code,
+        plan_code: metadata.plan_code || plan.code,
         raw_event: body,
         updated_at: new Date().toISOString(),
       }, {
@@ -202,10 +197,10 @@ export default async function handler(req, res) {
       provider: 'fedapay',
       provider_transaction_id: transactionId,
       provider_reference: transaction?.reference || null,
-      amount: PLAN.amount,
-      currency: PLAN.currency,
+      amount: plan.amount,
+      currency: plan.currency,
       status: 'approved',
-      plan_code: PLAN.code,
+      plan_code: plan.code,
       raw_event: body,
       approved_at: now,
       updated_at: now,

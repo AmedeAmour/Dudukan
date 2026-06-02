@@ -168,10 +168,16 @@ const PremiumDashboard = () => {
   // 2. Calculations for monthly needs card
   // monthlyForecastNeed = somme des besoins mensuels planifiés réels ou d'étapes actives.
   // Les projets terminés ou en retard retournent 0.
-  const monthlyForecastNeed = projects.reduce((acc, p) => acc + calculateMonthlyNeed(p), 0);
+  const monthlyNeedBreakdown = projects.map(project => ({
+    project,
+    need: calculateMonthlyNeed(project)
+  }));
+  const monthlyForecastNeed = monthlyNeedBreakdown.reduce((acc, item) => acc + item.need, 0);
 
   // Projets actifs contribuant réellement au besoin mensuel (avec un besoin positif ce mois-ci)
-  const activeContributingProjects = projects.filter(p => calculateMonthlyNeed(p) > 0);
+  const activeContributingProjects = monthlyNeedBreakdown
+    .filter(item => item.need > 0)
+    .map(item => item.project);
 
   const today = new Date();
   const overdueProjects = targetProjects.filter(p => {
@@ -181,6 +187,19 @@ const PremiumDashboard = () => {
     const remaining = parseFloat(p.target_amount || 0) - parseFloat(p.current_amount || 0);
     return monthsLeft < 0 && remaining > 0;
   });
+  const unfinishedTargetProjects = targetProjects.filter(p => {
+    const remaining = parseFloat(p.target_amount || 0) - parseFloat(p.current_amount || 0);
+    return remaining > 0;
+  });
+  const missingDeadlineProjects = unfinishedTargetProjects.filter(p => !p.deadline);
+  const zeroMonthlyNeedReason = (() => {
+    if (monthlyForecastNeed > 0) return null;
+    if (projects.length === 0) return 'Ajoutez un projet avec montant et échéance pour lancer la planification.';
+    if (unfinishedTargetProjects.length === 0) return 'Tous les objectifs suivis sont déjà financés.';
+    if (overdueProjects.length > 0) return `${overdueProjects.length} projet${overdueProjects.length > 1 ? 's' : ''} en retard à replanifier.`;
+    if (missingDeadlineProjects.length > 0) return `${missingDeadlineProjects.length} projet${missingDeadlineProjects.length > 1 ? 's' : ''} sans échéance active.`;
+    return 'Aucune contribution mensuelle stable calculable avec les échéances actuelles.';
+  })();
 
   // 3. Viability Score calculation
   let viability = 100;
@@ -285,16 +304,23 @@ const PremiumDashboard = () => {
       }}>
         <div style={{
           color: 'var(--zenith-secondary)',
-          marginTop: '2px'
+          marginTop: '2px',
+          width: '24px',
+          height: '24px',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}>
           <CheckCircle size={18} />
         </div>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <p className="font-heading" style={{ 
             fontSize: '13px', 
             margin: '0 0 4px 0', 
             color: 'var(--zenith-secondary)',
-            fontWeight: 800
+            fontWeight: 800,
+            lineHeight: 1.25
           }}>
             Point du jour
           </p>
@@ -407,7 +433,7 @@ const PremiumDashboard = () => {
                       0 {currencyCode}
                     </span>
                     <span style={{ display: 'block', fontSize: '11px', color: 'var(--zenith-secondary)', marginTop: '2px', fontWeight: 600 }}>
-                      Non défini pour ce mois
+                      {zeroMonthlyNeedReason || 'Non défini pour ce mois'}
                     </span>
                   </div>
                 )}

@@ -1,11 +1,6 @@
 import { createSupabaseAdmin, getUserFromRequest } from '../_utils/supabaseAdmin.js';
 import { readJsonBody, sendJson } from '../_utils/http.js';
-
-const PLAN = {
-  code: 'lifetime_9900_xof',
-  amount: 9900,
-  currency: 'XOF',
-};
+import { getPlusPlan } from '../_utils/plusPlan.js';
 
 const APP_CODE = 'dudukan';
 
@@ -124,6 +119,7 @@ export default async function handler(req, res) {
 
   try {
     const supabase = createSupabaseAdmin();
+    const plan = await getPlusPlan(supabase);
     const { user, error: userError } = await getUserFromRequest(req, supabase);
     if (userError || !user) {
       return sendJson(res, 401, { error: 'Session invalide. Reconnectez-vous puis réessayez.' });
@@ -142,7 +138,7 @@ export default async function handler(req, res) {
       .select('id')
       .eq('user_id', user.id)
       .eq('status', 'approved')
-      .eq('plan_code', PLAN.code)
+      .eq('plan_code', plan.code)
       .maybeSingle();
 
     if (approvedError) throw approvedError;
@@ -154,15 +150,15 @@ export default async function handler(req, res) {
       method: 'POST',
       body: JSON.stringify({
         description: 'Dudukan Plus - acces a vie',
-        amount: PLAN.amount,
-        currency: { iso: PLAN.currency },
+        amount: plan.amount,
+        currency: { iso: plan.currency },
         callback_url: returnUrl,
         merchant_reference: merchantReference,
         custom_metadata: {
           app_code: APP_CODE,
           user_id: user.id,
-          plan_code: PLAN.code,
-          product_name: 'Dudukan Plus',
+          plan_code: plan.code,
+          product_name: plan.productName,
           return_url: returnUrl,
           payment_method_hint: selectedMethod,
           payment_method_label: PAYMENT_METHOD_LABELS[selectedMethod] || null,
@@ -191,10 +187,10 @@ export default async function handler(req, res) {
       provider: 'fedapay',
       provider_transaction_id: fedapayId,
       provider_reference: transaction.reference || null,
-      amount: PLAN.amount,
-      currency: PLAN.currency,
+      amount: plan.amount,
+      currency: plan.currency,
       status: transaction.status || 'pending',
-      plan_code: PLAN.code,
+      plan_code: plan.code,
       checkout_url: token.url,
       raw_event: {
         transaction: transactionPayload,

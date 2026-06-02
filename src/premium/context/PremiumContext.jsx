@@ -288,11 +288,15 @@ export const PremiumProvider = ({ children }) => {
       let activeMilestone = null;
       
       for (const m of sortedMilestones) {
-        if (!m.is_completed) {
+        const milestoneTarget = parseFloat(m.target_amount || 0);
+        const milestoneAllocated = Math.max(0, Math.min(milestoneTarget, current - previousTargetsSum));
+        const milestoneIsFunded = milestoneAllocated >= milestoneTarget && milestoneTarget > 0;
+
+        if (!m.is_completed && !milestoneIsFunded) {
           activeMilestone = m;
           break;
         }
-        previousTargetsSum += parseFloat(m.target_amount || 0);
+        previousTargetsSum += milestoneTarget;
       }
       
       if (activeMilestone) {

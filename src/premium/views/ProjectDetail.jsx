@@ -149,14 +149,22 @@ const ProjectDetail = ({ project, onBack }) => {
 
   // Determine active, completed, and locked states
   let foundActive = false;
+  let processedPreviousTargetsSum = 0;
   const processedMilestones = milestones.map(m => {
     let state = 'locked';
+    const milestoneTarget = parseFloat(m.target_amount || 0);
+    const milestoneAllocated = Math.max(0, Math.min(milestoneTarget, current - processedPreviousTargetsSum));
+    const milestoneIsFunded = milestoneAllocated >= milestoneTarget && milestoneTarget > 0;
+
     if (m.is_completed) {
       state = 'completed';
+    } else if (milestoneIsFunded) {
+      state = 'ready';
     } else if (!foundActive) {
       state = 'active';
       foundActive = true;
     }
+    processedPreviousTargetsSum += milestoneTarget;
     return { ...m, state };
   });
 
@@ -838,7 +846,7 @@ const ProjectDetail = ({ project, onBack }) => {
                       width: '32px',
                       height: '32px',
                       borderRadius: '50%',
-                      backgroundColor: milestone.state === 'completed' 
+                      backgroundColor: milestone.state === 'completed' || milestone.state === 'ready'
                         ? 'var(--zenith-secondary)' 
                         : milestone.state === 'active' 
                           ? 'var(--zenith-primary-container)' 
@@ -849,7 +857,7 @@ const ProjectDetail = ({ project, onBack }) => {
                       justifyContent: 'center',
                       zIndex: 2
                     }}>
-                      {milestone.state === 'completed' ? (
+                      {milestone.state === 'completed' || milestone.state === 'ready' ? (
                         <Check size={16} strokeWidth={3} />
                       ) : milestone.state === 'active' ? (
                         <Hammer size={16} />
@@ -861,7 +869,7 @@ const ProjectDetail = ({ project, onBack }) => {
                       <div style={{
                         width: '2px',
                         flex: 1,
-                        backgroundColor: milestone.state === 'completed' ? 'var(--zenith-secondary)' : 'var(--zenith-outline-variant)',
+                        backgroundColor: milestone.state === 'completed' || milestone.state === 'ready' ? 'var(--zenith-secondary)' : 'var(--zenith-outline-variant)',
                         opacity: 0.3,
                         margin: '4px 0',
                         position: 'absolute',
@@ -889,13 +897,13 @@ const ProjectDetail = ({ project, onBack }) => {
                       <span style={{
                         fontSize: '11px',
                         fontWeight: 700,
-                        color: milestone.state === 'completed' 
+                        color: milestone.state === 'completed' || milestone.state === 'ready'
                           ? 'var(--zenith-secondary)' 
                           : milestone.state === 'active' 
                             ? 'var(--zenith-primary)' 
                             : 'var(--zenith-on-surface-variant)'
                       }}>
-                        {milestone.state === 'completed' ? 'Terminé' : milestone.state === 'active' ? 'Actif' : 'Verrouillé'}
+                        {milestone.state === 'completed' ? 'Terminé' : milestone.state === 'ready' ? 'Prêt à valider' : milestone.state === 'active' ? 'Actif' : 'Verrouillé'}
                       </span>
                     </div>
 

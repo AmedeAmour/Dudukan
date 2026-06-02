@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabaseClient';
+import { DEFAULT_PLUS_PLAN, normalizePlusPlan } from '../config/plusPlan';
 import {
   ArrowLeft,
   BarChart3,
@@ -24,6 +26,36 @@ const Payment = ({
   const [paymentStep, setPaymentStep] = useState('selection');
   const [processingStatus, setProcessingStatus] = useState('');
   const [paymentError, setPaymentError] = useState('');
+  const [plusPlan, setPlusPlan] = useState(DEFAULT_PLUS_PLAN);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPlusPlan = async () => {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'plus_plan')
+        .maybeSingle();
+
+      if (!cancelled && !error) {
+        setPlusPlan(normalizePlusPlan(data?.value || {}));
+      }
+    };
+
+    loadPlusPlan();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const formatPlanAmount = (value) => `${new Intl.NumberFormat('fr-FR', {
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0))} ${plusPlan.currency}`;
+
+  const savingsAmount = useMemo(() => {
+    return Math.max(0, Number(plusPlan.originalAmount || 0) - Number(plusPlan.amount || 0));
+  }, [plusPlan]);
 
   const premiumFeatures = [
     {
@@ -163,8 +195,8 @@ const Payment = ({
               padding: '24px',
               marginBottom: '18px',
               border: 'none',
-              background: 'linear-gradient(135deg, #1A2B48 0%, #263D63 100%)',
-              boxShadow: '0 16px 32px rgba(26, 43, 72, 0.22)',
+              background: 'linear-gradient(135deg, #0B4DBA 0%, #1677E8 58%, #4DA3FF 100%)',
+              boxShadow: '0 18px 34px rgba(22, 119, 232, 0.28)',
               overflow: 'hidden',
               position: 'relative',
               color: 'white'
@@ -176,7 +208,7 @@ const Payment = ({
                 width: '112px',
                 height: '112px',
                 borderRadius: '50%',
-                background: 'rgba(255,255,255,0.12)'
+                background: 'rgba(255,255,255,0.18)'
               }} />
 
               <div style={{ position: 'relative', zIndex: 1 }}>
@@ -190,7 +222,7 @@ const Payment = ({
                   marginBottom: '12px'
                 }}>
                   <ShieldCheck size={15} />
-                  Dudukan Plus à vie
+                  {plusPlan.badge}
                 </div>
 
                 <h1 className="font-outfit" style={{
@@ -200,7 +232,7 @@ const Payment = ({
                   fontWeight: 900,
                   marginBottom: '10px'
                 }}>
-                  Passez au niveau supérieur
+                  {plusPlan.headline}
                 </h1>
 
                 <p style={{
@@ -211,12 +243,12 @@ const Payment = ({
                   maxWidth: '360px',
                   fontWeight: 600
                 }}>
-                  Planification intelligente, projets complexes et suivi guidé pour garder le cap.
+                  {plusPlan.subtitle}
                 </p>
 
                 <div style={{
-                  background: 'rgba(234,179,8,0.18)',
-                  border: '1px solid rgba(253,230,138,0.34)',
+                  background: 'linear-gradient(135deg, rgba(219,234,254,0.22) 0%, rgba(147,197,253,0.18) 100%)',
+                  border: '1px solid rgba(191,219,254,0.42)',
                   borderRadius: 'var(--radius-md)',
                   padding: '16px',
                   color: 'white',
@@ -234,7 +266,7 @@ const Payment = ({
                       fontSize: '12px',
                       fontWeight: 800
                     }}>
-                      Prix normal
+                      {plusPlan.normalPriceLabel}
                     </span>
                     <span className="font-outfit" style={{
                       color: 'rgba(255,255,255,0.56)',
@@ -243,7 +275,7 @@ const Payment = ({
                       textDecoration: 'line-through',
                       textDecorationThickness: '2px'
                     }}>
-                      59 900 XOF
+                      {formatPlanAmount(plusPlan.originalAmount)}
                     </span>
                   </div>
 
@@ -257,12 +289,12 @@ const Payment = ({
                     <div>
                       <span style={{
                         display: 'block',
-                        color: '#FDE68A',
+                        color: '#DBEAFE',
                         fontSize: '12px',
                         fontWeight: 900,
                         marginBottom: '4px'
                       }}>
-                        Offre de lancement
+                        {plusPlan.offerLabel}
                       </span>
                       <strong className="font-outfit" style={{
                         display: 'block',
@@ -273,24 +305,24 @@ const Payment = ({
                         fontWeight: 900,
                         textShadow: '0 2px 8px rgba(0,0,0,0.18)'
                       }}>
-                        9 900 XOF
+                        {formatPlanAmount(plusPlan.amount)}
                       </strong>
                     </div>
 
                     <div style={{
-                      background: 'rgba(255,255,255,0.9)',
-                      color: '#1A2B48',
-                      border: '1px solid rgba(255,255,255,0.5)',
+                      background: 'rgba(255,255,255,0.94)',
+                      color: '#0B4DBA',
+                      border: '1px solid rgba(219,234,254,0.7)',
                       borderRadius: 'var(--radius-sm)',
                       padding: '9px 10px',
                       textAlign: 'right',
                       boxShadow: '0 8px 18px rgba(0,0,0,0.12)'
                     }}>
-                      <span style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#B45309' }}>
-                        Vous économisez
+                      <span style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#2563EB' }}>
+                        {plusPlan.savingsLabel}
                       </span>
-                      <strong className="font-outfit" style={{ display: 'block', fontSize: '18px', lineHeight: 1.1, color: '#1A2B48' }}>
-                        50 000 XOF
+                      <strong className="font-outfit" style={{ display: 'block', fontSize: '18px', lineHeight: 1.1, color: '#0B2F6A' }}>
+                        {formatPlanAmount(savingsAmount)}
                       </strong>
                     </div>
                   </div>
@@ -302,7 +334,7 @@ const Payment = ({
                     margin: '12px 0 0',
                     fontWeight: 700
                   }}>
-                    Paiement unique à vie. Aucun abonnement mensuel.
+                    {plusPlan.paymentNote}
                   </p>
                 </div>
               </div>
@@ -498,7 +530,7 @@ const Payment = ({
                         lineHeight: 1,
                         fontWeight: 900
                       }}>
-                        9 900 XOF
+                        {formatPlanAmount(plusPlan.amount)}
                       </strong>
                     </div>
                     <span style={{
@@ -558,7 +590,7 @@ const Payment = ({
                     backgroundColor: 'var(--accent-blue)'
                   }}
                 >
-                  <Lock size={18} /> Continuer le paiement - 9 900 XOF
+                  <Lock size={18} /> Continuer le paiement - {formatPlanAmount(plusPlan.amount)}
                 </button>
               </motion.form>
             </section>

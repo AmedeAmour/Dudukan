@@ -52,8 +52,8 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
     <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>
       
       {/* Header and Add Button */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
-        <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '14px', marginBottom: '24px' }}>
+        <div style={{ minWidth: 0 }}>
           <h2 className="font-heading" style={{ fontSize: '28px', color: 'var(--zenith-on-surface)', margin: '0 0 4px 0' }}>
             Vos Projets
           </h2>
@@ -77,7 +77,11 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
             fontWeight: 800,
             cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(30, 62, 98, 0.15)',
-            transition: 'transform 0.1s'
+            transition: 'transform 0.1s',
+            flexShrink: 0,
+            justifyContent: 'center',
+            minWidth: '110px',
+            whiteSpace: 'nowrap'
           }}
           onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
           onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
@@ -225,9 +229,16 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
             let nextMilestoneName = '';
             if (project.is_complex && project.milestones && project.milestones.length > 0) {
               const sorted = [...project.milestones].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-              const firstUncompleted = sorted.find(m => !m.is_completed);
-              if (firstUncompleted) {
-                nextMilestoneName = firstUncompleted.name;
+              let previousTargetsSum = 0;
+              const firstUnfunded = sorted.find(m => {
+                const milestoneTarget = parseFloat(m.target_amount || 0);
+                const milestoneAllocated = Math.max(0, Math.min(milestoneTarget, current - previousTargetsSum));
+                const milestoneIsFunded = milestoneAllocated >= milestoneTarget && milestoneTarget > 0;
+                previousTargetsSum += milestoneTarget;
+                return !m.is_completed && !milestoneIsFunded;
+              });
+              if (firstUnfunded) {
+                nextMilestoneName = firstUnfunded.name;
               }
             }
 
