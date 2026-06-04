@@ -692,6 +692,8 @@ body, .premium-app-shell, .premium-topbar, .premium-bottomnav-container, .premiu
   .premium-hero-metric {
     width: clamp(78px, 21vw, 88px);
     height: clamp(78px, 21vw, 88px);
+    margin-left: auto;
+    align-self: flex-end;
   }
 
   .premium-hero-metric span {
@@ -942,7 +944,7 @@ body, .premium-app-shell, .premium-topbar, .premium-bottomnav-container, .premiu
   }
 }
 
-@media (min-width: 421px) and (max-width: 480px) {
+@media (min-width: 390px) and (max-width: 480px) {
   .premium-hero-panel {
     min-height: 174px;
     flex-direction: row;
