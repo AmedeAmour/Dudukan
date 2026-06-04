@@ -722,7 +722,7 @@ const PremiumDashboard = () => {
           padding: '24px',
           marginBottom: '32px'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div className="premium-last-allocation-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <CheckCircle size={20} color="var(--zenith-secondary)" />
               <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
@@ -745,7 +745,7 @@ const PremiumDashboard = () => {
             </button>
           </div>
 
-          <p style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', marginTop: '-8px', marginBottom: '20px', lineHeight: '1.4' }}>
+          <p className="premium-last-allocation-summary" style={{ fontSize: '13px', color: 'var(--zenith-on-surface-variant)', marginTop: '-8px', marginBottom: '20px', lineHeight: '1.4' }}>
             {latestOpReport.isManual 
               ? `Allocation manuelle effectuée le ${new Date(latestOpReport.timestamp).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} pour un montant de `
               : `Répartition automatique validée le ${new Date(latestOpReport.timestamp).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} pour un montant total de `
@@ -753,7 +753,7 @@ const PremiumDashboard = () => {
             <strong>{latestOpReport.totalAllocatedThisTime.toLocaleString()} {currencyCode}</strong>.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="premium-allocation-list" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {latestOpReport.projects.map(p => {
               const allocationShare = latestOpReport.totalAllocatedThisTime > 0 
                 ? ((p.allocatedAmount / latestOpReport.totalAllocatedThisTime) * 100).toFixed(1)
@@ -776,7 +776,7 @@ const PremiumDashboard = () => {
                 }}>
                   {/* Projet Header */}
                   <div className="premium-allocation-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                    <div>
+                    <div className="premium-allocation-project-title">
                       <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: 0, fontWeight: 700 }}>
                         {p.name}
                       </h4>
@@ -784,8 +784,8 @@ const PremiumDashboard = () => {
                         {p.is_recurring ? 'Mensuel récurrent' : p.is_complex ? 'Projet complexe' : 'Projet cible simple'}
                       </span>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <span className="font-data" style={{ fontSize: '14px', color: 'var(--zenith-secondary)', fontWeight: 800, display: 'block' }}>
+                    <div className="premium-allocation-project-amount" style={{ textAlign: 'right' }}>
+                      <span className="font-data premium-allocation-amount" style={{ fontSize: '14px', color: 'var(--zenith-secondary)', fontWeight: 800, display: 'block' }}>
                         +{p.allocatedAmount.toLocaleString()} {currencyCode}
                       </span>
                       <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)' }}>
@@ -796,13 +796,13 @@ const PremiumDashboard = () => {
 
                   {/* Financement Info */}
                   <div className="premium-allocation-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', padding: '10px 0', borderTop: '1px solid var(--zenith-outline-variant)', borderBottom: '1px solid var(--zenith-outline-variant)' }}>
-                    <div>
+                    <div className="premium-allocation-stat">
                       <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Financement actuel</span>
                       <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
                         {p.currentAmountAfter.toLocaleString()} / {p.targetAmount.toLocaleString()} {currencyCode} ({currentProgress}%)
                       </span>
                     </div>
-                    <div>
+                    <div className="premium-allocation-stat">
                       <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Reste à financer</span>
                       <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
                         {remaining.toLocaleString()} {currencyCode}
@@ -812,18 +812,18 @@ const PremiumDashboard = () => {
 
                   {/* Impact */}
                   {progressDiff > 0 && (
-                    <div style={{ fontSize: '12px', color: 'var(--zenith-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                    <div className="premium-allocation-impact" style={{ fontSize: '12px', color: 'var(--zenith-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
                       <TrendingUp size={14} /> Le financement a progressé de +{progressDiff}% grâce à cette allocation.
                     </div>
                   )}
 
                   {/* Steps details for complex projects */}
                   {p.is_complex && p.steps && p.steps.length > 0 && (
-                    <div style={{ marginTop: '12px', backgroundColor: 'var(--zenith-surface)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--zenith-outline-variant)' }}>
+                    <div className="premium-steps-detail-card" style={{ marginTop: '12px', backgroundColor: 'var(--zenith-surface)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--zenith-outline-variant)' }}>
                       <h5 className="font-heading" style={{ fontSize: '11px', color: 'var(--zenith-on-surface)', margin: '0 0 10px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Détail des étapes :
                       </h5>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div className="premium-steps-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {p.steps.map(step => {
                           const stepProgress = step.targetAmount > 0 
                             ? Math.min(100, Math.round((step.currentAfter / step.targetAmount) * 100))
@@ -844,20 +844,20 @@ const PremiumDashboard = () => {
                           }
 
                           return (
-                            <div key={step.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', paddingBottom: '6px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
-                              <div>
+                            <div key={step.id} className="premium-step-detail-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', paddingBottom: '6px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
+                              <div className="premium-step-main">
                                 <span style={{ fontWeight: 600, color: 'var(--zenith-on-surface)' }}>{step.name}</span>
                                 <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
                                   {step.currentAfter.toLocaleString()} / {step.targetAmount.toLocaleString()} {currencyCode} ({stepProgress}%)
                                 </span>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div className="premium-step-side" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 {step.addedAmount > 0 && (
-                                  <span style={{ fontSize: '11px', color: 'var(--zenith-secondary)', fontWeight: 600 }}>
+                                  <span className="premium-step-added" style={{ fontSize: '11px', color: 'var(--zenith-secondary)', fontWeight: 600 }}>
                                     +{step.addedAmount.toLocaleString()}
                                   </span>
                                 )}
-                                <span style={{
+                                <span className="premium-step-status" style={{
                                   padding: '2px 8px',
                                   fontSize: '10px',
                                   borderRadius: '10px',
@@ -935,8 +935,8 @@ const PremiumDashboard = () => {
       )}
 
       {/* Recent Transactions */}
-      <div style={{ marginTop: '32px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div className="premium-transactions-section" style={{ marginTop: '32px' }}>
+        <div className="premium-transactions-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h3 className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)', margin: 0 }}>
             {showAllTransactions ? 'Toutes les transactions (50j)' : 'Transactions récentes'}
           </h3>
@@ -948,7 +948,7 @@ const PremiumDashboard = () => {
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="premium-transactions-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {displayTransactions && displayTransactions.length > 0 ? (
             displayTransactions.map((tx) => {
               const category = tx.type === 'expense' ? categories?.find(c => c.id === tx.categoryId) : null;
@@ -960,12 +960,12 @@ const PremiumDashboard = () => {
               return (
                 <div 
                   key={tx.id} 
-                  className="premium-card" 
+                  className="premium-card premium-transaction-card" 
                   style={{ margin: 0, padding: '16px', border: '1px solid var(--zenith-outline-variant)' }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ 
+                  <div className="premium-transaction-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="premium-transaction-main" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div className="premium-transaction-icon" style={{ 
                         width: '44px', 
                         height: '44px', 
                         borderRadius: '14px', 
@@ -978,8 +978,8 @@ const PremiumDashboard = () => {
                       }}>
                         <IconComponent size={20} />
                       </div>
-                      <div>
-                        <p style={{ fontWeight: '600', fontSize: '15px', color: 'var(--zenith-on-surface)', margin: '0 0 4px 0' }}>
+                      <div className="premium-transaction-content">
+                        <p className="premium-transaction-title" style={{ fontWeight: '600', fontSize: '15px', color: 'var(--zenith-on-surface)', margin: '0 0 4px 0' }}>
                           {(() => {
                             const typeLabel = tx.type === 'allocation' ? 'Allocation' : tx.type === 'completion' ? 'Réalisé' : tx.type === 'life_allocation' ? 'Allocation Vie' : '';
                             return (
@@ -990,7 +990,7 @@ const PremiumDashboard = () => {
                             );
                           })()}
                         </p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div className="premium-transaction-meta" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           {category && (
                             <span style={{ fontSize: '11px', fontWeight: '500', color: iconColor, background: bgColor, padding: '2px 6px', borderRadius: '4px' }}>
                               {category.name}
@@ -1002,7 +1002,7 @@ const PremiumDashboard = () => {
                         </div>
                       </div>
                     </div>
-                    <p style={{ fontWeight: '700', fontSize: '16px', color: tx.type === 'income' ? 'var(--zenith-secondary)' : 'var(--zenith-on-surface)', margin: 0 }}>
+                    <p className="premium-transaction-amount" style={{ fontWeight: '700', fontSize: '16px', color: tx.type === 'income' ? 'var(--zenith-secondary)' : 'var(--zenith-on-surface)', margin: 0 }}>
                       {tx.type === 'income' ? '+' : '-'}{formatCurrency ? formatCurrency(tx.amount) : tx.amount}
                     </p>
                   </div>
