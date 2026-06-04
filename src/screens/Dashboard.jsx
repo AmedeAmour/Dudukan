@@ -145,7 +145,7 @@ const Dashboard = ({ setActiveTab }) => {
             </div>
           </div>
         </div>
-        <div style={{ 
+        <div className="free-balance-decoration" style={{ 
           position: 'absolute', 
           right: '-20px', 
           bottom: '-20px', 

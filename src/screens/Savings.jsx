@@ -75,6 +75,7 @@ const Savings = () => {
           </div>
         </div>
         <PiggyBank 
+          className="free-savings-decoration"
           size={120} 
           style={{ 
             position: 'absolute', 

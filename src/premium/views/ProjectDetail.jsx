@@ -584,11 +584,12 @@ const ProjectDetail = ({ project, onBack }) => {
   }
 
   return (
-    <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto' }}>
+    <div className="premium-project-detail" style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto' }}>
       
       {/* Back Button */}
       <button 
         onClick={onBack} 
+        className="premium-detail-back"
         style={{ 
           background: 'none', 
           border: 'none', 
@@ -606,7 +607,7 @@ const ProjectDetail = ({ project, onBack }) => {
       </button>
 
       {/* Action Buttons Row */}
-      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginBottom: '24px' }}>
+      <div className="premium-detail-actions" style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginBottom: '24px' }}>
         <button
           onClick={() => setIsEditing(true)}
           style={{
@@ -669,14 +670,14 @@ const ProjectDetail = ({ project, onBack }) => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
         
         {/* Global progress */}
-        <div style={{
+        <div className="premium-detail-summary" style={{
           backgroundColor: 'var(--zenith-white)',
           padding: '24px',
           borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--zenith-outline-variant)',
           boxShadow: 'var(--zenith-shadow-soft)'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div className="premium-detail-summary-grid" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>
               <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', fontWeight: 700 }}>
                 Financement Global
@@ -777,7 +778,7 @@ const ProjectDetail = ({ project, onBack }) => {
         )}
 
         {/* Circular Feasibility */}
-        <div style={{
+        <div className="premium-detail-viability" style={{
           backgroundColor: 'var(--zenith-surface-muted)',
           border: '1px solid var(--zenith-outline-variant)',
           borderRadius: 'var(--radius-lg)',
@@ -833,6 +834,7 @@ const ProjectDetail = ({ project, onBack }) => {
               return (
                 <div 
                   key={milestone.id}
+                  className="premium-milestone-row"
                   style={{
                     display: 'flex',
                     gap: '16px',
@@ -882,7 +884,7 @@ const ProjectDetail = ({ project, onBack }) => {
                   </div>
 
                   {/* Card content */}
-                  <div style={{
+                  <div className="premium-milestone-card" style={{
                     flex: 1,
                     backgroundColor: 'var(--zenith-white)',
                     border: milestone.state === 'active' ? '2px solid var(--zenith-primary-container)' : '1px solid var(--zenith-outline-variant)',
@@ -890,7 +892,7 @@ const ProjectDetail = ({ project, onBack }) => {
                     padding: '20px',
                     boxShadow: 'var(--zenith-shadow-soft)'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <div className="premium-milestone-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                       <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: 0 }}>
                         {milestone.name}
                       </h4>
@@ -908,7 +910,7 @@ const ProjectDetail = ({ project, onBack }) => {
                     </div>
 
                     {/* Allocated vs target amount info */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--zenith-on-surface-variant)', marginBottom: '12px' }}>
+                    <div className="premium-milestone-amounts" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--zenith-on-surface-variant)', marginBottom: '12px' }}>
                       <span>Budget : {mAmount.toLocaleString()} {currencyCode}</span>
                       {milestone.state === 'completed' ? (
                         <span>Payé : {mAmount.toLocaleString()} {currencyCode}</span>
@@ -920,7 +922,7 @@ const ProjectDetail = ({ project, onBack }) => {
                     {/* Active Milestone deposit form */}
                     {milestone.state === 'active' && (
                       <div style={{ marginTop: '16px' }}>
-                        <div style={{
+                        <div className="premium-milestone-allocation" style={{
                           backgroundColor: 'var(--zenith-surface-muted)',
                           padding: '12px',
                           borderRadius: 'var(--radius-md)',
@@ -937,7 +939,7 @@ const ProjectDetail = ({ project, onBack }) => {
                             </span>
                           </div>
 
-                          <div style={{ display: 'flex', gap: '6px' }}>
+                          <div className="premium-milestone-allocation-form" style={{ display: 'flex', gap: '6px' }}>
                             <input 
                               type="number"
                               placeholder="Epargner"
@@ -990,7 +992,7 @@ const ProjectDetail = ({ project, onBack }) => {
       {/* Technical variation and tips bento */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="premium-detail-meta-grid" style={{ display: 'flex', gap: '12px' }}>
           <div style={{
             flex: 1,
             backgroundColor: 'var(--zenith-surface-muted)',

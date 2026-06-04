@@ -626,13 +626,13 @@ const PremiumDashboard = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {priorities.map(priority => (
-              <div key={priority.id} className="premium-card" style={{
+              <div key={priority.id} className="premium-card premium-priority-card" style={{
                 padding: '20px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
+                <div className="premium-priority-main" style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
                   <div style={{
                     width: '40px',
                     height: '40px',
@@ -657,7 +657,7 @@ const PremiumDashboard = () => {
                 </div>
 
                 {priority.amount ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '12px' }}>
+                  <div className="premium-priority-action" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '12px' }}>
                     <div style={{ textAlign: 'right' }}>
                       <span className="font-data" style={{ fontSize: '14px', color: 'var(--zenith-on-surface)', fontWeight: 800, display: 'block' }}>
                         {priority.amount.toLocaleString()}
@@ -718,7 +718,7 @@ const PremiumDashboard = () => {
 
       {/* Suivi Opérationnel des Dernières Allocations */}
       {latestOpReport && latestOpReport.projects && latestOpReport.projects.length > 0 && latestOpReport.timestamp !== hiddenReportTime && (
-        <div className="premium-card" style={{
+        <div className="premium-card premium-last-allocation-card" style={{
           padding: '24px',
           marginBottom: '32px'
         }}>
@@ -768,14 +768,14 @@ const PremiumDashboard = () => {
               const remaining = Math.max(0, p.targetAmount - p.currentAmountAfter);
 
               return (
-                <div key={p.id} style={{
+                <div key={p.id} className="premium-allocation-project" style={{
                   padding: '16px',
                   backgroundColor: 'var(--zenith-surface-muted)',
                   border: '1px solid var(--zenith-outline-variant)',
                   borderRadius: 'var(--radius-lg)'
                 }}>
                   {/* Projet Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  <div className="premium-allocation-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div>
                       <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: 0, fontWeight: 700 }}>
                         {p.name}
@@ -795,7 +795,7 @@ const PremiumDashboard = () => {
                   </div>
 
                   {/* Financement Info */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', padding: '10px 0', borderTop: '1px solid var(--zenith-outline-variant)', borderBottom: '1px solid var(--zenith-outline-variant)' }}>
+                  <div className="premium-allocation-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', padding: '10px 0', borderTop: '1px solid var(--zenith-outline-variant)', borderBottom: '1px solid var(--zenith-outline-variant)' }}>
                     <div>
                       <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Financement actuel</span>
                       <span className="font-data" style={{ fontSize: '13px', color: 'var(--zenith-on-surface)', fontWeight: 700 }}>
