@@ -296,7 +296,7 @@ const PremiumFunding = () => {
         </h4>
         
         {/* Dual Stacked Progress Bar */}
-        <div className="premium-funding-plan-footer" style={{
+        <div className="premium-funding-wealth-bar" style={{
           width: '100%',
           height: '16px',
           borderRadius: 'var(--radius-pill)',

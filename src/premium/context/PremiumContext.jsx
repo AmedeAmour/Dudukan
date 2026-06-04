@@ -20,7 +20,7 @@ export const PremiumProvider = ({ children }) => {
   // State for premium transactions (used as 'transactions' in UI)
   const [transactions, setTransactions] = useState([]);
   // Helper to fetch premium transactions for the current user and map to UI format
-  const fetchPremiumTransactions = async (userId) => {
+  const fetchPremiumTransactions = useCallback(async (userId) => {
     const { data, error } = await supabase
       .from('premium_transactions')
       .select('*')
@@ -44,7 +44,7 @@ export const PremiumProvider = ({ children }) => {
       metadata: tx.metadata
     }));
     setTransactions(mapped);
-  };
+  }, []);
 
 
 
@@ -151,89 +151,16 @@ export const PremiumProvider = ({ children }) => {
       
       let loadedProjects = projectsData || [];
 
-      // 3. Detect and handle savings decrease (withdrawal)
-      const lastSynchronizedSavings = parseFloat(profileData?.savings || 0);
-      const currentRealSavings = parseFloat(financeSavings || 0);
+      const currentRealSavings = Number(financeSavings);
+      const lastSynchronizedSavings = Number(profileData?.savings);
+      const canSafelySyncSavings =
+        Number.isFinite(currentRealSavings)
+        && Number.isFinite(lastSynchronizedSavings)
+        && currentRealSavings > lastSynchronizedSavings;
 
-      if (currentRealSavings < lastSynchronizedSavings) {
-        const reductionAmount = lastSynchronizedSavings - currentRealSavings;
-        
-        // Apply automatic reduction inverse of allocation
-        let remainingReduction = reductionAmount;
-        let targetProjectsList = loadedProjects.filter(p => !p.is_recurring && parseFloat(p.current_amount || 0) > 0);
-        const priorityWeights = { 1: 3, 3: 1.5, 5: 1 };
-
-        while (remainingReduction > 0 && targetProjectsList.length > 0) {
-          const totalWeight = targetProjectsList.reduce((acc, p) => acc + (priorityWeights[p.priority] || 1), 0);
-          let reductionApplied = false;
-          const updates = [];
-
-          for (const project of targetProjectsList) {
-            const weight = priorityWeights[project.priority] || 1;
-            const share = weight / totalWeight;
-            const projectReduction = Math.min(parseFloat(project.current_amount || 0), remainingReduction * share);
-            
-            if (projectReduction > 0) {
-              const newAmount = parseFloat(project.current_amount || 0) - projectReduction;
-              updates.push({ id: project.id, current_amount: newAmount });
-              remainingReduction -= projectReduction;
-              reductionApplied = true;
-            }
-          }
-
-          if (!reductionApplied) break;
-
-          // Perform DB updates for reduced projects
-          for (const update of updates) {
-            await supabase
-              .from('projects')
-              .update({ current_amount: update.current_amount })
-              .eq('id', update.id);
-
-            // Sync milestones for this project
-            const { data: milestones, error: mErr } = await supabase
-              .from('milestones')
-              .select('*')
-              .eq('project_id', update.id);
-            
-            if (!mErr && milestones) {
-              let accumulated = 0;
-              for (const milestone of milestones) {
-                accumulated += parseFloat(milestone.target_amount || 0);
-                const shouldBeCompleted = update.current_amount >= accumulated;
-                if (milestone.is_completed !== shouldBeCompleted) {
-                  await supabase
-                    .from('milestones')
-                    .update({ is_completed: shouldBeCompleted })
-                    .eq('id', milestone.id);
-                }
-              }
-            }
-          }
-
-          // Reload projects data to reflect updates
-          const { data: refreshedData } = await supabase
-            .from('projects')
-            .select(`
-              *,
-              milestones(*)
-            `)
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
-
-          if (refreshedData) {
-            loadedProjects = refreshedData;
-          }
-          targetProjectsList = loadedProjects.filter(p => !p.is_recurring && parseFloat(p.current_amount || 0) > 0);
-        }
-
-        // Update profile savings to match currentRealSavings
-        await supabase
-          .from('profiles')
-          .update({ savings: currentRealSavings })
-          .eq('id', user.id);
-      } else if (currentRealSavings > lastSynchronizedSavings) {
-        // Just update profile savings to match the increase without automatically allocating
+      if (canSafelySyncSavings) {
+        // Only mirror increases from the free savings balance. Decreases must be handled
+        // by an explicit user action, never by opening Premium with a transient value.
         await supabase
           .from('profiles')
           .update({ savings: currentRealSavings })
@@ -250,7 +177,7 @@ export const PremiumProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchPremiumTransactions, financeSavings]);
 
   // Calculate monthly need for a single project
   const calculateMonthlyNeed = useCallback((project) => {
