@@ -942,6 +942,24 @@ body, .premium-app-shell, .premium-topbar, .premium-bottomnav-container, .premiu
   }
 }
 
+@media (min-width: 431px) and (max-width: 480px) {
+  .premium-hero-panel {
+    min-height: 174px;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .premium-hero-panel p {
+    max-width: 270px;
+  }
+
+  .premium-hero-metric {
+    width: 84px;
+    height: 84px;
+  }
+}
+
 @media (max-width: 360px) {
   .premium-topbar-title {
     max-width: 34vw;
