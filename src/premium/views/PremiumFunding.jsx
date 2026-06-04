@@ -53,7 +53,6 @@ const PremiumFunding = () => {
   });
   
   const [loading, setLoading] = useState(false);
-  const [confirming, setConfirming] = useState(false);
 
   const currencyCode = currency?.code || 'XOF';
 
@@ -118,12 +117,6 @@ const PremiumFunding = () => {
                                targetAllocations.reduce((acc, p) => acc + p.allocation, 0);
 
   const handleExecuteAllocations = async () => {
-    if (!confirming) {
-      setConfirming(true);
-      setTimeout(() => setConfirming(false), 3000);
-      return;
-    }
-    setConfirming(false);
     setLoading(true);
 
     try {
@@ -303,7 +296,7 @@ const PremiumFunding = () => {
         </h4>
         
         {/* Dual Stacked Progress Bar */}
-        <div style={{
+        <div className="premium-funding-plan-footer" style={{
           width: '100%',
           height: '16px',
           borderRadius: 'var(--radius-pill)',
@@ -355,7 +348,7 @@ const PremiumFunding = () => {
       </div>
 
       {/* Savings Breakdown Card */}
-      <div className="premium-card" style={{
+      <div className="premium-card premium-funding-balance-card" style={{
         padding: '24px',
         marginBottom: '24px',
         position: 'relative',
@@ -394,7 +387,7 @@ const PremiumFunding = () => {
         alignItems: 'flex-start',
         marginBottom: '24px'
       }}>
-        <div style={{
+        <div className="premium-funding-balance-icon" style={{
           width: '40px',
           height: '40px',
           borderRadius: '50%',
@@ -407,7 +400,7 @@ const PremiumFunding = () => {
         }}>
           <Brain size={20} />
         </div>
-        <div>
+        <div className="premium-funding-balance-content">
           <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: '0 0 4px 0' }}>
             Conseil lié à l'équilibre
           </h4>
@@ -420,12 +413,12 @@ const PremiumFunding = () => {
       </div>
 
       {/* Previsional Breakdown Panel */}
-      <div className="premium-card" style={{ padding: '24px', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="premium-card premium-funding-plan-card" style={{ padding: '24px', marginBottom: '24px' }}>
+        <div className="premium-funding-plan-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h3 className="font-heading" style={{ fontSize: '16px', color: 'var(--zenith-on-surface)', margin: 0 }}>
             Répartition Proposée par Dudukan
           </h3>
-          <span style={{
+          <span className="premium-funding-plan-badge" style={{
             backgroundColor: '#E8F5E9',
             color: 'var(--zenith-secondary)',
             padding: '4px 12px',
@@ -441,7 +434,7 @@ const PremiumFunding = () => {
         </div>
 
         {/* List of allocations preview */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '24px' }}>
+        <div className="premium-funding-plan-list" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '24px' }}>
           
           {/* Recurring section */}
           {recurringAllocations.map(project => {
@@ -450,10 +443,10 @@ const PremiumFunding = () => {
             const barColor = 'var(--zenith-data-recurring)';
 
             return (
-              <div key={project.id}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--zenith-on-surface)' }}>{project.name}</span>
-                  <span className="font-data" style={{ fontWeight: 800 }}>
+              <div key={project.id} className="premium-funding-plan-item">
+                <div className="premium-funding-plan-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px' }}>
+                  <span className="premium-funding-plan-name" style={{ fontWeight: 700, color: 'var(--zenith-on-surface)' }}>{project.name}</span>
+                  <span className="font-data premium-funding-plan-amount" style={{ fontWeight: 800 }}>
                     +{project.allocation.toLocaleString()} {currencyCode}
                   </span>
                 </div>
@@ -480,7 +473,7 @@ const PremiumFunding = () => {
                   }}></div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '11px' }}>
+                <div className="premium-funding-plan-meta" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '11px' }}>
                   <span style={{ color: 'var(--zenith-on-surface-variant)', fontWeight: 600 }}>
                     Financement : {Math.round(currentPercent)}%
                   </span>
@@ -499,10 +492,10 @@ const PremiumFunding = () => {
             const barColor = project.is_complex ? 'var(--zenith-data-complex)' : 'var(--zenith-primary-container)';
 
             return (
-              <div key={project.id}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--zenith-on-surface)' }}>{project.name}</span>
-                  <span className="font-data" style={{ fontWeight: 800 }}>
+              <div key={project.id} className="premium-funding-plan-item">
+                <div className="premium-funding-plan-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px' }}>
+                  <span className="premium-funding-plan-name" style={{ fontWeight: 700, color: 'var(--zenith-on-surface)' }}>{project.name}</span>
+                  <span className="font-data premium-funding-plan-amount" style={{ fontWeight: 800 }}>
                     +{project.allocation.toLocaleString()} {currencyCode}
                   </span>
                 </div>
@@ -529,7 +522,7 @@ const PremiumFunding = () => {
                   }}></div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '11px' }}>
+                <div className="premium-funding-plan-meta" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '11px' }}>
                   <span style={{ color: 'var(--zenith-on-surface-variant)', fontWeight: 600 }}>
                     Financement : {Math.round(currentPercent)}%
                   </span>
@@ -552,7 +545,7 @@ const PremiumFunding = () => {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <div>
+          <div className="premium-funding-plan-total">
             <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
               Total à répartir
             </span>
@@ -566,7 +559,7 @@ const PremiumFunding = () => {
             disabled={previewTotalAllocated <= 0 || loading}
             style={{
               padding: '12px 24px',
-              backgroundColor: confirming ? 'var(--zenith-secondary)' : 'var(--zenith-primary-container)',
+              backgroundColor: 'var(--zenith-primary-container)',
               color: 'white',
               border: 'none',
               borderRadius: 'var(--radius-md)',
@@ -579,7 +572,7 @@ const PremiumFunding = () => {
               boxShadow: '0 4px 12px rgba(30, 62, 98, 0.15)'
             }}
           >
-            {loading ? 'Application...' : confirming ? 'Confirmer ?' : 'Exécuter'}
+            {loading ? 'Application...' : 'Exécuter'}
           </button>
         </div>
       </div>
