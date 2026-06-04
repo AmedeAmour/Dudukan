@@ -191,7 +191,7 @@ const Payment = ({
               Retour
             </button>
 
-            <section className="card" style={{
+            <section className="card payment-hero-card" style={{
               padding: '24px',
               marginBottom: '18px',
               border: 'none',
@@ -201,7 +201,7 @@ const Payment = ({
               position: 'relative',
               color: 'white'
             }}>
-              <div style={{
+              <div className="payment-hero-orb" style={{
                 position: 'absolute',
                 top: '-28px',
                 right: '-18px',
@@ -211,8 +211,8 @@ const Payment = ({
                 background: 'rgba(255,255,255,0.18)'
               }} />
 
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <div style={{
+              <div className="payment-hero-content" style={{ position: 'relative', zIndex: 1 }}>
+                <div className="payment-hero-badge" style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '7px',
@@ -225,7 +225,7 @@ const Payment = ({
                   {plusPlan.badge}
                 </div>
 
-                <h1 className="font-outfit" style={{
+                <h1 className="font-outfit payment-hero-title" style={{
                   color: 'white',
                   fontSize: '28px',
                   lineHeight: 1.05,
@@ -235,7 +235,7 @@ const Payment = ({
                   {plusPlan.headline}
                 </h1>
 
-                <p style={{
+                <p className="payment-hero-subtitle" style={{
                   color: 'rgba(255,255,255,0.86)',
                   fontSize: '14px',
                   lineHeight: 1.55,
@@ -246,7 +246,7 @@ const Payment = ({
                   {plusPlan.subtitle}
                 </p>
 
-                <div style={{
+                <div className="payment-price-panel" style={{
                   background: 'linear-gradient(135deg, rgba(219,234,254,0.22) 0%, rgba(147,197,253,0.18) 100%)',
                   border: '1px solid rgba(191,219,254,0.42)',
                   borderRadius: 'var(--radius-md)',
@@ -254,7 +254,7 @@ const Payment = ({
                   color: 'white',
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)'
                 }}>
-                  <div style={{
+                  <div className="payment-price-regular" style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -268,7 +268,7 @@ const Payment = ({
                     }}>
                       {plusPlan.normalPriceLabel}
                     </span>
-                    <span className="font-outfit" style={{
+                    <span className="font-outfit payment-old-price" style={{
                       color: 'rgba(255,255,255,0.56)',
                       fontSize: '18px',
                       fontWeight: 800,
@@ -279,14 +279,14 @@ const Payment = ({
                     </span>
                   </div>
 
-                  <div style={{
+                  <div className="payment-offer-row" style={{
                     display: 'flex',
                     alignItems: 'flex-end',
                     justifyContent: 'space-between',
                     gap: '14px',
                     flexWrap: 'wrap'
                   }}>
-                    <div>
+                    <div className="payment-offer-main">
                       <span style={{
                         display: 'block',
                         color: '#DBEAFE',
@@ -296,7 +296,7 @@ const Payment = ({
                       }}>
                         {plusPlan.offerLabel}
                       </span>
-                      <strong className="font-outfit" style={{
+                      <strong className="font-outfit payment-main-price" style={{
                         display: 'block',
                         color: '#FFFFFF',
                         fontSize: '36px',
@@ -309,7 +309,7 @@ const Payment = ({
                       </strong>
                     </div>
 
-                    <div style={{
+                    <div className="payment-savings-badge" style={{
                       background: 'rgba(255,255,255,0.94)',
                       color: '#0B4DBA',
                       border: '1px solid rgba(219,234,254,0.7)',
@@ -321,13 +321,13 @@ const Payment = ({
                       <span style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#2563EB' }}>
                         {plusPlan.savingsLabel}
                       </span>
-                      <strong className="font-outfit" style={{ display: 'block', fontSize: '18px', lineHeight: 1.1, color: '#0B2F6A' }}>
+                      <strong className="font-outfit payment-savings-amount" style={{ display: 'block', fontSize: '18px', lineHeight: 1.1, color: '#0B2F6A' }}>
                         {formatPlanAmount(savingsAmount)}
                       </strong>
                     </div>
                   </div>
 
-                  <p style={{
+                  <p className="payment-note" style={{
                     color: 'rgba(255,255,255,0.72)',
                     fontSize: '12px',
                     lineHeight: 1.45,
@@ -340,7 +340,7 @@ const Payment = ({
               </div>
             </section>
 
-            <section style={{
+            <section className="payment-feature-grid" style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
               gap: '10px',
@@ -349,7 +349,7 @@ const Payment = ({
               {premiumFeatures.map((feat) => {
                 const IconComponent = feat.icon;
                 return (
-                  <div key={feat.title} className="card" style={{
+                  <div key={feat.title} className="card payment-feature-card" style={{
                     margin: 0,
                     padding: '14px',
                     borderRadius: 'var(--radius-md)',
@@ -371,7 +371,7 @@ const Payment = ({
                     }}>
                       <IconComponent size={18} />
                     </div>
-                    <div>
+                    <div className="payment-feature-content">
                       <h3 className="font-outfit" style={{
                         fontSize: '14px',
                         lineHeight: 1.15,
@@ -431,7 +431,7 @@ const Payment = ({
               </section>
             )}
 
-            <section className="card" style={{ padding: '18px', borderRadius: 'var(--radius-md)' }}>
+            <section className="card payment-checkout-card" style={{ padding: '18px', borderRadius: 'var(--radius-md)' }}>
               <div style={{ marginBottom: '14px' }}>
                 <h2 className="font-outfit" style={{
                   fontSize: '18px',
@@ -447,7 +447,7 @@ const Payment = ({
               </div>
 
               {paymentError && (
-                <div style={{
+                <div className="payment-security-note" style={{
                   padding: '12px 14px',
                   background: 'var(--accent-red-light)',
                   color: 'var(--accent-red)',
@@ -461,7 +461,7 @@ const Payment = ({
               )}
 
               {returnNotice && !paymentError && (
-                <div style={{
+                <div className="payment-summary-box" style={{
                   padding: '12px 14px',
                   background: 'rgba(59, 130, 246, 0.08)',
                   color: 'var(--navy)',
@@ -507,14 +507,14 @@ const Payment = ({
                   background: 'var(--white)',
                   marginBottom: '14px'
                 }}>
-                  <div style={{
+                  <div className="payment-summary-header" style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     gap: '14px',
                     alignItems: 'center',
                     marginBottom: '12px'
                   }}>
-                    <div>
+                    <div className="payment-summary-amount">
                       <span style={{
                         display: 'block',
                         color: 'var(--text-light)',
@@ -533,7 +533,7 @@ const Payment = ({
                         {formatPlanAmount(plusPlan.amount)}
                       </strong>
                     </div>
-                    <span style={{
+                    <span className="payment-secure-pill" style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '6px',
@@ -549,7 +549,7 @@ const Payment = ({
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+                  <div className="payment-method-list" style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
                     {fedapayMethods.map((method) => (
                       <span key={method} style={{
                         padding: '7px 9px',
@@ -565,7 +565,7 @@ const Payment = ({
                   </div>
                 </div>
 
-                <div style={{
+                <div className="payment-privacy-note" style={{
                   padding: '13px 14px',
                   borderRadius: 'var(--radius-md)',
                   background: 'rgba(16, 185, 129, 0.08)',
@@ -595,7 +595,7 @@ const Payment = ({
               </motion.form>
             </section>
 
-            <div style={{
+            <div className="payment-trust-grid" style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
               gap: '10px',
