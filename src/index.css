@@ -301,6 +301,7 @@ input[type=number] {
 
   .payment-hero-card {
     padding: clamp(20px, 5.4vw, 24px) !important;
+    margin-bottom: 12px !important;
   }
 
   .payment-hero-orb {
@@ -331,6 +332,10 @@ input[type=number] {
     max-width: min(100%, 360px) !important;
   }
 
+  .payment-pricing-card {
+    padding: clamp(14px, 4.4vw, 18px) !important;
+  }
+
   .payment-price-panel {
     padding: clamp(14px, 4.2vw, 16px) !important;
   }
@@ -348,6 +353,7 @@ input[type=number] {
   .payment-old-price {
     text-align: right;
     overflow-wrap: anywhere;
+    white-space: nowrap;
   }
 
   .payment-offer-row {

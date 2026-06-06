@@ -239,46 +239,56 @@ const Payment = ({
                   color: 'rgba(255,255,255,0.86)',
                   fontSize: '14px',
                   lineHeight: 1.55,
-                  margin: '0 0 18px',
+                  margin: 0,
                   maxWidth: '360px',
                   fontWeight: 600
                 }}>
                   {plusPlan.subtitle}
                 </p>
+              </div>
+            </section>
 
-                <div className="payment-price-panel" style={{
-                  background: 'linear-gradient(135deg, rgba(219,234,254,0.22) 0%, rgba(147,197,253,0.18) 100%)',
-                  border: '1px solid rgba(191,219,254,0.42)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '16px',
-                  color: 'white',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)'
+            <section className="card payment-pricing-card" style={{
+              padding: '18px',
+              marginBottom: '18px',
+              border: '1px solid rgba(59, 130, 246, 0.12)',
+              background: 'linear-gradient(180deg, #F3F8FF 0%, #EEF6FF 100%)',
+              boxShadow: '0 16px 34px rgba(26, 43, 72, 0.08)',
+              borderRadius: 'var(--radius-md)'
+            }}>
+              <div className="payment-price-regular" style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                marginBottom: '12px'
+              }}>
+                <span style={{
+                  color: 'var(--text-light)',
+                  fontSize: '12px',
+                  fontWeight: 900
                 }}>
-                  <div className="payment-price-regular" style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '12px',
-                    marginBottom: '12px'
-                  }}>
-                    <span style={{
-                      color: 'rgba(255,255,255,0.72)',
-                      fontSize: '12px',
-                      fontWeight: 800
-                    }}>
-                      {plusPlan.normalPriceLabel}
-                    </span>
-                    <span className="font-outfit payment-old-price" style={{
-                      color: 'rgba(255,255,255,0.56)',
-                      fontSize: '18px',
-                      fontWeight: 800,
-                      textDecoration: 'line-through',
-                      textDecorationThickness: '2px'
-                    }}>
-                      {formatPlanAmount(plusPlan.originalAmount)}
-                    </span>
-                  </div>
+                  {plusPlan.normalPriceLabel}
+                </span>
+                <span className="font-outfit payment-old-price" style={{
+                  color: '#8EA0B8',
+                  fontSize: '18px',
+                  fontWeight: 900,
+                  textDecoration: 'line-through',
+                  textDecorationThickness: '2px'
+                }}>
+                  {formatPlanAmount(plusPlan.originalAmount)}
+                </span>
+              </div>
 
+              <div className="payment-price-panel" style={{
+                background: 'var(--white)',
+                border: '1px solid rgba(26,43,72,0.08)',
+                borderRadius: 'var(--radius-md)',
+                padding: '16px',
+                color: 'var(--navy)',
+                boxShadow: '0 12px 24px rgba(26, 43, 72, 0.06)'
+              }}>
                   <div className="payment-offer-row" style={{
                     display: 'flex',
                     alignItems: 'flex-end',
@@ -289,7 +299,7 @@ const Payment = ({
                     <div className="payment-offer-main">
                       <span style={{
                         display: 'block',
-                        color: '#DBEAFE',
+                        color: 'var(--accent-blue)',
                         fontSize: '12px',
                         fontWeight: 900,
                         marginBottom: '4px'
@@ -298,25 +308,25 @@ const Payment = ({
                       </span>
                       <strong className="font-outfit payment-main-price" style={{
                         display: 'block',
-                        color: '#FFFFFF',
+                        color: 'var(--navy)',
                         fontSize: '36px',
                         lineHeight: 1,
                         letterSpacing: '0',
                         fontWeight: 900,
-                        textShadow: '0 2px 8px rgba(0,0,0,0.18)'
+                        textShadow: 'none'
                       }}>
                         {formatPlanAmount(plusPlan.amount)}
                       </strong>
                     </div>
 
                     <div className="payment-savings-badge" style={{
-                      background: 'rgba(255,255,255,0.94)',
+                      background: 'rgba(59, 130, 246, 0.08)',
                       color: '#0B4DBA',
-                      border: '1px solid rgba(219,234,254,0.7)',
+                      border: '1px solid rgba(59, 130, 246, 0.12)',
                       borderRadius: 'var(--radius-sm)',
                       padding: '9px 10px',
                       textAlign: 'right',
-                      boxShadow: '0 8px 18px rgba(0,0,0,0.12)'
+                      boxShadow: 'none'
                     }}>
                       <span style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#2563EB' }}>
                         {plusPlan.savingsLabel}
@@ -328,7 +338,7 @@ const Payment = ({
                   </div>
 
                   <p className="payment-note" style={{
-                    color: 'rgba(255,255,255,0.72)',
+                    color: 'var(--text-light)',
                     fontSize: '12px',
                     lineHeight: 1.45,
                     margin: '12px 0 0',
@@ -337,7 +347,6 @@ const Payment = ({
                     {plusPlan.paymentNote}
                   </p>
                 </div>
-              </div>
             </section>
 
             <section className="payment-feature-grid" style={{
