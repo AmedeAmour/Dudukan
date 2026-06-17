@@ -64,7 +64,11 @@ export const FinanceProvider = ({ children }) => {
     if (data.extraIncome) setExtraIncome(data.extraIncome);
     if (data.expenses) setExpenses(data.expenses);
     if (data.debts) setDebts(data.debts);
-    if (data.categories) setCategories(data.categories);
+    if (Array.isArray(data.categories) && data.categories.length > 0) {
+      setCategories(data.categories);
+    } else if (data.categories === undefined || (Array.isArray(data.categories) && data.categories.length === 0)) {
+      setCategories(DEFAULT_CATEGORIES);
+    }
     if (data.currency) setCurrency(data.currency);
     if (data.savings !== undefined) setSavings(data.savings);
     if (data.onboarded !== undefined) setOnboarded(data.onboarded);

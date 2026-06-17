@@ -5,14 +5,25 @@ import { DEFAULT_PLUS_PLAN, normalizePlusPlan } from '../config/plusPlan';
 import {
   ArrowLeft,
   BarChart3,
-  CreditCard,
   Layers,
   Lock,
+  PiggyBank,
   ShieldCheck,
   Sparkles,
   Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const FEDAPAY_METHODS = [
+  { id: 'wave', label: 'Wave' },
+  { id: 'orange', label: 'Orange Money' },
+  { id: 'mtn', label: 'MTN' },
+  { id: 'moov', label: 'Moov Money' },
+  { id: 'card', label: 'Carte bancaire' },
+];
+
+const PAYMENT_ACCESS_POLL_INTERVAL_MS = 2000;
+const PAYMENT_ACCESS_POLL_ATTEMPTS = 15;
 
 const Payment = ({
   onBack,
@@ -27,6 +38,8 @@ const Payment = ({
   const [processingStatus, setProcessingStatus] = useState('');
   const [paymentError, setPaymentError] = useState('');
   const [plusPlan, setPlusPlan] = useState(DEFAULT_PLUS_PLAN);
+  const [selectedMethod, setSelectedMethod] = useState('wave');
+  const [confirmationCheckActive, setConfirmationCheckActive] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,7 +97,6 @@ const Payment = ({
     }
   ];
 
-  const fedapayMethods = ['Wave', 'Orange Money', 'MTN', 'Moov Money', 'Carte bancaire'];
   const returnStatus = paymentReturnInfo?.status;
   const returnNotice = returnStatus
     ? returnStatus === 'approved'
@@ -93,6 +105,45 @@ const Payment = ({
         ? "Le paiement n'a pas été terminé. Vous pouvez réessayer tranquillement."
         : 'Paiement lancé. Nous attendons la confirmation sécurisée.'
     : '';
+
+  useEffect(() => {
+    if (!returnStatus || !onRefreshAccess) return undefined;
+    if (returnStatus === 'canceled' || returnStatus === 'declined') return undefined;
+
+    let cancelled = false;
+    let attempts = 0;
+    let timeoutId;
+
+    const pollPremiumAccess = async () => {
+      if (cancelled) return;
+      attempts += 1;
+      setConfirmationCheckActive(true);
+
+      const hasAccess = await onRefreshAccess();
+      if (cancelled) return;
+
+      if (hasAccess) {
+        setPaymentError('');
+        setConfirmationCheckActive(false);
+        setPaymentStep('success');
+        return;
+      }
+
+      if (attempts >= PAYMENT_ACCESS_POLL_ATTEMPTS) {
+        setConfirmationCheckActive(false);
+        return;
+      }
+
+      timeoutId = window.setTimeout(pollPremiumAccess, PAYMENT_ACCESS_POLL_INTERVAL_MS);
+    };
+
+    pollPremiumAccess();
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [onRefreshAccess, returnStatus, paymentReturnInfo?.transactionId]);
 
   const handlePaymentSubmit = (e) => {
     e.preventDefault();
@@ -111,7 +162,7 @@ const Payment = ({
         Authorization: `Bearer ${session.access_token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ selectedMethod }),
     })
       .then(async (response) => {
         const data = await response.json();
@@ -147,7 +198,7 @@ const Payment = ({
   };
 
   return (
-    <div className="app-container" style={{
+    <div className="app-container payment-screen" style={{
       padding: '18px 18px 40px',
       background:
         'linear-gradient(180deg, rgba(59,130,246,0.08) 0%, rgba(248,249,250,0) 240px), var(--bg-main)'
@@ -162,6 +213,7 @@ const Payment = ({
           >
             <button
               onClick={onBack}
+              className="payment-back-button"
               style={{
                 background: 'none',
                 border: 'none',
@@ -251,44 +303,54 @@ const Payment = ({
             <section className="card payment-pricing-card" style={{
               padding: '18px',
               marginBottom: '18px',
-              border: '1px solid rgba(59, 130, 246, 0.12)',
-              background: 'linear-gradient(180deg, #F3F8FF 0%, #EEF6FF 100%)',
-              boxShadow: '0 16px 34px rgba(26, 43, 72, 0.08)',
-              borderRadius: 'var(--radius-md)'
+              border: '1px solid rgba(255, 255, 255, 0.22)',
+              background: 'linear-gradient(145deg, #10233F 0%, #173B66 55%, #0F2748 100%)',
+              boxShadow: '0 20px 42px rgba(15, 35, 68, 0.18)',
+              borderRadius: 'var(--radius-md)',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
               <div className="payment-price-regular" style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '12px',
-                marginBottom: '12px'
+                marginBottom: '12px',
+                padding: '11px 12px',
+                borderRadius: '14px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.12)'
               }}>
                 <span style={{
-                  color: 'var(--text-light)',
+                  color: 'rgba(232, 240, 255, 0.78)',
                   fontSize: '12px',
-                  fontWeight: 900
+                  fontWeight: 900,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em'
                 }}>
                   {plusPlan.normalPriceLabel}
                 </span>
                 <span className="font-outfit payment-old-price" style={{
-                  color: '#8EA0B8',
+                  color: '#FFFFFF',
                   fontSize: '18px',
                   fontWeight: 900,
                   textDecoration: 'line-through',
-                  textDecorationThickness: '2px'
+                  textDecorationThickness: '2px',
+                  textDecorationColor: 'rgba(252, 211, 77, 0.82)'
                 }}>
                   {formatPlanAmount(plusPlan.originalAmount)}
                 </span>
               </div>
 
               <div className="payment-price-panel" style={{
-                background: 'var(--white)',
-                border: '1px solid rgba(26,43,72,0.08)',
+                background: 'linear-gradient(180deg, #FFFFFF 0%, #F7FBFF 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.72)',
                 borderRadius: 'var(--radius-md)',
                 padding: '16px',
                 color: 'var(--navy)',
-                boxShadow: '0 12px 24px rgba(26, 43, 72, 0.06)'
+                boxShadow: '0 16px 28px rgba(4, 16, 35, 0.16)'
               }}>
+                  <PiggyBank className="payment-offer-watermark" size={116} strokeWidth={1.8} aria-hidden="true" />
                   <div className="payment-offer-row" style={{
                     display: 'flex',
                     alignItems: 'flex-end',
@@ -320,18 +382,18 @@ const Payment = ({
                     </div>
 
                     <div className="payment-savings-badge" style={{
-                      background: 'rgba(59, 130, 246, 0.08)',
-                      color: '#0B4DBA',
-                      border: '1px solid rgba(59, 130, 246, 0.12)',
+                      background: 'linear-gradient(180deg, #ECFDF5 0%, #DFF8EC 100%)',
+                      color: '#047857',
+                      border: '1px solid rgba(16, 185, 129, 0.18)',
                       borderRadius: 'var(--radius-sm)',
                       padding: '9px 10px',
                       textAlign: 'right',
-                      boxShadow: 'none'
+                      boxShadow: '0 8px 18px rgba(16, 185, 129, 0.12)'
                     }}>
-                      <span style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#2563EB' }}>
+                      <span style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#059669' }}>
                         {plusPlan.savingsLabel}
                       </span>
-                      <strong className="font-outfit payment-savings-amount" style={{ display: 'block', fontSize: '18px', lineHeight: 1.1, color: '#0B2F6A' }}>
+                      <strong className="font-outfit payment-savings-amount" style={{ display: 'block', fontSize: '18px', lineHeight: 1.1, color: '#064E3B' }}>
                         {formatPlanAmount(savingsAmount)}
                       </strong>
                     </div>
@@ -481,7 +543,7 @@ const Payment = ({
                   lineHeight: 1.45,
                   marginBottom: '14px'
                 }}>
-                  {returnNotice}
+                  {confirmationCheckActive ? 'Nous verifions automatiquement la confirmation du paiement...' : returnNotice}
                 </div>
               )}
 
@@ -491,24 +553,6 @@ const Payment = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
               >
-                <div style={{
-                  padding: '14px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'rgba(59, 130, 246, 0.08)',
-                  border: '1px solid rgba(59, 130, 246, 0.16)',
-                  color: 'var(--navy)',
-                  fontSize: '12px',
-                  lineHeight: 1.5,
-                  marginBottom: '14px',
-                  fontWeight: 700,
-                  display: 'flex',
-                  gap: '10px',
-                  alignItems: 'flex-start'
-                }}>
-                  <CreditCard size={18} color="var(--accent-blue)" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>Vous allez quitter Dudukan quelques instants pour terminer le paiement sur une page officielle et securisee.</span>
-                </div>
-
                 <div style={{
                   border: '1.5px solid rgba(26,43,72,0.08)',
                   borderRadius: 'var(--radius-md)',
@@ -559,18 +603,24 @@ const Payment = ({
                   </div>
 
                   <div className="payment-method-list" style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-                    {fedapayMethods.map((method) => (
-                      <span key={method} style={{
+                    {FEDAPAY_METHODS.map((method) => {
+                      const isSelected = selectedMethod === method.id;
+                      return (
+                      <button key={method.id} type="button" aria-pressed={isSelected} onClick={() => setSelectedMethod(method.id)} style={{
                         padding: '7px 9px',
                         borderRadius: '999px',
-                        background: 'rgba(26,43,72,0.04)',
-                        color: 'var(--text-light)',
+                        background: isSelected ? 'rgba(59, 130, 246, 0.12)' : 'rgba(26,43,72,0.04)',
+                        color: isSelected ? 'var(--accent-blue)' : 'var(--text-light)',
                         fontSize: '11px',
-                        fontWeight: 800
+                        fontWeight: 800,
+                        border: isSelected ? '1px solid rgba(59, 130, 246, 0.25)' : '1px solid transparent',
+                        cursor: 'pointer',
+                        fontFamily: 'Inter, sans-serif'
                       }}>
-                        {method}
-                      </span>
-                    ))}
+                        {method.label}
+                      </button>
+                    );
+                    })}
                   </div>
                 </div>
 
@@ -599,7 +649,9 @@ const Payment = ({
                     backgroundColor: 'var(--accent-blue)'
                   }}
                 >
-                  <Lock size={18} /> Continuer le paiement - {formatPlanAmount(plusPlan.amount)}
+                  <Lock size={18} />
+                  <span className="payment-submit-full">Continuer le paiement - {formatPlanAmount(plusPlan.amount)}</span>
+                  <span className="payment-submit-short">Continuer - {formatPlanAmount(plusPlan.amount)}</span>
                 </button>
               </motion.form>
             </section>

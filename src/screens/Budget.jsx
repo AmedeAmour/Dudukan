@@ -59,6 +59,7 @@ const Budget = () => {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
+      className="free-screen free-budget-screen"
       style={{ padding: '24px 20px' }}
     >
       <header style={{ marginBottom: '24px' }}>
@@ -66,11 +67,11 @@ const Budget = () => {
         <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Répartition suggérée de vos revenus</p>
       </header>
 
-      <div className="card" style={{ background: 'var(--emerald)', color: 'white', border: 'none' }}>
+      <div className="card free-hero-card free-budget-balance-card" style={{ background: 'var(--emerald)', color: 'white', border: 'none' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <p style={{ opacity: 0.9, fontSize: '14px' }}>Solde disponible</p>
-            <h2 style={{ color: 'white', fontSize: '28px' }}>{formatCurrency(balance)}</h2>
+            <h2 className="free-money free-money-hero" style={{ color: 'white', fontSize: '28px' }}>{formatCurrency(balance)}</h2>
           </div>
           <PieChart size={40} style={{ opacity: 0.3 }} />
         </div>
@@ -80,6 +81,7 @@ const Budget = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h3 style={{ fontSize: '18px' }}>Répartition par catégories</h3>
           <button 
+            aria-label="Ajouter une catégorie"
             onClick={() => setShowModal(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--navy)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '10px', fontSize: '13px', cursor: 'pointer' }}
           >
@@ -114,10 +116,10 @@ const Budget = () => {
           const isOver = spent > budget;
           
           return (
-            <div key={cat.id} className="card" style={{ marginBottom: '12px', border: isSpendingTooFast && !isOver ? '1px solid var(--accent-orange-light)' : 'none' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color }}>
+            <div key={cat.id} className="card free-budget-category-card" style={{ marginBottom: '12px', border: isSpendingTooFast && !isOver ? '1px solid var(--accent-orange-light)' : 'none' }}>
+              <div className="free-budget-category-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div className="free-budget-category-main" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div className="free-category-icon" style={{ width: '40px', height: '40px', borderRadius: '12px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color }}>
                     <IconComponent size={20} />
                   </div>
                   <div>
@@ -129,17 +131,18 @@ const Budget = () => {
                         </span>
                       )}
                     </div>
-                    <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+                    <p className="free-money free-budget-amount" style={{ fontSize: '12px', color: 'var(--text-light)' }}>
                       Budget: {formatCurrency(budget)}
                     </p>
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="free-budget-category-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span className={`badge ${percent >= 100 ? (isInvestmentCat ? 'badge-emerald' : 'badge-red') : percent > 50 ? 'badge-orange' : 'badge-emerald'}`}>
                     {percent}%
                   </span>
                   <button 
                     onClick={() => handleDeleteCategory(cat.id)}
+                    aria-label={`Supprimer la catégorie ${cat.name}`}
                     style={{ background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer', padding: '4px', display: 'flex' }}
                     title="Supprimer la catégorie"
                   >
@@ -158,9 +161,9 @@ const Budget = () => {
                 />
               </div>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
-                <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>Utilisé: {formatCurrency(spent)}</p>
-                <p style={{ 
+              <div className="free-budget-card-footer" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                <p className="free-money" style={{ fontSize: '12px', color: 'var(--text-light)' }}>Utilisé: {formatCurrency(spent)}</p>
+                <p className="free-money" style={{ 
                   fontSize: '12px', 
                   fontWeight: '600', 
                   color: isOver ? (isInvestmentCat ? 'var(--emerald)' : 'var(--accent-red)') : percent > 80 ? 'var(--accent-orange)' : 'var(--text-main)' 

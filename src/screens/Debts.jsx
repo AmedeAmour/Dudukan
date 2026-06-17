@@ -23,6 +23,7 @@ const Debts = () => {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
+      className="free-screen free-debts-screen"
       style={{ padding: '24px 20px' }}
     >
       <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -31,6 +32,7 @@ const Debts = () => {
           <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Gérez vos remboursements</p>
         </div>
         <button 
+          aria-label="Ajouter une dette"
           onClick={() => setShowAdd(!showAdd)}
           style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--navy)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
@@ -38,9 +40,9 @@ const Debts = () => {
         </button>
       </header>
 
-      <div className="card" style={{ background: 'var(--accent-red)', color: 'white', border: 'none' }}>
+      <div className="card free-hero-card free-debt-total-card" style={{ background: 'var(--accent-red)', color: 'white', border: 'none' }}>
         <p style={{ opacity: 0.9, fontSize: '14px' }}>Total des dettes</p>
-        <h2 style={{ color: 'white', fontSize: '28px' }}>{formatCurrency(totalDebt)}</h2>
+        <h2 className="free-money free-money-hero" style={{ color: 'white', fontSize: '28px' }}>{formatCurrency(totalDebt)}</h2>
       </div>
 
       {showAdd && (
@@ -92,8 +94,8 @@ const Debts = () => {
               const progress = Math.round(((debt.amount - debt.remaining) / debt.amount) * 100);
 
               return (
-                <div key={debt.id} className="card" style={{ opacity: debt.remaining === 0 ? 0.6 : 1, border: isPastDue ? '1px solid var(--accent-red-light)' : 'none' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <div key={debt.id} className="card free-debt-card" style={{ opacity: debt.remaining === 0 ? 0.6 : 1, border: isPastDue ? '1px solid var(--accent-red-light)' : 'none' }}>
+                  <div className="free-debt-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-red-light)', color: 'var(--accent-red)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <User size={20} />
@@ -109,7 +111,7 @@ const Debts = () => {
                     {debt.remaining === 0 ? (
                       <span className="badge badge-emerald">Payée</span>
                     ) : (
-                      <p style={{
+                      <p className="free-money" style={{
                             fontWeight: '700',
                             color: debt.remaining > 0 ? 'var(--accent-red)' : 'var(--navy)'
                           }}>{formatCurrency(debt.remaining)}</p>
@@ -122,7 +124,7 @@ const Debts = () => {
                         <div className="progress-bar-fill" style={{ width: `${progress}%`, background: 'var(--accent-red)' }} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div className="free-debt-payment-row" style={{ display: 'flex', gap: '8px' }}>
                           <div style={{ flex: 1, position: 'relative' }}>
                             <input 
                               type="number" 

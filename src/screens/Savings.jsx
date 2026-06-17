@@ -40,6 +40,7 @@ const Savings = () => {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
+      className="free-screen free-savings-screen"
       style={{ padding: '24px 20px' }}
     >
       <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -49,12 +50,14 @@ const Savings = () => {
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button 
+            aria-label="Retirer de mon épargne"
             onClick={() => { setMode('withdraw'); setShowForm(true); }}
             style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-pink)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <Minus size={20} />
           </button>
           <button 
+            aria-label="Alimenter mon épargne"
             onClick={() => { setMode('deposit'); setShowForm(true); }}
             style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--emerald)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
@@ -64,10 +67,10 @@ const Savings = () => {
       </header>
 
       {/* Savings Total Card */}
-      <div className="card" style={{ background: 'var(--emerald)', color: 'white', border: 'none', position: 'relative', overflow: 'hidden' }}>
+      <div className="card free-hero-card free-savings-total-card" style={{ background: 'var(--emerald)', color: 'white', border: 'none', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'relative', zIndex: 1 }}>
           <p style={{ opacity: 0.9, fontSize: '14px', marginBottom: '8px' }}>Total épargné</p>
-          <h2 style={{ color: 'white', fontSize: '36px', fontWeight: '800' }}>{formatCurrency(savings)}</h2>
+          <h2 className="free-money free-money-hero" style={{ color: 'white', fontSize: '36px', fontWeight: '800' }}>{formatCurrency(savings)}</h2>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', background: 'rgba(255,255,255,0.1)', padding: '8px 12px', borderRadius: '12px', width: 'fit-content' }}>
             <ShieldCheck size={16} />
@@ -79,7 +82,7 @@ const Savings = () => {
           size={120} 
           style={{ 
             position: 'absolute', 
-            right: '-20px', 
+            right: '0', 
             bottom: '-20px', 
             opacity: 0.1,
             transform: 'rotate(-15deg)'
@@ -157,8 +160,8 @@ const Savings = () => {
         {savingsHistory.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {savingsHistory.map((item) => (
-              <div key={item.id} className="card" style={{ margin: 0, padding: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={item.id} className="card free-savings-history-card" style={{ margin: 0, padding: '16px' }}>
+                <div className="free-savings-history-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ 
                       width: '44px', 
@@ -195,7 +198,7 @@ const Savings = () => {
                       </div>
                     </div>
                   </div>
-                  <p style={{ 
+                  <p className="free-money free-savings-history-amount" style={{ 
                     fontWeight: '700', 
                     fontSize: '16px',
                     color: item.type === 'deposit' ? 'var(--emerald)' : 'var(--accent-pink)' 

@@ -31,6 +31,7 @@ const Expenses = () => {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
+      className="free-screen free-expenses-screen"
       style={{ padding: '24px 20px' }}
     >
       <header style={{ marginBottom: '24px' }}>
@@ -38,7 +39,7 @@ const Expenses = () => {
         <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Enregistrez vos entrées et sorties</p>
       </header>
 
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+      <div className="free-expense-type-toggle" style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
         <button 
           onClick={() => setType('expense')}
           style={{ 

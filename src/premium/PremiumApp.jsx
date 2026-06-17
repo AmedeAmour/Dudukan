@@ -392,10 +392,13 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 
   // Define screen layout titles dynamically
   const getScreenTitle = () => {
+    if (isAddingProject) return 'Planifier un projet';
+    if (selectedProject) return 'Détail du projet';
+
     switch (activeTab) {
       case 'dashboard': return 'Tableau de Bord';
       case 'projects': return 'Mes Projets de Vie';
-      case 'funding': return 'Plan de Financement';
+      case 'funding': return 'Financement';
       case 'profile': return 'Profil';
       default: return 'Financial Assistant';
     }
@@ -462,6 +465,8 @@ const PremiumAppContent = ({ onSwitchMode }) => {
                 </h3>
               </div>
               <button 
+                type="button"
+                aria-label="Fermer les actions Dudukan Plus"
                 onClick={() => setShowQuickActions(false)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--zenith-on-surface-variant)' }}
               >
@@ -473,6 +478,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
               {/* Option 1 */}
               <button 
+                type="button"
                 onClick={() => {
                   setShowQuickActions(false);
                   setIsAddingProject(true);
@@ -504,6 +510,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 
               {/* Option 2 */}
               <button 
+                type="button"
                 onClick={() => {
                   setShowQuickActions(false);
                   handleTabChange('funding');
@@ -535,6 +542,7 @@ const PremiumAppContent = ({ onSwitchMode }) => {
 
               {/* Option 3 */}
               <button 
+                type="button"
                 onClick={() => {
                   setShowQuickActions(false);
                   handleTabChange('profile');

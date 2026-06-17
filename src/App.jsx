@@ -151,6 +151,29 @@ const AppContent = () => {
     return <Onboarding />;
   }
 
+  const params = new URLSearchParams(window.location.search);
+  const isLocalPaymentPreview = import.meta.env.DEV && params.get('previewPayment') === '1';
+
+  if (isLocalPaymentPreview && appMode === 'premium') {
+    return <PremiumApp onSwitchMode={setAppMode} />;
+  }
+
+  if (isLocalPaymentPreview) {
+    return (
+      <Payment
+        onBack={() => {
+          window.history.replaceState({}, '', window.location.pathname);
+          setAppMode('free');
+        }}
+        onUnlock={() => setAppMode('premium')}
+        onRefreshAccess={refreshPremiumAccess}
+        canPreviewPlus
+        onPreviewPlus={() => setAppMode('premium')}
+        paymentReturnInfo={paymentReturnInfo}
+      />
+    );
+  }
+
   // Switching between independent apps
   if (appMode === 'premium') {
     const isPremiumUser = hasPremiumAccess || user?.user_metadata?.is_premium === true;

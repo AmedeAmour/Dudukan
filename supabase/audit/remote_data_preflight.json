@@ -1,0 +1,120 @@
+{
+  "generated_at": "2026-06-15T17:29:41.888Z",
+  "project_ref": "tyslautcpyzoeebpjihy",
+  "mode": "read_only_preflight",
+  "checks": {
+    "row_counts": [
+      {
+        "table": "admin_audit_logs",
+        "count": 0
+      },
+      {
+        "table": "admin_users",
+        "count": 1
+      },
+      {
+        "table": "app_settings",
+        "count": 2
+      },
+      {
+        "table": "debts",
+        "count": 0
+      },
+      {
+        "table": "milestones",
+        "count": 13
+      },
+      {
+        "table": "premium_purchases",
+        "count": 26
+      },
+      {
+        "table": "premium_transactions",
+        "count": 11
+      },
+      {
+        "table": "profiles",
+        "count": 20
+      },
+      {
+        "table": "project_contributions",
+        "count": 0
+      },
+      {
+        "table": "projects",
+        "count": 10
+      },
+      {
+        "table": "transactions",
+        "count": 8
+      },
+      {
+        "table": "user_data",
+        "count": 21
+      }
+    ],
+    "storage_bucket_counts": [
+      {
+        "id": "avatars",
+        "name": "avatars",
+        "public": true,
+        "object_count": 8
+      }
+    ],
+    "orphan_milestones": {
+      "count": 0
+    },
+    "orphan_project_contributions": {
+      "count": 0
+    },
+    "premium_transactions_project_refs": {
+      "with_project_id": 11,
+      "orphan_project_id": 5,
+      "with_step_id": 1,
+      "orphan_step_id": 1
+    },
+    "user_data_shape": {
+      "rows": 21,
+      "with_expenses": 21,
+      "with_debts": 21,
+      "with_savings": 21,
+      "with_categories": 21,
+      "expenses_array": 21,
+      "debts_array": 21
+    },
+    "duplicate_policy_groups": [
+      {
+        "schemaname": "public",
+        "tablename": "debts",
+        "cmd": "ALL",
+        "qual": "(auth.uid() = user_id)",
+        "policy_count": 2,
+        "policies": "{\"Dettes personnelles\",debts_own}"
+      },
+      {
+        "schemaname": "public",
+        "tablename": "profiles",
+        "cmd": "ALL",
+        "qual": "(auth.uid() = id)",
+        "policy_count": 2,
+        "policies": "{\"Profils personnels\",profiles_own}"
+      },
+      {
+        "schemaname": "public",
+        "tablename": "projects",
+        "cmd": "ALL",
+        "qual": "(auth.uid() = user_id)",
+        "policy_count": 2,
+        "policies": "{\"Users can manage own projects\",projects_own}"
+      },
+      {
+        "schemaname": "public",
+        "tablename": "transactions",
+        "cmd": "ALL",
+        "qual": "(auth.uid() = user_id)",
+        "policy_count": 3,
+        "policies": "{\"Transactions personnelles\",\"Users can manage own transactions\",transactions_own}"
+      }
+    ]
+  }
+}

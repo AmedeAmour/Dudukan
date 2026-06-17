@@ -13,7 +13,7 @@ const PremiumTopBar = ({ title = "Financial Assistant", onBellClick, theme, onTo
           {avatarUrl ? (
             <img 
               src={avatarUrl} 
-              alt="User Avatar" 
+              alt="Avatar utilisateur" 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
           ) : (
@@ -32,6 +32,7 @@ const PremiumTopBar = ({ title = "Financial Assistant", onBellClick, theme, onTo
       </div>
       <div className="premium-topbar-actions">
         <button 
+          type="button"
           onClick={onToggleTheme}
           className="premium-icon-button"
           aria-label={theme === 'dark' ? 'Activer le thème clair' : 'Activer le thème sombre'}
@@ -39,6 +40,7 @@ const PremiumTopBar = ({ title = "Financial Assistant", onBellClick, theme, onTo
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
         <button 
+          type="button"
           onClick={onBellClick}
           className="premium-icon-button"
           aria-label="Tester les notifications"
@@ -46,6 +48,7 @@ const PremiumTopBar = ({ title = "Financial Assistant", onBellClick, theme, onTo
           <Bell size={20} />
         </button>
         <button
+          type="button"
           onClick={onDownloadReport}
           className="premium-icon-button premium-icon-button-strong"
           aria-label="Télécharger le rapport Dudukan Plus"

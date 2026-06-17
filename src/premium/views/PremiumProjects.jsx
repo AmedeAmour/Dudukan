@@ -52,7 +52,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
     <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>
       
       {/* Header and Add Button */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '14px', marginBottom: '24px' }}>
+      <div className="premium-projects-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '14px', marginBottom: '24px' }}>
         <div style={{ minWidth: 0 }}>
           <h2 className="font-heading" style={{ fontSize: '28px', color: 'var(--zenith-on-surface)', margin: '0 0 4px 0' }}>
             Vos Projets
@@ -62,6 +62,8 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
           </p>
         </div>
         <button 
+          className="premium-projects-add-button"
+          type="button"
           onClick={onAddProject}
           style={{
             display: 'flex',
@@ -91,7 +93,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
       </div>
 
       {/* Global Feasibility Card */}
-      <div className="premium-card" style={{
+      <div className="premium-card premium-projects-feasibility-card" style={{
         backgroundColor: 'var(--zenith-surface-muted)',
         padding: '20px',
         display: 'flex',
@@ -99,8 +101,8 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
         gap: '20px',
         marginBottom: '32px'
       }}>
-        <div style={{ position: 'relative', width: '96px', height: '96px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+        <div className="premium-projects-feasibility-gauge" style={{ position: 'relative', width: '96px', height: '96px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg viewBox="0 0 96 96" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
             <circle cx="48" cy="48" r={radius} fill="transparent" stroke="var(--zenith-outline-variant)" strokeWidth={stroke} opacity="0.3" />
             <circle 
               cx="48" 
@@ -118,7 +120,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
             <span className="font-heading" style={{ fontSize: '18px', color: 'var(--zenith-on-surface)' }}>{feasibilityIndex}%</span>
           </div>
         </div>
-        <div style={{ flex: 1 }}>
+        <div className="premium-projects-feasibility-copy" style={{ flex: 1 }}>
           <h3 className="font-heading" style={{ fontSize: '16px', margin: '0 0 4px 0', color: 'var(--zenith-on-surface)' }}>
             Faisabilité Globale
           </h3>
@@ -129,7 +131,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ 
+      <div className="premium-projects-filters" style={{ 
         display: 'flex', 
         gap: '8px', 
         marginBottom: '24px', 
@@ -143,7 +145,9 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
           { id: 'recurring', label: 'Récurrents' }
         ].map(tab => (
           <button
+            className="premium-projects-filter-button"
             key={tab.id}
+            type="button"
             onClick={() => setActiveFilter(tab.id)}
             style={{
               padding: '8px 18px',
@@ -190,7 +194,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
           </button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="premium-projects-list" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {filteredProjects.map(project => {
             const target = parseFloat(project.target_amount || 0);
             const current = parseFloat(project.current_amount || 0);
@@ -259,7 +263,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
               <div 
                 key={project.id}
                 onClick={() => onSelectProject && onSelectProject(project)}
-                className="premium-card"
+                className="premium-card premium-project-card"
                 style={{
                   padding: '24px',
                   position: 'relative',
@@ -267,8 +271,8 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
                 }}
               >
                 {/* Header of Project Card */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                  <div style={{
+                <div className="premium-project-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  <div className="premium-project-card-icon" style={{
                     width: '44px',
                     height: '44px',
                     borderRadius: 'var(--radius-md)',
@@ -283,7 +287,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
                   </div>
 
                   {/* Status Badges Row */}
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="premium-project-card-badges" style={{ display: 'flex', gap: '8px' }}>
                     <span style={{
                       backgroundColor: feasibilityBadgeColor,
                       color: feasibilityTextColor,
@@ -345,7 +349,7 @@ const PremiumProjects = ({ onAddProject, onSelectProject }) => {
                 </div>
 
                 {/* Detailed project metrics grid */}
-                <div style={{ 
+                <div className="premium-project-metrics-card" style={{ 
                   display: 'grid', 
                   gridTemplateColumns: '1fr 1fr', 
                   gap: '12px', 

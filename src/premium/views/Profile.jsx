@@ -131,10 +131,10 @@ const Profile = ({ onSwitchMode }) => {
   const remainingSavings = Math.max(0, parseFloat(financeSavings || 0) - totalAllocated);
 
   return (
-    <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>
+    <div className="premium-profile-screen" style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>
 
       {/* Header section */}
-      <div style={{ marginBottom: '28px' }}>
+      <div className="premium-profile-header" style={{ marginBottom: '28px' }}>
         <h2 className="font-heading" style={{ fontSize: '28px', color: 'var(--zenith-on-surface)', margin: '0 0 4px 0' }}>
           Profil
         </h2>
@@ -145,7 +145,7 @@ const Profile = ({ onSwitchMode }) => {
 
 
       {/* Downgrade Action */}
-      <div className="premium-card" style={{
+      <div className="premium-card premium-profile-mode-card" style={{
         padding: '20px',
         border: '1px solid rgba(239, 68, 68, 0.15)',
         backgroundColor: 'rgba(239, 68, 68, 0.02)',
@@ -181,31 +181,31 @@ const Profile = ({ onSwitchMode }) => {
       </div>
 
       {/* Financial Profile Summary */}
-      <div className="premium-card" style={{ padding: '20px', marginBottom: '24px' }}>
+      <div className="premium-card premium-profile-summary-card" style={{ padding: '20px', marginBottom: '24px' }}>
         <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <TrendingUp size={18} color="var(--zenith-primary-container)" />
           Résumé de votre profil financier
         </h4>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div style={{ backgroundColor: 'var(--zenith-bg)', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}>
+        <div className="premium-profile-summary-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="premium-profile-summary-item" style={{ backgroundColor: 'var(--zenith-bg)', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}>
             <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Épargne totale</span>
             <span className="font-data" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', fontWeight: 800 }}>
               {parseFloat(financeSavings || 0).toLocaleString()} {currencyCode}
             </span>
           </div>
-          <div style={{ backgroundColor: 'var(--zenith-bg)', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}>
+          <div className="premium-profile-summary-item" style={{ backgroundColor: 'var(--zenith-bg)', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}>
             <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Revenu de base</span>
             <span className="font-data" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', fontWeight: 800 }}>
               {parseFloat(freeSalary || 0).toLocaleString()} {currencyCode}
             </span>
           </div>
-          <div style={{ backgroundColor: 'var(--zenith-bg)', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}>
+          <div className="premium-profile-summary-item" style={{ backgroundColor: 'var(--zenith-bg)', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}>
             <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Fonds alloués</span>
             <span className="font-data" style={{ fontSize: '15px', color: 'var(--zenith-secondary)', fontWeight: 800 }}>
               {totalAllocated.toLocaleString()} {currencyCode}
             </span>
           </div>
-          <div style={{ backgroundColor: 'var(--zenith-bg)', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}>
+          <div className="premium-profile-summary-item" style={{ backgroundColor: 'var(--zenith-bg)', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}>
             <span style={{ fontSize: '11px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>Fonds libres</span>
             <span className="font-data" style={{ fontSize: '15px', color: 'var(--zenith-accent-gold)', fontWeight: 800 }}>
               {remainingSavings.toLocaleString()} {currencyCode}
@@ -215,7 +215,7 @@ const Profile = ({ onSwitchMode }) => {
       </div>
 
       {/* Coaching Preferences */}
-      <div className="premium-card" style={{ padding: '20px', marginBottom: '24px' }}>
+      <div className="premium-card premium-profile-preferences-card" style={{ padding: '20px', marginBottom: '24px' }}>
         <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <MessageSquare size={18} color="var(--zenith-primary-container)" />
           Préférences d'accompagnement
@@ -273,7 +273,7 @@ const Profile = ({ onSwitchMode }) => {
       </div>
 
       {/* Smart Parameters & Switches */}
-      <div className="premium-card" style={{ padding: '20px', marginBottom: '24px' }}>
+      <div className="premium-card premium-profile-settings-card" style={{ padding: '20px', marginBottom: '24px' }}>
         <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Sliders size={18} color="var(--zenith-primary-container)" />
           Paramètres intelligents
@@ -282,8 +282,8 @@ const Profile = ({ onSwitchMode }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
           {/* Switch 1 */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
+          <div className="premium-profile-switch-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="premium-profile-switch-text">
               <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--zenith-on-surface)', display: 'block' }}>
                 Surveiller le matelas de sécurité
               </span>
@@ -300,8 +300,8 @@ const Profile = ({ onSwitchMode }) => {
           </div>
 
           {/* Switch 2 */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid var(--zenith-outline-variant)' }}>
-            <div>
+          <div className="premium-profile-switch-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid var(--zenith-outline-variant)' }}>
+            <div className="premium-profile-switch-text">
               <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--zenith-on-surface)', display: 'block' }}>
                 Analyses périodiques automatiques
               </span>
@@ -321,8 +321,9 @@ const Profile = ({ onSwitchMode }) => {
       </div>
 
       {/* Premium Reminders Section */}
-      <div className="premium-card" style={{ padding: '20px', marginBottom: '24px' }}>
+      <div className="premium-card premium-profile-reminders-card" style={{ padding: '20px', marginBottom: '24px' }}>
         <div
+          className="premium-profile-reminders-toggle"
           onClick={() => setExpandedReminders(!expandedReminders)}
           style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
         >
@@ -336,7 +337,7 @@ const Profile = ({ onSwitchMode }) => {
         {expandedReminders && (
           <div style={{ marginTop: '16px' }}>
             {/* Permission status and test button */}
-            <div style={{
+            <div className="premium-profile-notification-row" style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -373,7 +374,7 @@ const Profile = ({ onSwitchMode }) => {
             </div>
 
             {/* Form to add a new reminder */}
-            <form onSubmit={handleCreateReminder} style={{
+            <form className="premium-profile-reminder-form" onSubmit={handleCreateReminder} style={{
               backgroundColor: 'var(--zenith-bg)',
               padding: '16px',
               borderRadius: 'var(--radius-md)',
@@ -406,7 +407,7 @@ const Profile = ({ onSwitchMode }) => {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="premium-profile-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
                     <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '4px' }}>
                       Concerne... (Type)
@@ -481,7 +482,7 @@ const Profile = ({ onSwitchMode }) => {
                 )}
 
                 {/* Conditional Fields based on frequency */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="premium-profile-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   {remForm.frequency === 'once' && (
                     <div>
                       <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--zenith-on-surface-variant)', display: 'block', marginBottom: '4px' }}>
@@ -697,13 +698,13 @@ const Profile = ({ onSwitchMode }) => {
       </div>
 
       {/* Cloud Synchronization and Security */}
-      <div className="premium-card" style={{ padding: '20px', marginBottom: '24px' }}>
+      <div className="premium-card premium-profile-sync-card" style={{ padding: '20px', marginBottom: '24px' }}>
         <h4 className="font-heading" style={{ fontSize: '15px', color: 'var(--zenith-on-surface)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <ShieldCheck size={18} color="var(--zenith-secondary)" />
           Sécurité & Synchronisation
         </h4>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
+        <div className="premium-profile-sync-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="premium-profile-sync-text">
             <span style={{ fontSize: '12px', color: 'var(--zenith-on-surface-variant)', display: 'block' }}>
               Base de données chiffrée
             </span>
@@ -735,7 +736,7 @@ const Profile = ({ onSwitchMode }) => {
       </div>
 
       {/* Danger Zone */}
-      <div className="premium-card" style={{
+      <div className="premium-card premium-profile-danger-card" style={{
         padding: '20px',
         marginBottom: '28px',
         border: '1px solid rgba(239, 68, 68, 0.25)',

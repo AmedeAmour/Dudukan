@@ -64,10 +64,11 @@ const Dashboard = ({ setActiveTab }) => {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
+      className="free-screen free-dashboard-screen"
       style={{ padding: '24px 20px' }}
     >
-      <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <header className="free-dashboard-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="free-dashboard-identity" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div 
             onClick={() => setActiveTab('settings')}
             style={{ 
@@ -90,13 +91,14 @@ const Dashboard = ({ setActiveTab }) => {
               <User size={28} color="var(--accent-blue)" />
             )}
           </div>
-          <div>
+          <div className="free-dashboard-greeting">
             <h1 style={{ fontSize: '24px', lineHeight: '1.2' }}>Bonjour {firstName ? firstName : '!'}</h1>
             <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>Voici l'état de vos finances</p>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button 
+            aria-label="Ouvrir les réglages"
             onClick={() => setActiveTab('settings')}
             style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--white)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifySelf: 'center', boxShadow: 'var(--shadow-soft)', color: 'var(--text-light)' }}
           >
@@ -106,15 +108,15 @@ const Dashboard = ({ setActiveTab }) => {
       </header>
 
       {/* Main Balance Card */}
-      <div className="card" style={{ background: 'var(--navy)', color: 'white', border: 'none', position: 'relative', overflow: 'hidden' }}>
+      <div className="card free-hero-card free-balance-card" style={{ background: 'var(--navy)', color: 'white', border: 'none', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
+          <div className="free-balance-top-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="free-balance-main">
               <p style={{ opacity: 0.8, fontSize: '14px', marginBottom: '8px' }}>Reste à vivre (Solde total)</p>
-              <h2 style={{ color: 'white', fontSize: '32px', marginBottom: '24px' }}>{formatCurrency(balance)}</h2>
+              <h2 className="free-money free-money-hero" style={{ color: 'white', fontSize: '32px', marginBottom: '24px' }}>{formatCurrency(balance)}</h2>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ 
+            <div className="free-health-score" style={{ textAlign: 'right' }}>
+              <div className="free-health-score-circle" style={{ 
                 width: '50px', 
                 height: '50px', 
                 borderRadius: '50%', 
@@ -130,18 +132,18 @@ const Dashboard = ({ setActiveTab }) => {
             </div>
           </div>
           
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <div>
+          <div className="free-balance-breakdown" style={{ display: 'flex', gap: '20px' }}>
+            <div className="free-balance-breakdown-item">
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '12px', marginBottom: '4px' }}>
                 <TrendingUp size={12} /> {salary > 0 ? 'Revenus total' : 'Total Revenus'}
               </div>
-              <p style={{ fontWeight: '600' }}>{formatCurrency(totalIncome)}</p>
+              <p className="free-money" style={{ fontWeight: '600' }}>{formatCurrency(totalIncome)}</p>
             </div>
-            <div>
+            <div className="free-balance-breakdown-item">
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', opacity: 0.8, fontSize: '12px', marginBottom: '4px' }}>
                 <TrendingDown size={12} /> Dépenses
               </div>
-              <p style={{ fontWeight: '600' }}>{formatCurrency(totalExpenses)}</p>
+              <p className="free-money" style={{ fontWeight: '600' }}>{formatCurrency(totalExpenses)}</p>
             </div>
           </div>
         </div>
@@ -157,19 +159,19 @@ const Dashboard = ({ setActiveTab }) => {
       </div>
 
       {/* Reste à vivre daily card */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-        <div className="card" style={{ margin: 0 }}>
+      <div className="free-metric-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div className="card free-metric-card" style={{ margin: 0 }}>
           <p style={{ color: 'var(--text-light)', fontSize: '12px', marginBottom: '4px' }}>Moyenne / jour</p>
-          <h3 style={{ fontSize: '18px' }}>{formatCurrency(resteAVivre)}</h3>
+          <h3 className="free-money" style={{ fontSize: '18px' }}>{formatCurrency(resteAVivre)}</h3>
           <p style={{ color: 'var(--text-light)', fontSize: '11px', marginTop: '4px' }}>{daysRemaining}j restants</p>
         </div>
         <div 
-          className="card" 
+          className="card free-metric-card"
           style={{ margin: 0, background: projectedBalance >= 0 ? 'var(--emerald-light)' : 'var(--accent-red-light)', cursor: 'pointer' }}
           onClick={() => setActiveTab('budget')}
         >
           <p style={{ color: projectedBalance >= 0 ? 'var(--emerald)' : 'var(--accent-red)', fontSize: '12px', marginBottom: '4px' }}>Prévision fin de mois</p>
-          <h3 style={{ fontSize: '18px', color: 'var(--navy)' }}>{formatCurrency(projectedBalance)}</h3>
+          <h3 className="free-money" style={{ fontSize: '18px', color: 'var(--navy)' }}>{formatCurrency(projectedBalance)}</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
             <Info size={10} color={projectedBalance >= 0 ? 'var(--emerald)' : 'var(--accent-red)'} />
             <span style={{ fontSize: '11px', color: projectedBalance >= 0 ? 'var(--emerald)' : 'var(--accent-red)', fontWeight: '600' }}>
@@ -296,7 +298,7 @@ const Dashboard = ({ setActiveTab }) => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="card" 
+                    className="card free-transaction-card" 
                     style={{ margin: 0, padding: '16px' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -329,7 +331,7 @@ const Dashboard = ({ setActiveTab }) => {
                           </div>
                         </div>
                       </div>
-                      <p style={{ fontWeight: '700', fontSize: '16px', color: tx.type === 'income' ? 'var(--emerald)' : 'var(--text-main)' }}>
+                      <p className="free-money free-transaction-amount" style={{ fontWeight: '700', fontSize: '16px', color: tx.type === 'income' ? 'var(--emerald)' : 'var(--text-main)' }}>
                         {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
                       </p>
                     </div>

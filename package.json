@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:preview-db": "vite --mode preview",
     "dev:api": "node scripts/dev-with-api.mjs",
     "build": "vite build",
     "lint": "eslint .",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@supabase/cli-windows-x64": "^2.106.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
@@ -28,6 +30,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
+    "pg": "^8.21.0",
+    "supabase": "^2.106.0",
     "vite": "^8.0.10",
     "vite-plugin-pwa": "^1.2.0"
   }

@@ -18,8 +18,10 @@ const PremiumBottomNav = ({ activeTab, setActiveTab, onAddClick }) => {
 
     return (
       <button
+        type="button"
         onClick={() => setActiveTab(item.id)}
         className={`premium-nav-item ${isActive ? 'active' : ''}`}
+        aria-label={item.label}
       >
         <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
         <span className="label">{item.label}</span>
@@ -39,6 +41,7 @@ const PremiumBottomNav = ({ activeTab, setActiveTab, onAddClick }) => {
       {/* Centered Floating Action Button */}
       <div className="premium-nav-fab-container">
         <button 
+          type="button"
           className="premium-nav-fab"
           onClick={onAddClick}
           aria-label="Ajouter un projet"

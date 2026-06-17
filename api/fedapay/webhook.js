@@ -24,13 +24,32 @@ const getFedaPayWebhookSecret = () => {
     : process.env.FEDAPAY_SANDBOX_WEBHOOK_SECRET || process.env.FEDAPAY_WEBHOOK_SECRET;
 };
 
-const verifySignatureIfConfigured = (rawBody, signature) => {
+const isWebhookSignatureRequired = () => {
+  return getFedaPayEnvironment() === 'live'
+    || process.env.VERCEL_ENV === 'production'
+    || process.env.NODE_ENV === 'production';
+};
+
+const verifySignature = (rawBody, signature) => {
   const secret = getFedaPayWebhookSecret();
-  if (!secret) return true;
-  if (!signature) return false;
+  if (!secret) {
+    return {
+      ok: !isWebhookSignatureRequired(),
+      error: 'missing_webhook_secret',
+    };
+  }
+  if (!signature) {
+    return {
+      ok: false,
+      error: 'missing_webhook_signature',
+    };
+  }
 
   const digest = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
-  return timingSafeEqual(signature, digest) || timingSafeEqual(signature, `sha256=${digest}`);
+  return {
+    ok: timingSafeEqual(signature, digest) || timingSafeEqual(signature, `sha256=${digest}`),
+    error: 'invalid_webhook_signature',
+  };
 };
 
 const extractTransaction = (event) => {
@@ -133,9 +152,16 @@ export default async function handler(req, res) {
   try {
     const { rawBody, body } = await readJsonBody(req);
     const signature = req.headers['x-fedapay-signature'];
+    const signatureCheck = verifySignature(rawBody, signature);
 
-    if (!verifySignatureIfConfigured(rawBody, signature)) {
-      return sendJson(res, 401, { error: 'Invalid webhook signature.' });
+    if (!signatureCheck.ok) {
+      const statusCode = signatureCheck.error === 'missing_webhook_secret' ? 503 : 401;
+      return sendJson(res, statusCode, {
+        error: signatureCheck.error === 'missing_webhook_secret'
+          ? 'FedaPay webhook secret is not configured.'
+          : 'Invalid webhook signature.',
+        code: signatureCheck.error,
+      });
     }
 
     const eventName = body?.name || body?.event || body?.type;

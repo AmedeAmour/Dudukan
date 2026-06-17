@@ -276,10 +276,10 @@ const PremiumFunding = () => {
   };
 
   return (
-    <div style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>
+    <div className="premium-funding-screen" style={{ padding: '24px 20px', maxWidth: '500px', margin: '0 auto', paddingBottom: '100px' }}>
       
       {/* Header section */}
-      <div style={{ marginBottom: '28px' }}>
+      <div className="premium-funding-header" style={{ marginBottom: '28px' }}>
         <h2 className="font-heading" style={{ fontSize: '28px', color: 'var(--zenith-on-surface)', margin: '0 0 4px 0' }}>
           Financement
         </h2>
@@ -289,7 +289,7 @@ const PremiumFunding = () => {
       </div>
 
       {/* Graphical Savings Visualization */}
-      <div className="premium-card" style={{ padding: '20px', marginBottom: '24px' }}>
+      <div className="premium-card premium-funding-wealth-card" style={{ padding: '20px', marginBottom: '24px' }}>
         <h4 className="font-heading" style={{ fontSize: '14px', color: 'var(--zenith-on-surface)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Activity size={18} color="var(--zenith-primary-container)" />
           Répartition Visuelle du Patrimoine
@@ -324,8 +324,8 @@ const PremiumFunding = () => {
         </div>
 
         {/* Legend */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+        <div className="premium-funding-wealth-legend" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="premium-funding-wealth-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'var(--zenith-secondary)' }} />
               <span style={{ color: 'var(--zenith-on-surface-variant)' }}>Épargne engagée</span>
@@ -335,7 +335,7 @@ const PremiumFunding = () => {
             </span>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+          <div className="premium-funding-wealth-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'var(--zenith-accent-gold)' }} />
               <span style={{ color: 'var(--zenith-on-surface-variant)' }}>Épargne disponible (libre)</span>
@@ -379,7 +379,7 @@ const PremiumFunding = () => {
       </div>
 
       {/* Strategic Advisor Panel */}
-      <div className="premium-card" style={{
+      <div className="premium-card premium-funding-advice-card" style={{
         backgroundColor: 'var(--zenith-surface-muted)',
         padding: '20px',
         display: 'flex',
@@ -537,7 +537,7 @@ const PremiumFunding = () => {
         </div>
 
         {/* Footer remaining to allocate */}
-        <div style={{
+        <div className="premium-funding-plan-footer" style={{
           marginTop: '32px',
           paddingTop: '24px',
           borderTop: '1px solid var(--zenith-outline-variant)',
@@ -555,6 +555,7 @@ const PremiumFunding = () => {
           </div>
 
           <button
+            className="premium-funding-execute-button"
             onClick={handleExecuteAllocations}
             disabled={previewTotalAllocated <= 0 || loading}
             style={{
@@ -578,7 +579,7 @@ const PremiumFunding = () => {
       </div>
 
       {/* Allocation History Log */}
-      <div className="premium-card" style={{ padding: '20px' }}>
+      <div className="premium-card premium-funding-history-card" style={{ padding: '20px' }}>
         <h4 className="font-heading" style={{ fontSize: '14px', color: 'var(--zenith-on-surface)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <History size={18} color="var(--zenith-primary-container)" />
           Historique récent des allocations
@@ -597,7 +598,7 @@ const PremiumFunding = () => {
               }
             }
             return (
-              <div key={op.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '10px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
+              <div key={op.id} className="premium-funding-history-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '10px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
                 <div>
                   <span style={{ fontWeight: 700, color: 'var(--zenith-on-surface)', display: 'block' }}>{label}</span>
                   <span style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)' }}>
@@ -611,7 +612,7 @@ const PremiumFunding = () => {
             );
           })}
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '10px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
+          <div className="premium-funding-history-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', paddingBottom: '10px', borderBottom: '1px dashed var(--zenith-outline-variant)' }}>
             <div>
               <span style={{ fontWeight: 700, color: 'var(--zenith-on-surface)', display: 'block' }}>Initialisation du plan premium</span>
               <span style={{ fontSize: '10px', color: 'var(--zenith-on-surface-variant)' }}>15 Mai 2026</span>

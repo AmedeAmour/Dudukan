@@ -22,6 +22,7 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
           <button
             key={item.id}
             className={`nav-item ${activeTab === item.id ? 'active' : ''} ${isExpenses ? 'nav-item-fab' : ''}`}
+            aria-label={item.label}
             onClick={() => {
               if (isExpenses && activeTab === 'expenses') {
                 setActiveTab('dashboard');

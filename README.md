@@ -18,6 +18,18 @@ npm run build
 npm run lint
 ```
 
+Pour tester les fonctions API localement, notamment le paiement FedaPay, utiliser :
+
+```bash
+npm run dev:api
+```
+
+Si le port par defaut est deja pris :
+
+```bash
+$env:DEV_PORT=5176; npm.cmd run dev:api
+```
+
 Sous Windows/PowerShell, si `npm` est bloqué par la politique d'exécution, utiliser :
 
 ```bash
@@ -44,13 +56,19 @@ Ces variables sont publiques côté navigateur. Ne jamais y mettre de clé `serv
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 FEDAPAY_SECRET_KEY=
+FEDAPAY_SANDBOX_SECRET_KEY=
+FEDAPAY_LIVE_SECRET_KEY=
 FEDAPAY_ENVIRONMENT=sandbox
 FEDAPAY_WEBHOOK_SECRET=
+FEDAPAY_SANDBOX_WEBHOOK_SECRET=
+FEDAPAY_LIVE_WEBHOOK_SECRET=
 APP_URL=
 FEDAPAY_RETURN_URL=
 ```
 
 Notes :
+
+- En production, le webhook FedaPay doit avoir un secret configure. Sans secret, `/api/fedapay/webhook` refuse la confirmation.
 
 - `SUPABASE_SERVICE_ROLE_KEY` reste uniquement côté API Vercel.
 - `FEDAPAY_SECRET_KEY` reste uniquement côté API Vercel.

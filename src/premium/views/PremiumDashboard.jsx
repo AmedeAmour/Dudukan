@@ -582,7 +582,7 @@ const PremiumDashboard = () => {
                 gap: '12px',
                 alignItems: 'flex-start'
               }}>
-                <div style={{
+                <div className="premium-alert-icon" style={{
                   color: alert.type === 'funding_delay' ? 'var(--zenith-status-alert)' : 'var(--zenith-secondary)',
                   marginTop: '2px'
                 }}>
@@ -633,7 +633,7 @@ const PremiumDashboard = () => {
                 alignItems: 'center'
               }}>
                 <div className="premium-priority-main" style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
-                  <div style={{
+                  <div className="premium-priority-icon" style={{
                     width: '40px',
                     height: '40px',
                     borderRadius: 'var(--radius-md)',
@@ -666,7 +666,8 @@ const PremiumDashboard = () => {
                         {currencyCode}
                       </span>
                     </div>
-                    <button 
+                    <button
+                      className="premium-priority-button"
                       onClick={() => executePriorityAction(priority)}
                       style={{
                         padding: '8px 12px',
@@ -686,6 +687,7 @@ const PremiumDashboard = () => {
                   </div>
                 ) : (
                   <button
+                    className="premium-priority-button"
                     onClick={() => {
                       if (priority.type === 'general') {
                         alert("Optimisation de surplus exécutée !");
