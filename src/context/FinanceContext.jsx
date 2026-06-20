@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '../supabaseClient';
 
@@ -47,11 +47,51 @@ export const FinanceProvider = ({ children }) => {
   const [notificationSchedule, setNotificationSchedule] = useState(DEFAULT_SCHEDULE);
   const [lastNotifiedDate, setLastNotifiedDate] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [dataLoadError, setDataLoadError] = useState(null);
+  const [loadSource, setLoadSource] = useState('idle');
+  const hasUserEditedRef = useRef(false);
 
   const storageKey = user ? `dudukan_data_${user.id}` : 'dudukan_data_anon';
 
+  const hasFinancialContent = (data) => {
+    if (!data) return false;
+    const hasArrayData =
+      (Array.isArray(data.extraIncome) && data.extraIncome.length > 0)
+      || (Array.isArray(data.expenses) && data.expenses.length > 0)
+      || (Array.isArray(data.debts) && data.debts.length > 0);
+
+    return Boolean(
+      Number(data.salary || 0) > 0
+      || Number(data.nextMonthSalary || 0) > 0
+      || Number(data.savings || 0) > 0
+      || hasArrayData
+    );
+  };
+
+  const isMeaningfulData = (data) => Boolean(data?.onboarded === true || hasFinancialContent(data));
+
+  const isEmptyFinancialData = (data) => !isMeaningfulData(data);
+
+  const markUserEdited = () => {
+    hasUserEditedRef.current = true;
+  };
+
+  const trackSetter = (setter) => (value) => {
+    markUserEdited();
+    setter(value);
+  };
+
+  const setSalaryTracked = trackSetter(setSalary);
+  const setNextMonthSalaryTracked = trackSetter(setNextMonthSalary);
+  const setCategoriesTracked = trackSetter(setCategories);
+  const setCurrencyTracked = trackSetter(setCurrency);
+  const setSavingsTracked = trackSetter(setSavings);
+  const setOnboardedTracked = trackSetter(setOnboarded);
+  const setNotificationScheduleTracked = trackSetter(setNotificationSchedule);
+
   const syncWithCloud = async (dataToSync) => {
-    if (!user || !isInitialized) return;
+    if (!user || !isInitialized || dataLoadError || loadSource === 'load_failed' || loadSource === 'local_after_cloud_error') return;
+    if (loadSource === 'new_user' && isEmptyFinancialData(dataToSync)) return;
     try {
       await supabase.from('user_data').upsert({ id: user.id, data: dataToSync, updated_at: new Date().toISOString() });
     } catch (err) {}
@@ -81,6 +121,9 @@ export const FinanceProvider = ({ children }) => {
   useEffect(() => {
     // RESET state when user changes to prevent data leaks
     setIsInitialized(false);
+    setDataLoadError(null);
+    setLoadSource('loading');
+    hasUserEditedRef.current = false;
     setSalary(0);
     setNextMonthSalary(0);
     setExtraIncome([]);
@@ -94,14 +137,16 @@ export const FinanceProvider = ({ children }) => {
     setNotificationSchedule(DEFAULT_SCHEDULE);
     setLastNotifiedDate(null);
 
-    if (!user) { 
-      setIsInitialized(true); 
+    if (!user) {
+      setLoadSource('anonymous');
+      setIsInitialized(true);
       return; 
     }
 
     const loadData = async () => {
       let bestLocalData = null;
       let newestTimestamp = 0;
+      let cloudLoadFailed = false;
       
       // For logged in users, we ONLY want their specific data
       const storageKeys = [`dudukan_data_${user.id}`];
@@ -118,30 +163,57 @@ export const FinanceProvider = ({ children }) => {
       });
 
       try {
-        const { data: cloudRow } = await supabase.from('user_data').select('data, updated_at').eq('id', user.id).single();
+        const { data: cloudRow, error } = await supabase.from('user_data').select('data, updated_at').eq('id', user.id).maybeSingle();
+        if (error) throw error;
         if (cloudRow && cloudRow.data && Object.keys(cloudRow.data).length > 2) {
           const cloudTs = new Date(cloudRow.updated_at).getTime();
+          if (bestLocalData && hasFinancialContent(bestLocalData) && !hasFinancialContent(cloudRow.data)) {
+            applyData(bestLocalData);
+            setLoadSource('local_recovery');
+            setIsInitialized(true);
+            return;
+          }
+
           if (cloudTs >= newestTimestamp || !bestLocalData) {
             applyData(cloudRow.data); 
+            setLoadSource('cloud');
             setIsInitialized(true); 
             return;
           }
         }
-      } catch (err) {}
+      } catch (err) {
+        cloudLoadFailed = true;
+      }
 
-      if (bestLocalData) applyData(bestLocalData);
+      if (cloudLoadFailed) {
+        setLoadSource('load_failed');
+        setDataLoadError("Impossible de charger vos donnees pour le moment. Vos donnees existantes n'ont pas ete modifiees.");
+        setIsInitialized(false);
+        return;
+      }
+
+      if (bestLocalData) {
+        applyData(bestLocalData);
+        setLoadSource('local');
+        setIsInitialized(true);
+        return;
+      }
+
+      setLoadSource('new_user');
       setIsInitialized(true);
     };
     loadData();
   }, [user]);
 
   useEffect(() => {
-    if (!user || !isInitialized) return;
+    if (!user || !isInitialized || dataLoadError || loadSource === 'load_failed') return;
+    if (!hasUserEditedRef.current) return;
     const dataToSave = { salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationSchedule, lastNotifiedDate };
+    if (loadSource === 'new_user' && isEmptyFinancialData(dataToSave)) return;
     localStorage.setItem(storageKey, JSON.stringify(dataToSave));
     const timeoutId = setTimeout(() => syncWithCloud(dataToSave), 2000);
     return () => clearTimeout(timeoutId);
-  }, [isInitialized, user, salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationSchedule, lastNotifiedDate]);
+  }, [isInitialized, dataLoadError, loadSource, user, salary, nextMonthSalary, extraIncome, expenses, debts, categories, onboarded, periodStart, currency, savings, lastActivity, notificationSchedule, lastNotifiedDate]);
 
   const currentMonthExpenses = expenses.filter(e => new Date(e.date) >= new Date(periodStart));
   const currentMonthIncome = extraIncome.filter(i => i.date ? new Date(i.date) >= new Date(periodStart) : true);
@@ -165,6 +237,7 @@ export const FinanceProvider = ({ children }) => {
   const addExpense = (expense, skipDebtUpdate = false) => {
     const amount = parseFloat(expense.amount);
     if (isNaN(amount)) return;
+    markUserEdited();
     const now = new Date().toISOString();
     setExpenses(prev => [...prev, { ...expense, amount, id: Date.now(), date: now }]);
     setLastActivity(now);
@@ -184,15 +257,21 @@ export const FinanceProvider = ({ children }) => {
 
   const addIncome = (income) => {
     const amount = parseFloat(income.amount);
+    if (isNaN(amount)) return;
+    markUserEdited();
     const now = new Date().toISOString();
     setExtraIncome(prev => [...prev, { ...income, amount, id: Date.now(), date: now }]);
     setLastActivity(now);
   };
 
-  const addDebt = (debt) => setDebts(prev => [...prev, { ...debt, id: Date.now(), remaining: parseFloat(debt.amount) }]);
+  const addDebt = (debt) => {
+    markUserEdited();
+    setDebts(prev => [...prev, { ...debt, id: Date.now(), remaining: parseFloat(debt.amount) }]);
+  };
   const updateDebt = (id, payment) => {
     const debt = debts.find(d => d.id === id);
     if (!debt) return;
+    markUserEdited();
     setDebts(prev => prev.map(d => d.id === id ? { ...d, remaining: Math.max(0, d.remaining - payment) } : d));
     addExpense({ amount: payment, categoryId: 'debt', note: `Remboursement : ${debt.lender}` }, true);
   };
@@ -201,12 +280,14 @@ export const FinanceProvider = ({ children }) => {
   const withdrawFromSavings = (amount, note = '') => {
     const val = parseFloat(amount);
     if (val > savings) return alert("Épargne insuffisante");
+    markUserEdited();
     setSavings(prev => prev - val);
     addIncome({ amount: val, note: note || 'Retrait épargne' });
   };
 
   const startNewPeriod = () => {
     if (window.confirm('Voulez-vous vraiment commencer un nouveau mois maintenant ? Vos compteurs de budget seront réinitialisés.')) {
+      markUserEdited();
       const rolloverBalance = balanceValue;
       const now = new Date().toISOString();
       setPeriodStart(now);
@@ -296,17 +377,18 @@ export const FinanceProvider = ({ children }) => {
 
   return (
     <FinanceContext.Provider value={{
-      isInitialized, salary, setSalary, nextMonthSalary, setNextMonthSalary,
+      isInitialized, salary, setSalary: setSalaryTracked, nextMonthSalary, setNextMonthSalary: setNextMonthSalaryTracked,
+      dataLoadError, loadSource,
       extraIncome: currentMonthIncome, allIncome: extraIncome, addIncome, 
       expenses: currentMonthExpenses, allExpenses: expenses, addExpense,
       allTransactions: [...expenses.map(e => ({ ...e, type: 'expense' })), ...extraIncome.map(i => ({ ...i, type: 'income' }))].sort((a, b) => new Date(b.date) - new Date(a.date)),
-      debts, addDebt, updateDebt, categories, setCategories, onboarded, setOnboarded,
+      debts, addDebt, updateDebt, categories, setCategories: setCategoriesTracked, onboarded, setOnboarded: setOnboardedTracked,
       totalIncome: totalIncomeValue, totalExpenses: totalExpensesValue, balance: balanceValue,
       getCategorySpent, getCategoryBudget,
       daysRemaining: Math.max(1, new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1),
       resteAVivre: balanceValue > 0 ? Math.round(balanceValue / 30) : 0,
-      startNewPeriod, currency, setCurrency, formatCurrency, savings, setSavings, addToSavings, withdrawFromSavings,
-      notificationSchedule, setNotificationSchedule, lastNotifiedDate, setLastNotifiedDate,
+      startNewPeriod, currency, setCurrency: setCurrencyTracked, formatCurrency, savings, setSavings: setSavingsTracked, addToSavings, withdrawFromSavings,
+      notificationSchedule, setNotificationSchedule: setNotificationScheduleTracked, lastNotifiedDate, setLastNotifiedDate,
       resetData: async () => { if (user) { try { await supabase.from('user_data').delete().eq('id', user.id); } catch (e) {} } localStorage.clear(); window.location.reload(); },
       getFinancialHealth
     }}>

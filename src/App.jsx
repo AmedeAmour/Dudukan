@@ -58,7 +58,7 @@ const AdminAccessDenied = ({ user, onSignOut }) => (
 );
 
 const AppContent = () => {
-  const { onboarded, isInitialized, profile } = useFinance();
+  const { onboarded, isInitialized, profile, dataLoadError } = useFinance();
   const { session, loading, user, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [appMode, setAppMode] = useState('free');
@@ -130,6 +130,22 @@ const AppContent = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activeTab]);
+
+  if (dataLoadError) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div className="card" style={{ width: '100%', maxWidth: '430px', padding: '22px', textAlign: 'center' }}>
+          <h1 className="font-outfit" style={{ margin: '0 0 10px', color: 'var(--navy)', fontSize: '22px' }}>Synchronisation indisponible</h1>
+          <p style={{ margin: '0 0 18px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+            Vos données n'ont pas été modifiées. Vérifiez votre connexion puis rechargez l'application.
+          </p>
+          <button type="button" className="btn-primary" onClick={() => window.location.reload()} style={{ width: '100%' }}>
+            Recharger mes données
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading || !isInitialized || premiumAccessLoading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-main)', color: 'var(--navy)', fontWeight: '600' }}>Chargement de vos données...</div>;
