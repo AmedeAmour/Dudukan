@@ -85,15 +85,24 @@ Le risque est plus eleve quand:
 
 Priorite P0:
 
-1. Ne jamais sauvegarder dans `user_data` si le chargement cloud a echoue.
-2. Distinguer explicitement:
+1. Ajouter un garde-fou cote Supabase sur `public.user_data`.
+2. Refuser en base l'ecrasement d'une ligne contenant des donnees financieres par une ligne vide/quasi vide.
+3. Ne jamais sauvegarder dans `user_data` si le chargement cloud a echoue.
+4. Distinguer explicitement:
    - `loaded_from_cloud`
    - `loaded_from_local`
    - `new_user_confirmed`
    - `load_failed`
-3. Si le chargement echoue, afficher un etat bloquant et ne pas ecrire.
-4. Ne creer une ligne vide que pour un nouvel utilisateur confirme, pas pour une erreur reseau.
-5. Ajouter un garde-fou: refuser d'ecraser une ligne existante non vide par une ligne vide.
+5. Si le chargement echoue, afficher un etat bloquant et ne pas ecrire.
+6. Ne creer une ligne vide que pour un nouvel utilisateur confirme, pas pour une erreur reseau.
+
+Le garde-fou SQL prepare est:
+
+- `supabase/migrations/20260620_prevent_user_data_empty_overwrite.sql`
+
+Le test SQL non destructif prepare est:
+
+- `supabase/audit/06_test_user_data_empty_overwrite_guard.sql`
 
 Priorite P1:
 
@@ -121,8 +130,10 @@ Priorite P2:
 
 ## Suite proposee
 
-1. Implementer le correctif P0 dans `FinanceContext.jsx`.
-2. Tester en local avec simulation d'erreur Supabase.
-3. Tester avec un compte qui a deja des donnees.
-4. Tester avec un nouveau compte.
-5. Seulement apres validation, reprendre le flux FedaPay.
+1. Appliquer le garde-fou SQL uniquement sur une base preview/test.
+2. Executer le test SQL non destructif sur cette base preview/test.
+3. Deployer l'application uniquement en preview Vercel.
+4. Tester avec un compte qui a deja des donnees.
+5. Tester avec un nouveau compte.
+6. Tester le retour paiement/FedaPay en preview.
+7. Seulement apres validation, planifier une application controlee du garde-fou SQL en production, puis le deploiement applicatif production.
