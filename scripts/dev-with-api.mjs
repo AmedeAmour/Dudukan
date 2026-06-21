@@ -2,25 +2,41 @@ import http from 'node:http';
 import fs from 'node:fs';
 import { createServer as createViteServer } from 'vite';
 
-const loadEnvFile = (path) => {
-  if (!fs.existsSync(path)) return;
+const loadEnvFile = (path, { override = false } = {}) => {
+  const loadedKeys = new Set();
+  if (!fs.existsSync(path)) return loadedKeys;
   const lines = fs.readFileSync(path, 'utf8').split(/\r?\n/);
   lines.forEach((line) => {
     if (!/^[A-Za-z_][A-Za-z0-9_]*=/.test(line)) return;
     const index = line.indexOf('=');
     const key = line.slice(0, index);
     const value = line.slice(index + 1).replace(/^"|"$/g, '');
-    if (!process.env[key] && value) process.env[key] = value;
+    if ((override || !process.env[key]) && value) {
+      process.env[key] = value;
+      loadedKeys.add(key);
+    }
   });
+  return loadedKeys;
 };
+
+const mode = process.env.DEV_MODE || process.env.VITE_MODE || 'development';
 
 loadEnvFile('.env');
 loadEnvFile('.env.local');
-loadEnvFile('.vercel/.env.production.local');
-loadEnvFile('.vercel/.env.preview.local');
+loadEnvFile(`.env.${mode}`);
+const modeLocalKeys = loadEnvFile(`.env.${mode}.local`, { override: true });
+const vercelModeKeys = loadEnvFile(`.vercel/.env.${mode}.local`, { override: true });
+
+if (mode !== 'development') {
+  const hasModeServiceRole = modeLocalKeys.has('SUPABASE_SERVICE_ROLE_KEY') || vercelModeKeys.has('SUPABASE_SERVICE_ROLE_KEY');
+  if (!hasModeServiceRole) {
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  }
+}
 
 const port = Number(process.env.DEV_PORT || 5173);
 const vite = await createViteServer({
+  mode,
   server: { middlewareMode: true },
   appType: 'spa',
 });
@@ -62,5 +78,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(port, () => {
-  console.log(`Dudukan local with API ready at http://localhost:${port}`);
+  console.log(`Dudukan local with API (${mode}) ready at http://localhost:${port}`);
 });
