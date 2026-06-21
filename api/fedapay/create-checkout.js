@@ -39,6 +39,15 @@ const getFedaPaySecretKey = () => {
     : process.env.FEDAPAY_SANDBOX_SECRET_KEY || process.env.FEDAPAY_SECRET_KEY;
 };
 
+const buildReturnUrl = (req) => {
+  const origin = req.headers.origin || process.env.APP_URL || `https://${req.headers.host}`;
+  if (process.env.VERCEL_ENV === 'preview') {
+    return `${origin}/?payment=pending`;
+  }
+
+  return process.env.FEDAPAY_RETURN_URL || `${origin}/?payment=success`;
+};
+
 const splitName = (fullName = '') => {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
   return {
@@ -126,8 +135,7 @@ export default async function handler(req, res) {
     }
 
     const { body } = await readJsonBody(req);
-    const origin = req.headers.origin || process.env.APP_URL || `https://${req.headers.host}`;
-    const returnUrl = process.env.FEDAPAY_RETURN_URL || `${origin}/?payment=success`;
+    const returnUrl = buildReturnUrl(req);
     const fullName = user.user_metadata?.full_name || user.email || '';
     const { firstname, lastname } = splitName(fullName);
     const selectedMethod = body?.selectedMethod || null;
