@@ -131,7 +131,15 @@ export default async function handler(req, res) {
     const plan = await getPlusPlan(supabase);
     const { user, error: userError } = await getUserFromRequest(req, supabase);
     if (userError || !user) {
-      return sendJson(res, 401, { error: 'Session invalide. Reconnectez-vous puis réessayez.' });
+      console.warn('FedaPay checkout rejected session:', {
+        code: userError?.code || userError?.name || 'missing_user',
+        status: userError?.status || null,
+        message: userError?.message || 'No authenticated user returned.',
+      });
+      return sendJson(res, 401, {
+        error: 'Session invalide. Reconnectez-vous puis réessayez.',
+        code: 'INVALID_SESSION',
+      });
     }
 
     const { body } = await readJsonBody(req);
