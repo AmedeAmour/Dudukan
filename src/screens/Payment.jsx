@@ -114,10 +114,49 @@ const Payment = ({
     let attempts = 0;
     let timeoutId;
 
+    const confirmPaymentReturn = async () => {
+      if (!session?.access_token) return false;
+
+      const params = new URLSearchParams();
+      if (paymentReturnInfo?.transactionId) {
+        params.set('transaction_id', paymentReturnInfo.transactionId);
+      }
+
+      const response = await fetch(`/api/fedapay/confirm-return?${params.toString()}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Confirmation du paiement indisponible.');
+      }
+
+      return data?.premiumActivated === true || data?.confirmed === true;
+    };
+
     const pollPremiumAccess = async () => {
       if (cancelled) return;
       attempts += 1;
       setConfirmationCheckActive(true);
+
+      if (attempts === 1) {
+        try {
+          const confirmed = await confirmPaymentReturn();
+          if (cancelled) return;
+          if (confirmed) {
+            setPaymentError('');
+            setConfirmationCheckActive(false);
+            setPaymentStep('success');
+            return;
+          }
+        } catch (error) {
+          if (cancelled) return;
+          setPaymentError(error.message || 'Confirmation du paiement indisponible.');
+        }
+      }
 
       const hasAccess = await onRefreshAccess();
       if (cancelled) return;
@@ -143,7 +182,7 @@ const Payment = ({
       cancelled = true;
       window.clearTimeout(timeoutId);
     };
-  }, [onRefreshAccess, returnStatus, paymentReturnInfo?.transactionId]);
+  }, [onRefreshAccess, returnStatus, paymentReturnInfo?.transactionId, session?.access_token]);
 
   const handlePaymentSubmit = (e) => {
     e.preventDefault();

@@ -56,6 +56,7 @@ const apiRoutes = {
   '/api/admin/grant-plus': '../api/admin/grant-plus.js',
   '/api/admin/app-settings': '../api/admin/app-settings.js',
   '/api/fedapay/create-checkout': '../api/fedapay/create-checkout.js',
+  '/api/fedapay/confirm-return': '../api/fedapay/confirm-return.js',
   '/api/fedapay/webhook': '../api/fedapay/webhook.js',
 };
 
