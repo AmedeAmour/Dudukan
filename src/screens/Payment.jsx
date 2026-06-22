@@ -184,9 +184,35 @@ const Payment = ({
     };
   }, [onRefreshAccess, returnStatus, paymentReturnInfo?.transactionId, session?.access_token]);
 
-  const handlePaymentSubmit = (e) => {
+  const getFreshAccessToken = async () => {
+    const { data: sessionResult } = await supabase.auth.getSession();
+    let accessToken = sessionResult?.session?.access_token || session?.access_token;
+
+    if (!accessToken) {
+      const { data: refreshResult } = await supabase.auth.refreshSession();
+      accessToken = refreshResult?.session?.access_token || null;
+    }
+
+    return accessToken;
+  };
+
+  const requestCheckout = async (accessToken) => {
+    const response = await fetch('/api/fedapay/create-checkout', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ selectedMethod }),
+    });
+    const data = await response.json();
+    return { response, data };
+  };
+
+  const handlePaymentSubmit = async (e) => {
     e.preventDefault();
-    if (!session?.access_token) {
+    const accessToken = await getFreshAccessToken();
+    if (!accessToken) {
       setPaymentError('Votre session a expiré. Reconnectez-vous puis réessayez.');
       return;
     }
@@ -195,36 +221,36 @@ const Payment = ({
     setPaymentError('');
     setProcessingStatus('Création de votre paiement sécurisé...');
 
-    fetch('/api/fedapay/create-checkout', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ selectedMethod }),
-    })
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data?.error || "Impossible d'initialiser le paiement.");
-        }
+    try {
+      let { response, data } = await requestCheckout(accessToken);
 
-        if (data.alreadyPremium) {
-          setPaymentStep('success');
-          return;
+      if (response.status === 401) {
+        const { data: refreshResult } = await supabase.auth.refreshSession();
+        const refreshedToken = refreshResult?.session?.access_token;
+        if (refreshedToken) {
+          ({ response, data } = await requestCheckout(refreshedToken));
         }
+      }
 
-        if (!data.checkoutUrl) {
-          throw new Error('Lien de paiement introuvable.');
-        }
+      if (!response.ok) {
+        throw new Error(data?.error || "Impossible d'initialiser le paiement.");
+      }
 
-        setProcessingStatus('Redirection vers la page de paiement sécurisée...');
-        window.location.href = data.checkoutUrl;
-      })
-      .catch((err) => {
-        setPaymentError(err.message || "Erreur lors de l'initialisation du paiement.");
-        setPaymentStep('selection');
-      });
+      if (data.alreadyPremium) {
+        setPaymentStep('success');
+        return;
+      }
+
+      if (!data.checkoutUrl) {
+        throw new Error('Lien de paiement introuvable.');
+      }
+
+      setProcessingStatus('Redirection vers la page de paiement sécurisée...');
+      window.location.href = data.checkoutUrl;
+    } catch (err) {
+      setPaymentError(err.message || "Erreur lors de l'initialisation du paiement.");
+      setPaymentStep('selection');
+    }
   };
 
   const handleFinish = async () => {
