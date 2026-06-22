@@ -5,8 +5,12 @@ import { DEFAULT_PLUS_PLAN, getPlusPlan } from '../_utils/plusPlan.js';
 const APP_CODE = 'dudukan';
 const MERCHANT_REFERENCE_PREFIX = 'DUDUKAN-';
 
+const cleanEnvValue = (value) => {
+  return typeof value === 'string' ? value.replace(/^\uFEFF/, '').trim() : value;
+};
+
 const getFedaPayEnvironment = () => {
-  return process.env.FEDAPAY_ENVIRONMENT === 'live' ? 'live' : 'sandbox';
+  return cleanEnvValue(process.env.FEDAPAY_ENVIRONMENT) === 'live' ? 'live' : 'sandbox';
 };
 
 const getFedaPayBaseUrl = () => {
@@ -15,9 +19,10 @@ const getFedaPayBaseUrl = () => {
 
 const getFedaPaySecretKey = () => {
   const env = getFedaPayEnvironment();
-  return env === 'live'
+  const key = env === 'live'
     ? process.env.FEDAPAY_LIVE_SECRET_KEY || process.env.FEDAPAY_SECRET_KEY
     : process.env.FEDAPAY_SANDBOX_SECRET_KEY || process.env.FEDAPAY_SECRET_KEY;
+  return cleanEnvValue(key);
 };
 
 const fedapayRequest = async (path) => {

@@ -29,14 +29,19 @@ const getFedaPayBaseUrl = () => {
 };
 
 const getFedaPayEnvironment = () => {
-  return process.env.FEDAPAY_ENVIRONMENT === 'live' ? 'live' : 'sandbox';
+  return cleanEnvValue(process.env.FEDAPAY_ENVIRONMENT) === 'live' ? 'live' : 'sandbox';
+};
+
+const cleanEnvValue = (value) => {
+  return typeof value === 'string' ? value.replace(/^\uFEFF/, '').trim() : value;
 };
 
 const getFedaPaySecretKey = () => {
   const env = getFedaPayEnvironment();
-  return env === 'live'
+  const key = env === 'live'
     ? process.env.FEDAPAY_LIVE_SECRET_KEY || process.env.FEDAPAY_SECRET_KEY
     : process.env.FEDAPAY_SANDBOX_SECRET_KEY || process.env.FEDAPAY_SECRET_KEY;
+  return cleanEnvValue(key);
 };
 
 const buildReturnUrl = (req) => {

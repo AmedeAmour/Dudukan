@@ -13,15 +13,20 @@ const timingSafeEqual = (a, b) => {
   return left.length === right.length && crypto.timingSafeEqual(left, right);
 };
 
+const cleanEnvValue = (value) => {
+  return typeof value === 'string' ? value.replace(/^\uFEFF/, '').trim() : value;
+};
+
 const getFedaPayEnvironment = () => {
-  return process.env.FEDAPAY_ENVIRONMENT === 'live' ? 'live' : 'sandbox';
+  return cleanEnvValue(process.env.FEDAPAY_ENVIRONMENT) === 'live' ? 'live' : 'sandbox';
 };
 
 const getFedaPayWebhookSecret = () => {
   const env = getFedaPayEnvironment();
-  return env === 'live'
+  const secret = env === 'live'
     ? process.env.FEDAPAY_LIVE_WEBHOOK_SECRET || process.env.FEDAPAY_WEBHOOK_SECRET
     : process.env.FEDAPAY_SANDBOX_WEBHOOK_SECRET || process.env.FEDAPAY_WEBHOOK_SECRET;
+  return cleanEnvValue(secret);
 };
 
 const isWebhookSignatureRequired = () => {
